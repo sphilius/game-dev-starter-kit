@@ -180,7 +180,7 @@ class Forge:
         for k, v in g.get("options", {}).items():
             args += ["--opt", f"{k}={json.dumps(v)}"]
         rep = _gen3d(args)
-        return raw, rep
+        return rep.get("out", raw), rep       # gen3d renames the file if the result is FBX/OBJ
 
     def cleanup(self):
         rig = (self.m.get("rig") or {}).get("method", "none")
@@ -226,7 +226,8 @@ class Forge:
             args = ["rig", "--provider", method, "--task", gen_task, "--out", out]
             for k, v in r.get("options", {}).items():
                 args += ["--opt", f"{k}={json.dumps(v)}"]
-            return out, _gen3d(args)
+            rep = _gen3d(args)
+            return rep.get("out", out), rep
         raise ValueError(f"unknown rig method {method}")
 
     def animate(self):

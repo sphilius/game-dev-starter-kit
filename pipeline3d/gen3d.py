@@ -302,6 +302,25 @@ def _wait(p, task, timeout, quiet=False):
         delay = min(delay * 1.5, 20)
 
 
+def _fix_extension(out, url):
+    """Rename the download to match its real format (a preferred FBX must not be saved as .glb)."""
+    with open(out, "rb") as fh:
+        head = fh.read(20)
+    if head.startswith(b"glTF"):
+        ext = ".glb"
+    elif head.startswith(b"Kaydara FBX Binary"):
+        ext = ".fbx"
+    elif head.startswith(b"PK"):
+        ext = ".zip"
+    else:
+        ext = os.path.splitext(url.split("?")[0])[1].lower() or os.path.splitext(out)[1]
+    if os.path.splitext(out)[1].lower() == ext:
+        return out
+    fixed = os.path.splitext(out)[0] + ext
+    os.replace(out, fixed)
+    return fixed
+
+
 def _download_result(p, task, out, prefer):
     raw = p.result(task) if isinstance(p, Rodin) else p.status(task)["raw"]
     ext = os.path.splitext(out)[1].lstrip(".").lower() or "glb"
@@ -309,7 +328,9 @@ def _download_result(p, task, out, prefer):
     if not url:
         raise RuntimeError(f"no model URL in result: {json.dumps(raw)[:600]}")
     size = _download(url, out)
-    sidecar = {"provider": type(p).__name__.lower(), "task": task, "source_field": path, "bytes": size}
+    out = _fix_extension(out, url)
+    sidecar = {"provider": type(p).__name__.lower(), "task": task, "source_field": path, "bytes": size,
+               "format": os.path.splitext(out)[1].lstrip("."), "url": url}
     with open(out + ".gen3d.json", "w") as fh:
         json.dump(sidecar, fh, indent=1)
     return {"ok": True, "out": os.path.abspath(out), **sidecar}
