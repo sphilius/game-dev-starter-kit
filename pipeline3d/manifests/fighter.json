@@ -1,0 +1,24 @@
+{
+  "name": "fighter",
+  "kind": "character",
+  "notes": "Karambit benchmark body: image -> Tripo (Rodin as fallback) -> cleanup -> Mixamo -> Mixamo clips -> Godot.",
+  "concept": {
+    "tool": "banana",
+    "out": "fighter_front.png",
+    "prompt": "Full-body character reference, single figure, front view, A-pose with arms 45 degrees down and away from the body, hands open with fingers slightly spread, athletic lean martial artist, fitted sleeveless compression top, cloth wraps on forearms, fitted tapered trousers, low-profile shoes, short hair tied back. Flat even studio lighting, no cast shadows, neutral mid-grey matte clay material, plain light-grey background, orthographic camera, sharp silhouette, feet fully visible. Do not include any weapon, props, text or cast shadows."
+  },
+  "generate": {
+    "provider": "tripo",
+    "mode": "image",
+    "options": {"face_limit": 15000, "quad": true, "texture": false}
+  },
+  "cleanup": {"target_tris": 12000, "target_height_m": 1.78, "origin": "FEET", "remove_floaters_below": 0.02},
+  "rig": {"method": "mixamo"},
+  "animations": {
+    "method": "clips_dir",
+    "expect": ["idle", "walk", "punch", "hit_react", "death"],
+    "rename": {"standing_idle": "idle", "walking": "walk"},
+    "hips_bone": "mixamorig:Hips"
+  },
+  "export": {"godot_project": "~/karambit_bench_godot"}
+}

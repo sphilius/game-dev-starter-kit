@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "blender": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/sphilius/blender-mcp", "blender-mcp"],
+      "env": {
+        "BLENDER_MCP_SCRIPTS_DIR": "C:/Users/<you>/game-dev-starter-kit/pipeline3d/blender",
+        "BLENDER_MCP_TIMEOUT": "300",
+        "TRIPO_API_KEY": "",
+        "MESHY_API_KEY": "",
+        "RODIN_API_KEY": ""
+      }
+    },
+    "godot": {
+      "command": "node",
+      "args": ["C:/Users/<you>/tools/godot-mcp/build/index.js"],
+      "env": {
+        "GODOT_PATH": "C:/Tools/Godot_v4.4.1-stable_win64.exe"
+      }
+    }
+  }
+}

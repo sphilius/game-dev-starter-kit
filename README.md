@@ -35,7 +35,9 @@ The skills and reference modules here are generic building blocks for any 2D gam
 │       ├── procedural-art/      # Pure-code 2D graphics, vector math, and shaders
 │       ├── procedural-composer/ # Pure-code audio synthesis and chiptune sound engine
 │       ├── sprite-animation/    # Sprite sheet slicing, animation states, and Aseprite format
-│       └── swarm-coding/        # Multi-agent task parallelization
+│       ├── swarm-coding/        # Multi-agent task parallelization
+│       └── blender-godot-pipeline/ # 3D: AI generation -> Blender -> Godot 4 (see pipeline3d/)
+├── pipeline3d/                  # 3D asset pipeline: forge.py, gen3d.py, Blender scripts, Godot template
 ├── check_env.sh                 # Pre-flight environment check script
 └── README.md
 ```
@@ -80,6 +82,11 @@ The skills and reference modules here are generic building blocks for any 2D gam
 
 - [`swarm-coding`](.agents/skills/swarm-coding/SKILL.md)  
   Decomposes complex engineering features into isolated subtasks for parallel execution.
+
+### 3D Pipeline (Blender → Godot 4)
+
+- [`blender-godot-pipeline`](.agents/skills/blender-godot-pipeline/SKILL.md)
+  Routes 3D requests to [`pipeline3d/`](pipeline3d/README.md): cloud generation (Tripo, Meshy, Hyper3D Rodin), mesh cleanup, quadruped auto-rig with procedural clips, Mixamo/AccuRIG hand-offs, clip merging, clothing weight transfer, UDIM fixes, baking, GLB export and a Godot 4 template with an import plugin, asset viewer, character controller and headless audit. Everything is driven by `forge.py` asset manifests or live through [Blender MCP](https://github.com/sphilius/blender-mcp).
 
 ## Quick Start
 

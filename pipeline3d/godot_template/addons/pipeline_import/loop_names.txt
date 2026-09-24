@@ -1,0 +1,23 @@
+# One keyword per line. An animation loops when any word of its name matches
+# (words are split on _ - . and spaces): "wolf_idle", "Idle", "run-fast" all loop.
+# Add "_once" to a clip name to force it NOT to loop.
+idle
+walk
+walking
+run
+running
+jogging
+trot
+gallop
+sprint
+jog
+strafe
+crouch_walk
+swim
+swimming
+fly
+flying
+hover
+breathe
+loop
+cycle

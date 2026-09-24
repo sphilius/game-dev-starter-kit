@@ -1,0 +1,19 @@
+{
+  "name": "wolf",
+  "kind": "quadruped",
+  "notes": "Stefan 3D AI wolf workflow without the hour of agent keyframing: Tripo mesh -> cleanup -> procedural 31-bone rig + 4 in-place clips at 30 fps.",
+  "concept": {
+    "tool": "banana",
+    "out": "wolf_side.png",
+    "prompt": "Full-body side view of a lean grey wolf standing square on all four legs, legs clearly separated, tail held out behind, mouth closed, neutral pose. Flat even studio lighting, no cast shadows, plain light-grey background, orthographic camera, sharp silhouette, whole animal in frame."
+  },
+  "generate": {
+    "provider": "tripo",
+    "mode": "image",
+    "options": {"face_limit": 10000, "quad": true}
+  },
+  "cleanup": {"target_tris": 8000, "target_height_m": 0.85, "origin": "FEET", "remove_floaters_below": 0.02},
+  "rig": {"method": "quadruped", "clip_prefix": "wolf_", "config": {"stride_deg": 24}},
+  "animations": {"method": "procedural"},
+  "export": {"godot_project": "~/pipeline3d_game"}
+}

@@ -1,0 +1,12 @@
+{
+  "name": "karambit",
+  "kind": "weapon",
+  "notes": "Procedural: guaranteed ring hole (chi = 0), origin at the ring centre = swivel pivot. Karambit benchmark step 5.",
+  "generate": {
+    "procedural": "build_karambit.py",
+    "config": {"blade_sweep_deg": 140, "ring_minor_r": 0.005}
+  },
+  "cleanup": false,
+  "rig": {"method": "none"},
+  "export": {"godot_project": "~/karambit_bench_godot"}
+}
