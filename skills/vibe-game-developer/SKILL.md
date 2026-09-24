@@ -29,6 +29,7 @@ When responding to user requests, evaluate the underlying engineering need and a
 | **2D Sprite Animation (Animator Role)** | **[`sprite-animation`](../sprite-animation/SKILL.md)** | Animator subagent role: sprite sheet grid slicing, animation tag state machines, Aseprite `.ase`/`.aseprite` parsing, `SolarLune/goaseprite` integration, and Go controllers. |
 | **Go Code Quality & Testing** | **[`godoctor`](../godoctor/SKILL.md)** | Go style guidelines, flat package architecture, `smart_build`, `smart_edit`, TestQuery SQL test log analyzer, and Selene mutation testing. |
 | **Parallel Feature Swarm Orchestration** | **[`swarm-coding`](../swarm-coding/SKILL.md)** | Multi-agent parallel task decomposition for full-stack features or large refactorings. |
+| **3D Models, Rigging, Animation & Godot 4** | **[`blender-godot-pipeline`](../blender-godot-pipeline/SKILL.md)** | AI 3D generation (Tripo, Meshy, Rodin), Blender cleanup/rig/bake/export scripts, Mixamo/quadruped rigs, clip merging, Blender MCP + Godot MCP, headless `forge.py` manifests. Use for any 3D or Godot request; the rest of this suite is 2D Go/Ebitengine. |
 
 ---
 

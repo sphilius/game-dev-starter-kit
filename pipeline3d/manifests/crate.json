@@ -1,0 +1,14 @@
+{
+  "name": "crate",
+  "kind": "prop",
+  "notes": "Cheapest path for props: Meshy text-to-3D preview (no texture pass) -> cleanup -> convex collision.",
+  "generate": {
+    "provider": "meshy",
+    "mode": "text",
+    "prompt": "weathered wooden supply crate with iron corner brackets, game asset",
+    "options": {"art_style": "realistic", "topology": "quad", "target_polycount": 3000}
+  },
+  "cleanup": {"target_tris": 2000, "target_height_m": 0.8, "origin": "FEET"},
+  "rig": {"method": "none"},
+  "export": {"collision": "convex", "godot_project": "~/pipeline3d_game"}
+}

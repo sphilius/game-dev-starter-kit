@@ -1,0 +1,14 @@
+{
+  "name": "hero",
+  "kind": "character",
+  "notes": "Fully hands-off humanoid: Meshy image-to-3D -> Meshy auto-rig -> Meshy animation library. Action ids come from Meshy's animation library docs; the ones below are placeholders to replace.",
+  "concept": {"image": "../build/fighter/refs/fighter_front.png"},
+  "generate": {
+    "provider": "meshy",
+    "mode": "image",
+    "options": {"topology": "quad", "target_polycount": 15000, "should_remesh": true, "enable_pbr": true}
+  },
+  "rig": {"method": "meshy", "options": {"height_meters": 1.78}},
+  "animations": {"method": "meshy", "clips": {"idle": 0, "walk": 1, "run": 14}},
+  "export": {"godot_project": "~/pipeline3d_game"}
+}
