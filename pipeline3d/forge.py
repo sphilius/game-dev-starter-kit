@@ -141,6 +141,10 @@ class Forge:
         if c.get("image") and os.path.exists(self.src(c["image"])):
             shutil.copy2(self.src(c["image"]), out)
             return out, "copied existing reference"
+        if os.path.exists(out):
+            # Generated (or hand-placed) on an earlier run and left there = approved.
+            # Delete it to generate a new one.
+            return out, "using existing reference"
         if c.get("tool") == "banana" and shutil.which("uv") and os.path.exists(BANANA):
             cmd = ["uv", "run", BANANA, "-p", c["prompt"], "-f", out, "-m", c.get("model", "nano-banana-2")]
             for ref in c.get("style_refs", []):
@@ -271,12 +275,21 @@ class Forge:
         proj = os.path.expanduser(self.src(proj))
         godot = _exe("GODOT", "godot")
         imp = subprocess.run([godot, "--headless", "--path", proj, "--import"], capture_output=True, text=True)
+        if imp.returncode != 0:
+            raise RuntimeError(f"godot --import failed ({imp.returncode}): {(imp.stderr or imp.stdout)[-600:]}")
         lines = [l for l in imp.stdout.splitlines() if l.startswith("[pipeline_import]") and self.name in l]
         audit_path = self.p("work", "godot_audit.json")
-        subprocess.run([godot, "--headless", "--path", proj, "-s", "res://tools/asset_audit.gd", "--",
-                        "res://assets", f"--out={audit_path}"], capture_output=True, text=True)
-        audit = json.load(open(audit_path)) if os.path.exists(audit_path) else {}
-        mine = [x for x in audit.get("assets", []) if os.path.basename(x["path"]).startswith(self.name)]
+        if os.path.exists(audit_path):
+            os.remove(audit_path)          # never judge this run by a stale audit
+        aud = subprocess.run([godot, "--headless", "--path", proj, "-s", "res://tools/asset_audit.gd", "--",
+                              "res://assets", f"--out={audit_path}"], capture_output=True, text=True)
+        if not os.path.exists(audit_path):
+            raise RuntimeError(f"Godot audit produced no report ({aud.returncode}): {(aud.stderr or aud.stdout)[-600:]}")
+        audit = json.load(open(audit_path))
+        exported = os.path.basename(self.out("export") or f"{self.name}.glb")
+        mine = [x for x in audit.get("assets", []) if os.path.basename(x["path"]) == exported]
+        if not mine:
+            raise RuntimeError(f"{exported} is missing from the Godot audit of res://assets")
         if any(x["errors"] for x in mine):
             raise RuntimeError(f"Godot audit errors: {[x['errors'] for x in mine]}")
         return audit_path, {"import": lines, "audit": mine}

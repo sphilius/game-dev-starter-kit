@@ -7,7 +7,7 @@ config_version=5
 
 config/name="Pipeline3D"
 run/main_scene="res://scenes/asset_viewer.tscn"
-config/features=PackedStringArray("4.4", "Forward Plus")
+config/features=PackedStringArray("4.3", "Forward Plus")
 
 [editor_plugins]
 
