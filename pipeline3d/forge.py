@@ -145,15 +145,20 @@ class Forge:
             # Generated (or hand-placed) on an earlier run and left there = approved.
             # Delete it to generate a new one.
             return out, "using existing reference"
+        why = ""
         if c.get("tool") == "banana" and shutil.which("uv") and os.path.exists(BANANA):
             cmd = ["uv", "run", BANANA, "-p", c["prompt"], "-f", out, "-m", c.get("model", "nano-banana-2")]
             for ref in c.get("style_refs", []):
                 cmd += ["-i", self.src(ref)]
-            subprocess.run(cmd, check=True)
-            raise ManualStep(f"Reference generated at {out}. Check it against the pass list in the "
-                             f"runbook (full body, arms apart, open hands, flat light). Regenerate or edit if "
-                             f"needed, then re-run forge.")
-        raise ManualStep(f"Generate a reference image with this prompt (Nano Banana / Gemini, Flux, "
+            proc = subprocess.run(cmd, capture_output=True, text=True)
+            if proc.returncode == 0 and os.path.exists(out):
+                raise ManualStep(f"Reference generated at {out}. Check it against the pass list in the "
+                                 f"runbook (full body, arms apart, open hands, flat light). Regenerate or edit if "
+                                 f"needed, then re-run forge.")
+            # Usually missing Google credentials: fall back to the manual step instead of failing.
+            err = (proc.stderr or proc.stdout).strip().splitlines()
+            why = f"Nano Banana couldn't run ({err[-1] if err else 'unknown error'}).\n\n"
+        raise ManualStep(why + f"Generate a reference image with this prompt (Nano Banana / Gemini, Flux, "
                          f"Midjourney, Bing Image Creator) and save it as {out}, or set concept.image:\n\n"
                          f"{c.get('prompt', '(no prompt in manifest)')}")
 
