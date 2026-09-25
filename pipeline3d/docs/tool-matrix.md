@@ -29,10 +29,11 @@ shader, not the geometry. Keep artist and franchise names out of prompts for shi
 | **Meshy** (meshy.ai) | 🎟 free credits monthly; API on paid plans | Text/image → 3D, remesh to quads, humanoid auto-rig and an animation library over the API | 🤖 `gen3d.py --provider meshy` |
 | **Hyper3D Rodin** (hyper3d.ai) | 🎟 Blender MCP add-on has a shared daily free-trial key (it was at 0 balance when checked on 2026-09-24); own key via hyper3d.ai or fal.ai | High-detail single objects, Quad mesh mode, Gen-2 tier | 🤖 Blender MCP `generate_hyper3d_model_via_*` (now with `tier`, `mesh_mode`), `gen3d.py --provider rodin` |
 | Hi3D | 🎟 | Your sources show very detailed 2K meshes and an agent that splits concepts into parts (unverified by me) | 🖐 download GLB → `generate.file` |
-| Hunyuan3D 2.x (Tencent) | 🆓 open weights, local GPU (~12-16 GB VRAM for shape+texture) or free HF Space; its licence excludes some regions (EU, UK, South Korea) so read it | Good free image-to-3D with textures | 🖐 run locally → `generate.file` |
+| Hunyuan3D 2.x (Tencent) | 🆓 open weights under the **Tencent Hunyuan 3D Community License** (not Apache/MIT): local GPU or Tencent's web app | Good free image-to-3D with textures | 🖐 run locally → `generate.file`. **Licence**: not valid in the EU, UK or South Korea; outputs are yours (Tencent claims no rights) and commercial use is allowed; >1M monthly users needs a separate licence; outputs can't be used to improve other AI models; public AI-made content must be marked as machine generated (AUP 12) |
 | TRELLIS (Microsoft) | 🆓 MIT, local GPU or HF Space | Clean geometry from one image | 🖐 → `generate.file` |
 | Poly Haven | 🆓 CC0 | Real-world scanned props, textures, HDRIs | 🤖 Blender MCP `download_polyhaven_asset` |
 | Procedural Blender scripts | 🆓 | Weapons, mechanisms, modular kits, anything needing exact holes, pivots or dimensions | 🤖 `generate.procedural` |
+| `build_lowpoly_creature.py` | 🆓 🤖 | Faceted low-poly animals (wolf, boar, bear, deer, cat presets), ~900 tris, flat colours, no UVs; rigs with `quadruped` | 🤖 `generate.procedural` (see `manifests/lowpoly_boar.json`) |
 
 Generation rules: **one part per job** (body, then each garment/armour piece, then props);
 ask for quads and a face budget up front (characters 10-25k, props 1-8k); generate 3-4

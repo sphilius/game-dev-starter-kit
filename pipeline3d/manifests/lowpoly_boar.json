@@ -1,0 +1,13 @@
+{
+  "name": "lowpoly_boar",
+  "kind": "quadruped",
+  "notes": "Zero-cost creature: procedural low-poly body (no AI, no keys) -> quadruped auto-rig + 4 clips. Presets: wolf, boar, bear, deer, cat.",
+  "generate": {
+    "procedural": "build_lowpoly_creature.py",
+    "config": {"preset": "boar", "target_tris": 900, "height_m": 0.9}
+  },
+  "cleanup": false,
+  "rig": {"method": "quadruped", "clip_prefix": "boar_"},
+  "animations": {"method": "procedural"},
+  "export": {"godot_project": "~/pipeline3d_game"}
+}

@@ -26,6 +26,8 @@ Everything is plain Python and GDScript: **Blender 4.2+**, **Godot 4.3+**, and *
 | `forge.py` | Orchestrator. One JSON manifest per asset; resumable stages; stops with instructions at manual steps |
 | `gen3d.py` | CLI for Tripo / Meshy / Rodin: generate, poll, download, auto-rig, animate. Standard library only |
 | `blender/*.py` | Stage scripts. Each has a `CONFIG` dict and a `main(config) -> report` and runs 3 ways (below) |
+| `forge_server.py` | Local HTTP API around forge (token auth, manifest whitelist, job queue, uploads for manual steps, previews) |
+| `forge_studio/` | **Forge Studio** web app: describe a model by text or voice, Gemini writes the manifest, one button builds it ([README](forge_studio/README.md)) |
 | `godot_template/` | Godot 4 project: import plugin (loop flags, summary), asset viewer, character controller, audit and smoke-test tools |
 | `manifests/` | Example assets: `karambit`, `fighter` (Mixamo), `wolf` (quadruped), `crate` (prop), `hero_api_rig` (hands-off API rig) |
 | `mcp/` | Claude Desktop / Claude Code config for Blender MCP + Godot MCP |
@@ -37,6 +39,7 @@ Everything is plain Python and GDScript: **Blender 4.2+**, **Godot 4.3+**, and *
 | Script | Stage | What it guarantees |
 | --- | --- | --- |
 | `cleanup_for_godot.py` | cleanup | one joined mesh, welded, holes ≤ 4 sides filled, floaters removed, ≤ tri budget, real-world height, origin at feet; report with χ, non-manifold edges, UV tiles |
+| `build_lowpoly_creature.py` | generate (procedural) | faceted low-poly wolf/boar/bear/deer/cat, ~900 tris, watertight, flat colours; rigs with `quadruped_rig.py`. Zero cost, no keys |
 | `build_karambit.py` | generate (procedural) | 576-tri watertight karambit, exactly one ring hole (χ = 0), origin = ring centre = swivel pivot |
 | `quadruped_rig.py` | rig + animate | 31-bone game skeleton, skinned (bone heat, distance fallback, ≤ 4 influences), `idle` 2.5 s / `walk` 0.833 s / `attack` 1.7 s (bite at 1.3 s) / `death` 1.333 s, 30 fps, in place |
 | `transfer_weights.py` | rig (clothing) | garments/armour get the body's weights (Data Transfer, nearest-face interpolated), parented, normalized |
@@ -117,6 +120,7 @@ Build outputs go to `pipeline3d/build/<name>/` (`refs/`, `incoming/`, `handoff/`
 | Quadruped / creature | concept → Tripo → cleanup → **`quadruped_rig.py`** | Mixamo can't rig quadrupeds; procedural clips wire gameplay today and can be replaced later |
 | Clothing / armour | generate each part separately → cleanup (`target_height_m: null`, `origin: KEEP`) → **`transfer_weights.py`** | Generated all-in-one characters clip and waste tris on hidden faces |
 | Weapons, mechanisms, anything with holes or pivots | **procedural Blender script** (see `build_karambit.py`) | Generators fuse holes and misplace pivots; code is exact and repeatable |
+| Stylized / low-poly animals, zero cost | **`build_lowpoly_creature.py`** preset → `quadruped` rig (`lowpoly_boar.json`) | No AI, no keys, 11 s from nothing to an animated asset in Godot |
 | Props / set dressing | Meshy/Tripo text-to-3D → cleanup → export `collision: convex` | Cheapest path; Godot builds the StaticBody |
 | Environments / HDRIs / textures | **Poly Haven** through Blender MCP | Free (CC0) and already game-scaled |
 
