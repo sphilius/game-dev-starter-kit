@@ -19,7 +19,7 @@ follows the system.
    Web Speech API (SpeechRecognition, continuous, interim results shown in the text box); when
    dictation ends, send the text. Optional "read replies aloud" with speechSynthesis.
 2. **Manifest**: a monospace editor holding the latest manifest JSON with a live "valid JSON"
-   indicator, a "start over" checkbox, an "Upload a model" file picker (.glb/.gltf/.fbx/.obj), and a
+   indicator, a "start over" checkbox, an "Upload a model" file picker (.glb/.fbx/.obj), and a
    **Forge it** button.
 3. **Assets**: the list of assets from the server with status badges (new, queued, running,
    waiting, done, error). Selecting one shows seven stage chips (concept, generate, cleanup, rig,

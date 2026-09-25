@@ -297,7 +297,7 @@ export default function App() {
             </span>
             <label className="check small"><input type="checkbox" checked={restart} onChange={(e) => setRestart(e.target.checked)} /> start over</label>
             <Uploader api={api} name={(() => { try { return JSON.parse(manifestText).name || "upload"; } catch { return "upload"; } })()}
-              slot="model" label="Upload a model" accept=".glb,.gltf,.fbx,.obj" onDone={setToast} />
+              slot="model" label="Upload a model" accept=".glb,.fbx,.obj" onDone={setToast} />
             <button onClick={forgeIt} disabled={!!manifestError || !connected}>Forge it</button>
           </div>
         </section>

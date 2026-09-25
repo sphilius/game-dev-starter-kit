@@ -172,7 +172,10 @@ class Forge:
             rep = _blender(g["procedural"], cfg, self.workdir, "generate")
             return raw, rep
         if g.get("file"):
-            shutil.copy2(self.src(g["file"]), raw)
+            # Keep the original format: cleanup picks its importer from the extension
+            src = self.src(g["file"])
+            raw = os.path.splitext(raw)[0] + os.path.splitext(src)[1].lower()
+            shutil.copy2(src, raw)
             return raw, {"copied": g["file"]}
         provider = g["provider"]
         args = ["run", "--provider", provider, "--mode", g.get("mode", "image"), "--out", raw]

@@ -198,6 +198,10 @@ class Forge:
         self.lock = threading.Lock()
         threading.Thread(target=self._worker, daemon=True).start()
 
+    def busy(self, name):
+        with self.lock:
+            return self.jobs.get(name, {}).get("status") in ("queued", "running")
+
     def enqueue(self, name):
         with self.lock:
             job = self.jobs.get(name)
@@ -372,13 +376,17 @@ class Handler(BaseHTTPRequestHandler):
             if parts == ["api", "assets"]:
                 data = json.loads(self._body() or b"{}")
                 manifest = sanitize_manifest(data.get("manifest", data), self.forge.godot_project)
+                if self.forge.busy(manifest["name"]):
+                    return self._json(409, {"ok": False, "error": f"{manifest['name']} is still building; "
+                                                                  "wait for it to finish, then submit again"})
                 os.makedirs(REQUESTS, exist_ok=True)
                 with open(os.path.join(REQUESTS, f"{manifest['name']}.json"), "w") as fh:
                     json.dump(manifest, fh, indent=1)
                 if data.get("restart"):
-                    state = os.path.join(BUILD, manifest["name"], "forge_state.json")
-                    if os.path.exists(state):
-                        os.remove(state)
+                    # forge treats files in refs/, incoming/ and clips/ as approved manual results,
+                    # so starting over must remove the whole build folder, not just the state file.
+                    # Uploaded source files live in uploads/ and are kept.
+                    shutil.rmtree(os.path.join(BUILD, manifest["name"]), ignore_errors=True)
                 job = self.forge.enqueue(manifest["name"])
                 return self._json(202, {"ok": True, "name": manifest["name"], "status": job["status"]})
             if len(parts) == 4 and parts[:2] == ["api", "assets"] and parts[3] == "resume":
@@ -415,7 +423,8 @@ class Handler(BaseHTTPRequestHandler):
         if not FILE_RE.match(filename) or ".." in filename:
             raise BadRequest("filename must be a plain file name")
         ext = os.path.splitext(filename)[1].lower()
-        allowed = {"concept": {".png", ".jpg", ".jpeg", ".webp"}, "model": {".glb", ".gltf", ".fbx", ".obj"},
+        # .gltf is excluded on purpose: its buffers/textures live in separate files. Upload .glb instead.
+        allowed = {"concept": {".png", ".jpg", ".jpeg", ".webp"}, "model": {".glb", ".fbx", ".obj"},
                    "rigged": {".fbx"}, "clip": {".fbx", ".glb"}}
         if slot not in allowed or ext not in allowed[slot]:
             raise BadRequest(f"slot must be one of {sorted(allowed)} with a matching file type")
