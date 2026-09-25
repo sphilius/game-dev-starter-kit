@@ -4,3 +4,5 @@ pipeline3d/godot_template/.godot/
 *.glb.gen3d.json
 __pycache__/
 *.pyc
+pipeline3d/requests/
+pipeline3d/uploads/

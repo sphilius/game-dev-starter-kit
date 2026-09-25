@@ -202,13 +202,16 @@ def _dist_to_segment(p, a, b):
     return (a + ab * t - p).length
 
 
-def _proximity_weights(mesh_obj, arm):
+def _proximity_weights(mesh_obj, arm, only=None):
+    """Distance-to-bone weights. With `only` (vertex indices), fill just those and keep the rest."""
     segs = [(b.name, arm.matrix_world @ b.head_local, arm.matrix_world @ b.tail_local)
             for b in arm.data.bones if b.use_deform]
-    mesh_obj.vertex_groups.clear()
-    groups = {n: mesh_obj.vertex_groups.new(name=n) for n, _, _ in segs}
+    if only is None:
+        mesh_obj.vertex_groups.clear()
+    groups = {n: (mesh_obj.vertex_groups.get(n) or mesh_obj.vertex_groups.new(name=n)) for n, _, _ in segs}
     mw = mesh_obj.matrix_world
-    for v in mesh_obj.data.vertices:
+    targets = mesh_obj.data.vertices if only is None else [mesh_obj.data.vertices[i] for i in only]
+    for v in targets:
         p = mw @ v.co
         d = sorted(((_dist_to_segment(p, a, b), n) for n, a, b in segs))[:3]
         dmin = max(d[0][0], 1e-6)
@@ -250,7 +253,11 @@ def _skin(mesh_obj, arm, cfg, log):
             log.append(f"bone heat left {missing} verts unweighted -> using proximity weights")
             method = "PROXIMITY"
         else:
-            log.append(f"bone heat weights ok ({missing} unweighted verts)")
+            if missing:
+                # Bone heat can skip a few verts (thin tips, ears): give just those distance weights
+                left = [v.index for v in mesh_obj.data.vertices if not any(g.weight > 1e-5 for g in v.groups)]
+                _proximity_weights(mesh_obj, arm, only=left)
+            log.append(f"bone heat weights ok ({missing} verts filled with distance weights)")
     if method == "PROXIMITY":
         mesh_obj.parent = arm
         mod = next((m for m in mesh_obj.modifiers if m.type == 'ARMATURE'), None) \

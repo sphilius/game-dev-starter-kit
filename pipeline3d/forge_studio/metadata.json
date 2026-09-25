@@ -1,0 +1,5 @@
+{
+  "name": "Forge Studio",
+  "description": "Describe a 3D game asset by voice or text; Gemini writes a pipeline manifest and a local forge server builds it in Blender and imports it into Godot.",
+  "requestFramePermissions": ["microphone"]
+}

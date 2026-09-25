@@ -81,6 +81,10 @@ def main(config=None):
         _import(os.path.abspath(os.path.expanduser(c["import_path"])))
 
     scene = bpy.context.scene
+    # Godot collision helpers (-colonly / -convcolonly) are invisible in game; hide them here too
+    for obj in scene.objects:
+        if obj.name.split(".")[0].endswith(("-colonly", "-convcolonly")):
+            obj.hide_render = True
     if c.get("action"):
         arm = next((o for o in scene.objects if o.type == 'ARMATURE'), None)
         # glTF import renames actions to "<clip>_<armature>", so accept a prefix match
