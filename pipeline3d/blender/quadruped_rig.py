@@ -221,6 +221,37 @@ def _proximity_weights(mesh_obj, arm, only=None):
             groups[n].add([v.index], w / tot, 'REPLACE')
 
 
+def _prune_far_weights(mesh_obj, arm, ratio=3.0):
+    """Drop heat weights from bones much farther away than the vertex's nearest bone.
+
+    Bone heat diffuses across gaps: a tail hanging between the hocks, or hind legs standing
+    close together, leaks weight into the wrong limb, and the walk then drags hooves along
+    with the tail or the other leg. A bone more than `ratio` x the nearest bone's distance
+    (plus 3 % of the body size, so joints where bones meet keep their blend) can't be one the
+    skin should follow. Returns the number of weights removed."""
+    segs = [(b.name, arm.matrix_world @ b.head_local, arm.matrix_world @ b.tail_local)
+            for b in arm.data.bones if b.use_deform]
+    slack = 0.03 * max(mesh_obj.dimensions)
+    names = {g.index: g.name for g in mesh_obj.vertex_groups}
+    seg = {n: (a, b) for n, a, b in segs}
+    mw = mesh_obj.matrix_world
+    removed = 0
+    for v in mesh_obj.data.vertices:
+        p = mw @ v.co
+        ws = [(g.group, names[g.group]) for g in v.groups if g.weight > 1e-5 and names[g.group] in seg]
+        if len(ws) < 2:
+            continue
+        d = {n: _dist_to_segment(p, *seg[n]) for _, n in ws}
+        dmin = min(_dist_to_segment(p, a, b) for _, a, b in segs)
+        far = [n for _, n in ws if d[n] > ratio * dmin + slack]
+        if len(far) == len(ws):
+            far.remove(min(far, key=d.get))           # never leave a vertex without weights
+        for n in far:
+            mesh_obj.vertex_groups[n].remove([v.index])
+        removed += len(far)
+    return removed
+
+
 def _limit_and_normalize(mesh_obj, max_inf):
     names = {g.index: g.name for g in mesh_obj.vertex_groups}
     unweighted = 0
@@ -338,6 +369,9 @@ def _skin(mesh_obj, arm, cfg, log):
                 left = [v.index for v in mesh_obj.data.vertices if not any(g.weight > 1e-5 for g in v.groups)]
                 _proximity_weights(mesh_obj, arm, only=left)
             log.append(f"bone heat weights ok ({missing} verts filled with distance weights)")
+            pruned = _prune_far_weights(mesh_obj, arm)
+            if pruned:
+                log.append(f"removed {pruned} leaked heat weights (tail/other leg bleeding into a limb)")
     if method == "PROXIMITY":
         mesh_obj.parent = arm
         mod = next((m for m in mesh_obj.modifiers if m.type == 'ARMATURE'), None) \

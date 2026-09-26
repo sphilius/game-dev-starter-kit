@@ -12,7 +12,9 @@ forge.py - run one asset through the whole pipeline from a JSON manifest.
 
 Stages (each is skipped when its output already exists, so re-running resumes):
     concept   reference image      Nano Banana (banana.py) or a manual gate
-    generate  raw mesh             gen3d.py (tripo | meshy | rodin), a procedural Blender script, or a file
+    generate  raw mesh             gen3d.py (tripo | meshy | rodin), a procedural Blender script, or a file;
+                                   with generate.fit_reference the procedural creature is fitted to the
+                                   concept image first (fit_reference.py, Gemini vision)
     cleanup   game-ready mesh      cleanup_for_godot.py
     rig       skeleton + skin      quadruped_rig.py | Mixamo/AccuRIG (manual gate) | tripo/meshy API
     animate   named clips          procedural | clips folder (Mixamo, ActorCore, mocap) | tripo/meshy API
@@ -21,7 +23,8 @@ Stages (each is skipped when its output already exists, so re-running resumes):
 
 Exit codes: 0 done, 3 waiting for a manual step (instructions printed), 1 error.
 Environment: BLENDER, GODOT (paths to the executables; default: on PATH),
-             TRIPO_API_KEY / MESHY_API_KEY / RODIN_API_KEY for cloud generation.
+             TRIPO_API_KEY / MESHY_API_KEY / RODIN_API_KEY for cloud generation,
+             GEMINI_API_KEY for Nano Banana references and reference fitting.
 """
 
 import argparse
@@ -145,22 +148,64 @@ class Forge:
             # Generated (or hand-placed) on an earlier run and left there = approved.
             # Delete it to generate a new one.
             return out, "using existing reference"
+        prompt = c.get("prompt")
+        if not prompt and c.get("subject"):
+            # a side view the fitter can measure (see fit_reference.REFERENCE_PROMPT)
+            sys.path.insert(0, HERE)
+            import fit_reference  # noqa: E402  (same folder)
+            prompt = fit_reference.REFERENCE_PROMPT.format(animal=c["subject"])
         why = ""
         if c.get("tool") == "banana" and shutil.which("uv") and os.path.exists(BANANA):
-            cmd = ["uv", "run", BANANA, "-p", c["prompt"], "-f", out, "-m", c.get("model", "nano-banana-2")]
+            cmd = ["uv", "run", BANANA, "-p", prompt or self.name, "-f", out, "-m", c.get("model", "nano-banana-2")]
+            if c.get("aspect") or c.get("subject"):
+                cmd += ["-a", c.get("aspect", "3:2")]
             for ref in c.get("style_refs", []):
                 cmd += ["-i", self.src(ref)]
             proc = subprocess.run(cmd, capture_output=True, text=True)
             if proc.returncode == 0 and os.path.exists(out):
+                if c.get("auto_approve"):
+                    return out, "generated with Nano Banana (auto-approved)"
                 raise ManualStep(f"Reference generated at {out}. Check it against the pass list in the "
-                                 f"runbook (full body, arms apart, open hands, flat light). Regenerate or edit if "
+                                 f"runbook (full body, arms apart, open hands, flat light; for a fitted creature: "
+                                 f"a clean side view with all four legs visible). Regenerate or edit if "
                                  f"needed, then re-run forge.")
-            # Usually missing Google credentials: fall back to the manual step instead of failing.
+            # Usually missing credentials: fall back to the manual step instead of failing.
             err = (proc.stderr or proc.stdout).strip().splitlines()
-            why = f"Nano Banana couldn't run ({err[-1] if err else 'unknown error'}).\n\n"
+            last = err[-1] if err else "unknown error"
+            hint = "" if "GEMINI_API_KEY" in last else (" Set GEMINI_API_KEY (free key: "
+                                                        "https://aistudio.google.com/apikey) to generate it automatically.")
+            why = f"Nano Banana couldn't run ({last}).{hint}\n\n"
         raise ManualStep(why + f"Generate a reference image with this prompt (Nano Banana / Gemini, Flux, "
                          f"Midjourney, Bing Image Creator) and save it as {out}, or set concept.image:\n\n"
-                         f"{c.get('prompt', '(no prompt in manifest)')}")
+                         f"{prompt or '(no prompt in manifest)'}")
+
+    def fit_reference(self, g, cfg):
+        """Fit build_lowpoly_creature to the reference: work/fit.json, reused on re-runs."""
+        spec = g["fit_reference"] if isinstance(g["fit_reference"], dict) else {}
+        fit_path = self.p("work", "fit.json")
+        if os.path.exists(fit_path):
+            with open(fit_path) as fh:
+                return json.load(fh)
+        sys.path.insert(0, HERE)
+        import fit_reference  # noqa: E402  (same folder)
+        handoff = self.p("handoff", "fit_keypoints.json")
+        keypoints = self.src(spec["keypoints"]) if spec.get("keypoints") else (handoff if os.path.exists(handoff) else None)
+        image = self.src(spec["image"]) if spec.get("image") else self.out("concept")
+        preset = cfg.get("preset", "wolf")
+        if not keypoints and not (image and os.path.exists(image)):
+            raise ManualStep(f"Fitting needs a side-view reference: add a concept section (e.g. "
+                             f'{{"tool": "banana", "subject": "horse"}}), set generate.fit_reference.image, or save '
+                             f"hand-placed joints as {handoff} (format: `python pipeline3d/fit_reference.py --schema`).")
+        try:
+            return fit_reference.run(image=image, preset=preset, keypoints=keypoints,
+                                     animal=spec.get("animal") or (self.m.get("concept") or {}).get("subject"),
+                                     model=spec.get("model", os.environ.get("FIT_MODEL", fit_reference.DEFAULT_MODEL)),
+                                     out=fit_path, overlay=self.p("work", "fit_overlay.svg") if image else None)
+        except fit_reference.NoKey:
+            raise ManualStep(f"Fitting the creature to {image or 'the reference'} needs GEMINI_API_KEY "
+                             f"(free key: https://aistudio.google.com/apikey). Set it and re-run forge, or mark the "
+                             f"joints yourself: save {handoff} in the format printed by "
+                             f"`python pipeline3d/fit_reference.py --schema` (example: manifests/horse_keypoints.json).") from None
 
     def generate(self):
         g = self.m["generate"]
@@ -169,7 +214,13 @@ class Forge:
             cfg = dict(g.get("config", {}))
             cfg["export_path"] = raw
             cfg.setdefault("clear_scene", True)
+            fit = None
+            if g.get("fit_reference"):
+                fit = self.fit_reference(g, cfg)
+                cfg["overrides"] = {**fit["overrides"], **(cfg.get("overrides") or {})}   # manifest wins
             rep = _blender(g["procedural"], cfg, self.workdir, "generate")
+            if fit:
+                rep["fit"] = {k: fit.get(k) for k in ("source", "stance", "warnings", "overlay")}
             return raw, rep
         if g.get("file"):
             # Keep the original format: cleanup picks its importer from the extension

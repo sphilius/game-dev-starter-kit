@@ -15,15 +15,25 @@ MANIFEST FIELDS (only these; the server rejects anything else):
 - name: lowercase snake_case, starts with a letter, max 40 chars.
 - kind: character | quadruped | prop | weapon | environment.
 - concept: {tool: "banana" | "manual", prompt}  reference-image prompt. Omit for procedural or uploaded models.
+    For a FITTED creature use {tool: "banana", subject: "<animal, e.g. grey wolf>", auto_approve: true} instead of
+    a prompt: forge asks Nano Banana for a strict side view it can measure.
     Prompt rules: one subject, full body, side view for quadrupeds / front A-pose (arms 45 deg down, hands open)
     for humanoids, limbs clearly separated, flat even studio light, no cast shadows, plain light-grey background,
     orthographic, no weapon in a body image, no text, no artist or franchise names.
 - generate, exactly one of:
     {provider: "tripo"|"meshy"|"rodin", mode: "image"|"text", prompt?, options?}   (image mode uses the concept image)
     {procedural: "build_karambit.py", config: {blade_sweep_deg, ring_minor_r, handle_length, ...}}
-    {procedural: "build_lowpoly_creature.py", config: {preset: "wolf"|"boar"|"bear"|"deer"|"cat", target_tris: 600-1500, height_m}}
-      (free faceted low-poly animal, no keys; pair with rig "quadruped" and cleanup false. Offer it whenever the
-       user wants low-poly/stylized animals, has no API key, or wants zero cost.)
+    {procedural: "build_lowpoly_creature.py", config: {preset: "wolf"|"boar"|"bear"|"deer"|"cat", target_tris: 600-1500,
+       height_m, muscle: 0-1}, fit_reference?: true | {animal}}
+      (free faceted low-poly animal; pair with rig "quadruped" and cleanup false. Offer it whenever the user wants
+       low-poly/stylized animals, has no 3D API key, or wants zero cost.
+       muscle: 0 = lean plain tubes, 0.5 = athletic, 1 = heavy (thighs, calves, upper arms, neck, deep chest).
+       fit_reference: reshape the preset to a side-view reference (Gemini marks the joints): proportions, head,
+       tail and real leg shapes. Use it for any four-legged animal that is not one of the presets (horse, hyena,
+       lion, goat, dog breed...): pick the closest preset by stance (hoofed -> deer or boar, paws -> wolf or cat,
+       flat feet -> bear) and add the concept with subject. It needs a Gemini key on the server or shared from
+       Settings (SERVER.gemini_key or keys include "gemini"); without one forge stops and asks for an image and
+       hand-placed joints.)
     {file: "<name of a model the user uploaded>"}
   Tripo options: {"face_limit": N, "quad": true, "texture": true|false}. Meshy: {"topology": "quad", "target_polycount": N}.
 - cleanup: {target_tris, target_height_m (real-world metres), origin: "FEET"|"CENTER"|"KEEP", remove_floaters_below: 0.02}

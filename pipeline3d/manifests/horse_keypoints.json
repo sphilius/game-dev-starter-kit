@@ -1,0 +1,132 @@
+{
+ "_comment": "Hand-placed keypoints for a horse seen from the left in a 1500x1000 image (0-1000 coords, y down). Same format Gemini returns; see fit_reference.py --schema.",
+ "image_size": [
+  1500,
+  1000
+ ],
+ "is_side_view": true,
+ "facing": "left",
+ "stance": "unguligrade",
+ "ground_y": 950.0,
+ "torso": [
+  {
+   "x": 760.0,
+   "top": 285.6,
+   "bottom": 534.4
+  },
+  {
+   "x": 626.7,
+   "top": 255.8,
+   "bottom": 540.2
+  },
+  {
+   "x": 493.3,
+   "top": 258.9,
+   "bottom": 561.1
+  },
+  {
+   "x": 386.7,
+   "top": 292.2,
+   "bottom": 567.8
+  }
+ ],
+ "neck": {
+  "x": 288.0,
+  "top": 234.4,
+  "bottom": 385.6
+ },
+ "skull": {
+  "x": 226.7,
+  "top": 140.2,
+  "bottom": 255.8
+ },
+ "muzzle": {
+  "x": 138.7,
+  "top": 305.0,
+  "bottom": 395.0
+ },
+ "nose": {
+  "x": 101.3,
+  "y": 406.0
+ },
+ "ear_tip": {
+  "x": 234.7,
+  "y": 90.0
+ },
+ "tail": [
+  {
+   "x": 797.3,
+   "y": 418.0,
+   "width": 32.0
+  },
+  {
+   "x": 829.3,
+   "y": 518.0,
+   "width": 37.3
+  },
+  {
+   "x": 845.3,
+   "y": 638.0,
+   "width": 32.0
+  }
+ ],
+ "front_leg": [
+  {
+   "x": 346.7,
+   "y": 310.0,
+   "width": 64.0
+  },
+  {
+   "x": 341.3,
+   "y": 470.0,
+   "width": 69.3
+  },
+  {
+   "x": 384.0,
+   "y": 558.0,
+   "width": 53.3
+  },
+  {
+   "x": 373.3,
+   "y": 750.0,
+   "width": 29.3
+  },
+  {
+   "x": 368.0,
+   "y": 882.0,
+   "width": 24.0
+  },
+  {
+   "x": 352.0,
+   "y": 950.0,
+   "width": 29.3
+  }
+ ],
+ "hind_leg": [
+  {
+   "x": 725.3,
+   "y": 430.0,
+   "width": 85.3
+  },
+  {
+   "x": 672.0,
+   "y": 570.0,
+   "width": 64.0
+  },
+  {
+   "x": 741.3,
+   "y": 730.0,
+   "width": 37.3
+  },
+  {
+   "x": 725.3,
+   "y": 882.0,
+   "width": 24.0
+  },
+  {
+   "x": 709.3,
+   "y": 950.0,
+   "width": 29.3
+  }
+ ]
+}

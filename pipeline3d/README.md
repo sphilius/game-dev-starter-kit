@@ -25,11 +25,12 @@ Everything is plain Python and GDScript: **Blender 4.2+**, **Godot 4.3+**, and *
 | --- | --- |
 | `forge.py` | Orchestrator. One JSON manifest per asset; resumable stages; stops with instructions at manual steps |
 | `gen3d.py` | CLI for Tripo / Meshy / Rodin: generate, poll, download, auto-rig, animate. Standard library only |
+| `fit_reference.py` | Reference fitting: Nano Banana draws a side view, Gemini marks the joints, and the result reshapes a low-poly creature preset (proportions, head, tail, real leg shapes). Standard library + `GEMINI_API_KEY` |
 | `blender/*.py` | Stage scripts. Each has a `CONFIG` dict and a `main(config) -> report` and runs 3 ways (below) |
 | `forge_server.py` | Local HTTP API around forge (token auth, manifest whitelist, job queue, uploads for manual steps, previews) |
 | `forge_studio/` | **Forge Studio** web app: describe a model by text or voice, Gemini writes the manifest, one button builds it ([README](forge_studio/README.md)) |
 | `godot_template/` | Godot 4 project: import plugin (loop flags, summary), asset viewer, character controller, audit and smoke-test tools |
-| `manifests/` | Example assets: `karambit`, `fighter` (Mixamo), `wolf` (quadruped), `crate` (prop), `hero_api_rig` (hands-off API rig) |
+| `manifests/` | Example assets: `karambit`, `fighter` (Mixamo), `wolf` (quadruped), `crate` (prop), `hero_api_rig` (hands-off API rig), `lowpoly_boar`, `wolf_fitted` (Nano Banana + fit), `horse_fitted` (fit from hand-placed joints, no key) |
 | `mcp/` | Claude Desktop / Claude Code config for Blender MCP + Godot MCP |
 | `docs/` | Tool matrix (free/trial options per stage), MCP prompt playbook, and the source-document analysis |
 | `tests/` | End-to-end tests on procedural fixtures. No keys or credits needed |
@@ -39,9 +40,9 @@ Everything is plain Python and GDScript: **Blender 4.2+**, **Godot 4.3+**, and *
 | Script | Stage | What it guarantees |
 | --- | --- | --- |
 | `cleanup_for_godot.py` | cleanup | one joined mesh, welded, holes ≤ 4 sides filled, floaters removed, ≤ tri budget, real-world height, origin at feet; report with χ, non-manifold edges, UV tiles |
-| `build_lowpoly_creature.py` | generate (procedural) | faceted low-poly wolf/boar/bear/deer/cat, ~900 tris, watertight, flat colours. Legs follow real stance anatomy (toe-walking, hoofed, flat-footed: elbow back, knee forward, hock back) and the joint positions are stored on the mesh so `quadruped_rig.py` puts bones exactly at the joints. Zero cost, no keys |
+| `build_lowpoly_creature.py` | generate (procedural) | faceted low-poly wolf/boar/bear/deer/cat, ~900 tris, watertight, flat colours. Legs follow real stance anatomy (toe-walking, hoofed, flat-footed: elbow back, knee forward, hock back) and the joint positions are stored on the mesh so `quadruped_rig.py` puts bones exactly at the joints. `muscle` 0–1 adds thigh, gaskin (calf), upper-arm and forearm bellies, a thicker neck and a deeper chest. `overrides.leg_chains` (from `fit_reference.py`) replaces the generic stance with a fitted animal's legs. Zero cost, no keys |
 | `build_karambit.py` | generate (procedural) | 576-tri watertight karambit, exactly one ring hole (χ = 0), origin = ring centre = swivel pivot |
-| `quadruped_rig.py` | rig + animate | 31-bone game skeleton, skinned (bone heat, distance fallback, ≤ 4 influences), `idle` 2.5 s / `walk` 0.833 s / `attack` 1.7 s (bite at 1.3 s) / `death` 1.333 s, 30 fps, in place |
+| `quadruped_rig.py` | rig + animate | 31-bone game skeleton, skinned (bone heat with leaked weights pruned, distance fallback, ≤ 4 influences), `idle` 2.5 s / `walk` 0.833 s / `attack` 1.7 s (bite at 1.3 s) / `death` 1.333 s, 30 fps, in place |
 | `transfer_weights.py` | rig (clothing) | garments/armour get the body's weights (Data Transfer, nearest-face interpolated), parented, normalized |
 | `merge_clips.py` | animate | Mixamo / ActorCore / mocap clip files → one armature, one NLA track per clip, optional root-motion strip |
 | `udim_to_01.py` | UV fix | UDIM tiles 1002+ shifted back into 0-1, one material per tile |
@@ -83,6 +84,8 @@ blender -b -P blender/cleanup_for_godot.py -- --config my_config.json
    python pipeline3d/forge.py pipeline3d/manifests/wolf.json        # needs TRIPO_API_KEY (or set generate.file)
    python pipeline3d/forge.py pipeline3d/manifests/fighter.json     # stops at the Mixamo step with instructions
    python pipeline3d/forge.py pipeline3d/manifests/fighter.json --status
+   python pipeline3d/forge.py pipeline3d/manifests/horse_fitted.json   # creature fitted to joints, no key
+   GEMINI_API_KEY=... python pipeline3d/forge.py pipeline3d/manifests/wolf_fitted.json   # Nano Banana + fit
    ```
    Re-run the same command after a manual step and it resumes. `--from rig` redoes from a stage.
 6. **Look at it**: open the Godot project and press F5. The asset viewer lines up every model in
@@ -96,8 +99,11 @@ blender -b -P blender/cleanup_for_godot.py -- --config my_config.json
 {
   "name": "wolf",
   "concept":   {"tool": "banana", "prompt": "...", "out": "wolf_side.png"},   // or {"image": "path.png"}
+               // or {"tool": "banana", "subject": "grey wolf", "auto_approve": true}: a measurable side view
   "generate":  {"provider": "tripo", "mode": "image", "options": {"face_limit": 10000, "quad": true}},
                // or {"procedural": "build_karambit.py", "config": {...}}  or {"file": "path.glb"}
+               // or {"procedural": "build_lowpoly_creature.py", "config": {"preset": "deer", "muscle": 0.6},
+               //     "fit_reference": true | {"animal": "horse", "keypoints": "my_joints.json"}}
   "cleanup":   {"target_tris": 8000, "target_height_m": 0.85, "remove_floaters_below": 0.02},  // false = skip
   "rig":       {"method": "quadruped" | "mixamo" | "accurig" | "tripo" | "meshy" | "none"},
   "animations":{"method": "procedural" | "clips_dir" | "tripo" | "meshy" | "none",
@@ -121,6 +127,7 @@ Build outputs go to `pipeline3d/build/<name>/` (`refs/`, `incoming/`, `handoff/`
 | Clothing / armour | generate each part separately → cleanup (`target_height_m: null`, `origin: KEEP`) → **`transfer_weights.py`** | Generated all-in-one characters clip and waste tris on hidden faces |
 | Weapons, mechanisms, anything with holes or pivots | **procedural Blender script** (see `build_karambit.py`) | Generators fuse holes and misplace pivots; code is exact and repeatable |
 | Stylized / low-poly animals, zero cost | **`build_lowpoly_creature.py`** preset → `quadruped` rig (`lowpoly_boar.json`) | No AI, no keys, 11 s from nothing to an animated asset in Godot |
+| Any other four-legged animal, low-poly | closest preset + **`fit_reference`** (`wolf_fitted.json`, `horse_fitted.json`) | Nano Banana side view → Gemini joint marks → the preset takes the animal's proportions and leg shapes. Free-tier Gemini key, or hand-placed joints |
 | Props / set dressing | Meshy/Tripo text-to-3D → cleanup → export `collision: convex` | Cheapest path; Godot builds the StaticBody |
 | Environments / HDRIs / textures | **Poly Haven** through Blender MCP | Free (CC0) and already game-scaled |
 
@@ -136,13 +143,66 @@ is already skinned.
 | Test | Covers | Runtime |
 | --- | --- | --- |
 | `tests/run_all.sh` | every Blender stage on fixtures → Godot headless import → audit → controller smoke test | ~2 min |
-| `tests/test_forge.sh` | forge manifests: procedural karambit, auto-rigged wolf, humanoid through the Mixamo gate (simulated with FBX files) | ~2 min |
+| `tests/test_forge.sh` | forge manifests: procedural karambit, auto-rigged wolf, humanoid through the Mixamo gate (simulated with FBX files), fitted horse, fitted wolf through the no-key gates | ~2 min |
+| `tests/test_fit_reference.py` (in `run_all.sh`) | fit round trip on every preset (joint error < 2 %), noisy keypoints stay watertight and fully skinned, the Gemini request path against a mock | ~1 min |
+| `tests/mock_gemini.py` | stand-in Gemini API (image + keypoints) for testing Nano Banana and fitting without a key | – |
 | `godot --headless --path <game> -s res://tools/asset_audit.gd` | per-asset tris, bones, clips, texture sizes, collision; exit 1 on errors | seconds |
 
 Headless Godot prints `texture_2d_get ... Parameter "t" is null` while making thumbnails; that
 comes from the dummy renderer and is harmless.
 
 Last verified in a Linux sandbox with Blender 4.2.9 LTS and Godot 4.4.1. Not verified there:
-the cloud generators (they need your keys; the endpoints and auth were checked), Mixamo and
+the cloud generators (they need your keys; the endpoints and auth were checked), real Gemini
+calls for Nano Banana and joint marking (tested against `tests/mock_gemini.py`; how accurately
+a given Gemini model marks joints on real images is untested), Mixamo and
 AccuRIG (web/desktop apps), and the look of `get_viewport_screenshot` (the sandbox's virtual
 display returns black frames).
+
+---
+
+## Reference fitting (Nano Banana + Gemini)
+
+The presets cover five animals. For anything else with four legs, fit the closest preset to a
+side view:
+
+```bash
+export GEMINI_API_KEY=...        # free key: https://aistudio.google.com/apikey
+python pipeline3d/fit_reference.py --generate "spotted hyena" --image refs/hyena_side.png \
+       --preset wolf --out fit.json --overlay fit.svg      # open fit.svg to check the joints
+blender -b -P pipeline3d/blender/build_lowpoly_creature.py -- preset=wolf muscle=0.7 \
+       "overrides=$(python -c 'import json;print(json.dumps(json.load(open("fit.json"))["overrides"]))')" \
+       export_path=hyena.glb
+```
+
+In a manifest, `generate.fit_reference` does all of that between the concept and generate stages
+(see `wolf_fitted.json`).
+
+1. **Reference.** `concept.subject` asks Nano Banana (`banana.py`, now keyed by `GEMINI_API_KEY`)
+   for a strict side view with the near legs apart, so every joint is visible.
+2. **Joint marks.** A Gemini vision model (`gemini-3.5-flash` by default; `fit_reference.model` or
+   `FIT_MODEL` to change) returns JSON:
+   * torso depth at four slices;
+   * neck, skull and muzzle slices, plus the nose and ear tip;
+   * the tail;
+   * six joints down the near front leg, five down the near hind leg.
+3. **Fit.** The points become builder overrides: spine and head joints with radii, tail, ear
+   length, stance and per-animal `leg_chains`. The legs then bend where the reference's legs
+   bend (a horse's long cannon bones, a hyena's sloping back). Width, leg spread and colours
+   stay from the preset, since a side view can't show them.
+4. **Build and rig as usual.** The joint landmarks travel with the mesh, so the rig follows the
+   fitted legs.
+
+The fitter warns when the elbow or knee points the wrong way; that usually means Gemini marked
+the far leg. Without a key, forge stops and says where to save hand-placed joints
+(`handoff/fit_keypoints.json`, format from `fit_reference.py --schema`, example
+`manifests/horse_keypoints.json`).
+
+Only fit images you made or have the rights to use. Google's terms don't claim ownership of
+images you generate; photos need the photographer's permission.
+
+**Muscle.** `muscle` (0–1, per preset by default) adds muscle bellies inside the limb segments:
+triceps over the humerus, forearm extensors, hamstrings and quads on the thigh, and the gaskin.
+They are pushed behind the bone, where those muscles actually sit. It also thickens the neck
+base and drops the belly line under the ribs and brisket (the brisket is the lower chest between
+the front legs). Bones and landmarks don't move, so rigging is unchanged. At 900 tris the effect
+is a silhouette change, not surface detail; raise `target_tris` (2–3k) to see more of it.

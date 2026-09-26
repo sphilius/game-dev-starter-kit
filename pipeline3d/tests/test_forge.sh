@@ -28,7 +28,39 @@ cat > "$OUT/manifests/fighter.json" <<JSON
  "export": {"godot_project": "../game"}}
 JSON
 
+cat > "$OUT/manifests/horse.json" <<JSON
+{"name": "horse", "generate": {"procedural": "build_lowpoly_creature.py",
+   "config": {"preset": "deer", "target_tris": 1200, "height_m": 1.6, "muscle": 0.6},
+   "fit_reference": {"keypoints": "$P3D/manifests/horse_keypoints.json"}},
+ "cleanup": false, "rig": {"method": "quadruped", "clip_prefix": "horse_"}, "animations": {"method": "procedural"},
+ "export": {"godot_project": "../game"}}
+JSON
+cat > "$OUT/manifests/wolf_fit.json" <<JSON
+{"name": "wolf_fit", "concept": {"tool": "banana", "subject": "grey wolf", "out": "wolf_side.png", "auto_approve": true},
+ "generate": {"procedural": "build_lowpoly_creature.py", "config": {"preset": "wolf", "height_m": 0.85},
+   "fit_reference": {"animal": "grey wolf"}},
+ "cleanup": false, "rig": {"method": "quadruped", "clip_prefix": "wolffit_"}, "animations": {"method": "procedural"},
+ "export": {"godot_project": "../game"}}
+JSON
+
 run() { python3 "$P3D/forge.py" "$@" || echo "exit=$?"; }
+echo "== horse (fitted to a keypoints file, no key)"; run "$OUT/manifests/horse.json"
+echo "== wolf_fit without GEMINI_API_KEY (expect the concept gate, then the fit gate)"
+env -u GEMINI_API_KEY -u GOOGLE_API_KEY python3 "$P3D/forge.py" "$OUT/manifests/wolf_fit.json" | grep -E "WAITING|GEMINI_API_KEY" | head -2 || true
+# the user supplies a side view by hand (a blank 1500x1000 PNG stands in for it) ...
+python3 - "$OUT/build/wolf_fit/refs/wolf_side.png" <<'PY'
+import struct, sys, zlib
+w, h = 1500, 1000
+raw = b"".join(b"\x00" + b"\xff" * (w * 3) for _ in range(h))
+chunk = lambda t, d: struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d))
+open(sys.argv[1], "wb").write(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
+                              + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b""))
+PY
+env -u GEMINI_API_KEY -u GOOGLE_API_KEY python3 "$P3D/forge.py" "$OUT/manifests/wolf_fit.json" | grep -E "WAITING|GEMINI_API_KEY" | head -2 || true
+# ... and marks the joints by hand (handoff/fit_keypoints.json), then forge resumes to the end
+cp "$P3D/manifests/horse_keypoints.json" "$OUT/build/wolf_fit/handoff/fit_keypoints.json"
+echo "== wolf_fit after the manual keypoints"; env -u GEMINI_API_KEY -u GOOGLE_API_KEY python3 "$P3D/forge.py" "$OUT/manifests/wolf_fit.json" || echo "exit=$?"
+
 echo "== karambit";  run "$OUT/manifests/karambit.json"
 echo "== wolf";      run "$OUT/manifests/wolf.json"
 echo "== fighter (expect a Mixamo gate)"; run "$OUT/manifests/fighter.json" | tail -8
@@ -54,7 +86,7 @@ echo "== fighter (after the simulated Mixamo downloads)"; run "$OUT/manifests/fi
 python3 "$P3D/forge.py" "$OUT/manifests/fighter.json" --status
 python3 - "$OUT" <<'PY'
 import json, sys
-for n in ["karambit", "wolf", "fighter"]:
+for n in ["karambit", "wolf", "fighter", "horse", "wolf_fit"]:
     audit = json.load(open(f"{sys.argv[1]}/build/{n}/forge_state.json"))["godot"]["report"]["audit"]
     for a in audit:
         print(f"[forge-test] {n}: tris={a['tris']} bones={a['bones']} collision={a['static_bodies']} "

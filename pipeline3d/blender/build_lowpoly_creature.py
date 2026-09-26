@@ -36,7 +36,8 @@ CONFIG = {
     "clear_scene": True,
     "seed_jitter": 0.0,            # 0..0.15 random proportion variation (same seed = same result)
     "seed": 1,
-    "overrides": {},               # e.g. {"leg_len": 0.5, "tail": [..]}
+    "muscle": None,                # 0..1 muscle mass (None = preset): thigh, gaskin, upper arm, forearm, neck, chest
+    "overrides": {},               # e.g. {"leg_len": 0.5, "tail": [..], "leg_chains": {...}} (see fit_reference.py)
     "palette": None,               # [[r,g,b], [r,g,b], [r,g,b]] body, light, dark (0-1)
 }
 
@@ -45,7 +46,7 @@ CONFIG = {
 # legs: shoulder/hip y, leg length, thickness, spread; tail: list of (dy, dz, radius).
 PRESETS = {
     "wolf": {
-        "stance": "digitigrade",
+        "stance": "digitigrade", "muscle": 0.6,
         "body": [(0.42, 0.62, 0.13), (0.15, 0.64, 0.17), (-0.15, 0.66, 0.18), (-0.35, 0.68, 0.16)],
         "head": [(-0.50, 0.80, 0.10), (-0.62, 0.84, 0.11), (-0.78, 0.78, 0.06), (-0.88, 0.75, 0.04)],
         "ears": 0.09, "front_y": -0.30, "hind_y": 0.36, "leg_len": 0.58, "leg_r": 0.055, "spread": 0.11,
@@ -53,7 +54,7 @@ PRESETS = {
         "palette": [(0.42, 0.42, 0.45), (0.78, 0.76, 0.72), (0.12, 0.12, 0.13)],
     },
     "boar": {
-        "stance": "unguligrade",
+        "stance": "unguligrade", "muscle": 0.7,
         "body": [(0.40, 0.58, 0.17), (0.12, 0.62, 0.22), (-0.18, 0.66, 0.24), (-0.36, 0.64, 0.20)],
         "head": [(-0.50, 0.58, 0.15), (-0.64, 0.52, 0.12), (-0.78, 0.46, 0.08), (-0.86, 0.44, 0.06)],
         "ears": 0.07, "front_y": -0.28, "hind_y": 0.34, "leg_len": 0.44, "leg_r": 0.055, "spread": 0.13,
@@ -61,7 +62,7 @@ PRESETS = {
         "palette": [(0.32, 0.22, 0.16), (0.55, 0.42, 0.32), (0.10, 0.08, 0.07)],
     },
     "bear": {
-        "stance": "plantigrade",
+        "stance": "plantigrade", "muscle": 0.8,
         "body": [(0.45, 0.70, 0.22), (0.15, 0.78, 0.28), (-0.20, 0.84, 0.28), (-0.42, 0.82, 0.24)],
         "head": [(-0.58, 0.86, 0.17), (-0.72, 0.86, 0.16), (-0.86, 0.80, 0.09), (-0.94, 0.78, 0.06)],
         "ears": 0.06, "front_y": -0.36, "hind_y": 0.40, "leg_len": 0.62, "leg_r": 0.085, "spread": 0.16,
@@ -69,7 +70,7 @@ PRESETS = {
         "palette": [(0.30, 0.20, 0.13), (0.50, 0.36, 0.25), (0.08, 0.06, 0.05)],
     },
     "deer": {
-        "stance": "unguligrade",
+        "stance": "unguligrade", "muscle": 0.5,
         "body": [(0.38, 0.92, 0.12), (0.12, 0.95, 0.15), (-0.14, 0.97, 0.15), (-0.32, 1.00, 0.13)],
         "head": [(-0.40, 1.20, 0.07), (-0.46, 1.42, 0.09), (-0.60, 1.40, 0.06), (-0.70, 1.36, 0.04)],
         "ears": 0.10, "front_y": -0.28, "hind_y": 0.32, "leg_len": 0.90, "leg_r": 0.035, "spread": 0.10,
@@ -77,7 +78,7 @@ PRESETS = {
         "palette": [(0.55, 0.38, 0.22), (0.86, 0.80, 0.70), (0.12, 0.09, 0.07)],
     },
     "cat": {
-        "stance": "digitigrade",
+        "stance": "digitigrade", "muscle": 0.5,
         "body": [(0.20, 0.26, 0.07), (0.07, 0.27, 0.08), (-0.07, 0.28, 0.08), (-0.18, 0.29, 0.07)],
         "head": [(-0.26, 0.36, 0.07), (-0.32, 0.38, 0.07), (-0.39, 0.36, 0.035), (-0.42, 0.35, 0.025)],
         "ears": 0.05, "front_y": -0.14, "hind_y": 0.17, "leg_len": 0.24, "leg_r": 0.022, "spread": 0.05,
@@ -111,6 +112,20 @@ STANCES = {
 }
 
 
+# Muscle bellies, scaled by "muscle" (0 = plain tubes, 1 = heavy). Skin interpolates radius
+# linearly between joints, so a muscle is an extra joint inside a bone segment with a bigger
+# radius, pushed toward the side the muscle sits on. Bones and landmarks are unaffected.
+#   (segment start index in the leg chain, position along it 0..1, push back, radius gain)
+#   push back: + = toward the tail, in multiples of the bulge radius (the big leg muscles
+#   sit behind the bone: triceps, hamstrings, gastrocnemius)
+MUSCLES = {
+    "front": [(1, 0.40, 0.45, 0.85),   # triceps + deltoid over the humerus
+              (2, 0.28, 0.15, 0.55)],  # forearm extensors below the elbow
+    "hind":  [(0, 0.45, 0.55, 0.75),   # hamstrings + quadriceps: the thigh
+              (1, 0.28, 0.50, 0.70)],  # gaskin / calf (gastrocnemius) below the stifle
+}
+
+
 def _graph(p):
     """Joints [(co, radius)] and edges [(i, j)] for Skin."""
     verts, edges = [], []
@@ -129,15 +144,24 @@ def _graph(p):
             edges.append((parent, idx))
         return idx
 
-    # spine, rump to chest
+    m = max(0.0, min(1.0, float(p.get("muscle") or 0.0)))
+    # spine, rump to chest; glutes and shoulders thicken the ends of the trunk
     spine = []
+    n_body = len(p["body"])
     for i, (y, z, r) in enumerate(p["body"]):
-        spine.append(add((0, y, z), r, spine[-1] if spine else None))
-    # neck and head from the chest
+        gain = 0.12 if i == 0 else (0.10 if i == n_body - 1 else 0.0)
+        spine.append(add((0, y, z), r * (1 + gain * m), spine[-1] if spine else None))
+    # deep ribcage and brisket: the belly line drops under the mid body and chest. Done as a
+    # displacement of the finished hull (_deepen), because Skin branches hung under a busy
+    # joint make non-manifold hulls.  (spine joint, depth in radii at muscle = 1, y shift in radii)
+    p["_keels"] = [(verts[spine[k]][0].copy(), verts[spine[k]][1], d * m, fy)
+                   for k, d, fy in ((n_body // 2, 0.30, 0.0), (n_body - 1, 0.40, -0.25))] if m > 0 else []
+    # neck and head from the chest; neck muscle thickens the neck base (an extra joint
+    # there folds against the scapula tops, so the base joint grows instead)
     prev = spine[-1]
     head_ids = []
-    for y, z, r in p["head"]:
-        prev = add((0, y, z), r, prev)
+    for i, (y, z, r) in enumerate(p["head"]):
+        prev = add((0, y, z), r * (1 + 0.30 * m if i == 0 else 1.0), prev)
         head_ids.append(prev)
     # ears on the skull joint (second head joint)
     skull = verts[head_ids[1]][0]
@@ -162,7 +186,8 @@ def _graph(p):
         tail_pts.append(pos.copy())
     p["_tail"] = tail_pts
     # legs: anatomical chains per stance (see STANCES); front and hind are NOT mirror images
-    stance = STANCES[p.get("stance", "digitigrade")]
+    # a fitted creature (fit_reference.py) brings its own leg chains in the same format
+    stance = dict(STANCES[p.get("stance", "digitigrade")], **(p.get("leg_chains") or {}))
     spine_at = lambda y: min(p["body"], key=lambda j: abs(j[0] - y))
     body_i = lambda y: spine[min(range(len(p["body"])), key=lambda k: abs(p["body"][k][0] - y))]
     r = p["leg_r"]
@@ -171,17 +196,42 @@ def _graph(p):
         x = side * p["spread"]
         for leg, y0 in (("front", p["front_y"]), ("hind", p["hind_y"])):
             h = spine_at(y0)[1] + lift                   # spine height above the leg
-            pts = []
-            prev = body_i(y0)
+            pts, radii = [], []
             for i, (fwd, hz, rs) in enumerate(stance[leg]):
                 # the scapula top / hip sit closer to the midline than the lower leg
                 xi = x * (0.55 if i == 0 else 1.0)
-                co = (xi, y0 - fwd * h, max(0.0, hz * h))
-                prev = add(co, r * rs, prev, lifted=False)   # already scaled by the lifted h
-                pts.append(co)
+                pts.append((xi, y0 - fwd * h, max(0.0, hz * h)))
+                radii.append(r * rs)
+            bulges = {seg: (t, back, gain) for seg, t, back, gain in MUSCLES[leg]} if m > 0 else {}
+            prev = body_i(y0)
+            for i, co in enumerate(pts):
+                prev = add(co, radii[i], prev, lifted=False)   # already scaled by the lifted h
+                if i in bulges and i + 1 < len(pts):
+                    t, back, gain = bulges[i]
+                    a, b = Vector(pts[i]), Vector(pts[i + 1])
+                    rb = (radii[i] + (radii[i + 1] - radii[i]) * t) * (1 + gain * m)
+                    mid = a.lerp(b, t) + Vector((0, back * m * rb, 0))
+                    mid.z = max(mid.z, rb * 0.5)
+                    prev = add(tuple(mid), rb, prev, lifted=False)
             chains[(leg, side)] = pts
     p["_chains"] = chains
     return verts, edges
+
+
+def _deepen(mesh, keels):
+    """Push the underside of the trunk down around each keel (smooth falloff, stays manifold)."""
+    import math
+    for centre, r, depth, fy in keels:
+        cy = centre.y + fy * r
+        for v in mesh.vertices:
+            co = v.co
+            below = (centre.z - co.z) / r                   # 0 at the spine line, 1 at the belly
+            # trunk surface only: legs hanging below the trunk keep their shape
+            if below <= 0 or abs(co.x) > r or abs(co.y - cy) > 1.6 * r or math.hypot(co.x, centre.z - co.z) > 1.15 * r:
+                continue
+            w = 0.5 * (1 + math.cos(math.pi * (co.y - cy) / (1.6 * r)))
+            w *= min(1.0, below) * max(0.0, 1 - (co.x / r) ** 2)
+            co.z -= depth * r * w
 
 
 def _material(name, rgb):
@@ -202,6 +252,8 @@ def main(config=None):
     p = json.loads(json.dumps(PRESETS[preset]))       # deep copy
     p["_leg_base"] = p["leg_len"]
     p.update(c.get("overrides") or {})
+    if c.get("muscle") is not None:
+        p["muscle"] = c["muscle"]
     name = c.get("name") or preset
 
     if c.get("clear_scene"):
@@ -234,6 +286,7 @@ def main(config=None):
     sub.levels = sub.render_levels = 1 if c["target_tris"] <= 2500 else (2 if c["target_tris"] <= 12000 else 3)
     for m in list(obj.modifiers):
         bpy.ops.object.modifier_apply(modifier=m.name)
+    _deepen(obj.data, p.get("_keels") or [])
 
     # Clean the skin hull, then decimate to the low-poly budget
     bm = bmesh.new()
@@ -245,6 +298,17 @@ def main(config=None):
         bmesh.ops.delete(bm, geom=loose, context='EDGES')
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_edges], context='VERTS')
     bmesh.ops.holes_fill(bm, edges=[e for e in bm.edges if e.is_boundary], sides=0)
+    # Where hulls of neighbouring joints overlap (a thick thigh bulge next to the hip) Skin can
+    # leave edges shared by 3+ faces: cut those faces out and cap the hole again
+    for _ in range(4):
+        multi = [e for e in bm.edges if len(e.link_faces) > 2]
+        if not multi:
+            break
+        faces = {f for e in multi for v in e.verts for f in v.link_faces}
+        bmesh.ops.delete(bm, geom=list(faces), context='FACES')
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+        bmesh.ops.delete(bm, geom=[e for e in bm.edges if not e.link_faces], context='EDGES')
+        bmesh.ops.holes_fill(bm, edges=[e for e in bm.edges if e.is_boundary], sides=0)
     bmesh.ops.triangulate(bm, faces=[f for f in bm.faces if len(f.verts) > 4])
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(obj.data)
@@ -345,6 +409,8 @@ def main(config=None):
         "non_manifold": sum(1 for e in bm.edges if not e.is_manifold),
         "dimensions_m": [round(d, 3) for d in obj.dimensions],
         "stance": p.get("stance", "digitigrade"),
+        "muscle": p.get("muscle", 0.0),
+        "fitted_legs": bool(p.get("leg_chains")),
         "landmarks": landmarks,
     }
     bm.free()

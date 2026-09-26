@@ -38,17 +38,20 @@ from /api/examples, the manifest currently in the editor, and the selected asset
 `reply` in the chat and, if `manifest_json` parses, put it in the editor, pretty-printed.
 
 Forge server API (every call sends `Authorization: Bearer <token>` except health):
-- GET /api/health → {blender, godot, keys:{tripo,meshy,rodin}, godot_project}
+- GET /api/health → {blender, godot, keys:{tripo,meshy,rodin}, gemini_key, godot_project}
 - GET /api/examples → {name: manifest}
 - GET /api/assets → [{name, status, stages, previews, export}]
-- POST /api/assets {manifest, restart} → 202 {name, status}
+- POST /api/assets {manifest, restart} → 202 {name, status}. When the "share key" setting is on, also send
+  the header X-Gemini-Key: <the Gemini key> (the server uses it for Nano Banana references and fitting).
 - GET /api/assets/<name> → {status, stages, instructions, error, previews[], export, handoff[], log_tail, manifest}
 - POST /api/assets/<name>/resume
-- POST /api/assets/<name>/upload?slot=concept|model|rigged|clip&filename=<file> with the raw file as the body
+- POST /api/assets/<name>/upload?slot=concept|model|rigged|clip|keypoints&filename=<file> with the raw file as the body
+  (keypoints = hand-placed joints JSON when the generate step waits for a fit)
 - GET /api/assets/<name>/files/<previews|export|handoff>/<file>. Fetch with the auth header and
   show images through object URLs (plain <img src> can't send the header).
 
 Settings dialog (open on first run, saved in localStorage): forge server URL (default
-http://127.0.0.1:8765), token, and Gemini model id (default gemini-flash-latest).
+http://127.0.0.1:8765), token, Gemini model id (default gemini-flash-latest), and a checkbox "Let the
+forge server use this key for Nano Banana reference images and fitting" (default on).
 Show a green/red dot in the header for server reachability and whether Blender, Godot and each
 provider key are available.

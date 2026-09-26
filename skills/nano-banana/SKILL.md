@@ -1,11 +1,13 @@
 ---
 name: nano-banana
-description: Generate or edit images using Nano Banana models (gemini-3.1-flash-lite-image, gemini-3.1-flash-image, gemini-3-pro-image, gemini-2.5-flash-image) with ADC auth. Supports "banana" as a verb (e.g., "please banana this") and Anime Dani / Chibi Dani character consistency.
+description: Generate or edit images using Nano Banana models (gemini-3.1-flash-lite-image, gemini-3.1-flash-image, gemini-3-pro-image, gemini-2.5-flash-image) with a Gemini API key (GEMINI_API_KEY) or Vertex AI ADC auth. Supports "banana" as a verb (e.g., "please banana this") and Anime Dani / Chibi Dani character consistency.
 ---
 
 # Nano Banana Skill
 
-Generate, edit, and iterate on visuals conversationally using Google's native **Nano Banana** image generation models (`gemini-3.1-flash-lite-image`, `gemini-3.1-flash-image`, `gemini-3-pro-image`, `gemini-2.5-flash-image`) with Application Default Credentials (ADC) authentication.
+Generate, edit, and iterate on visuals conversationally using Google's native **Nano Banana** image generation models (`gemini-3.1-flash-lite-image`, `gemini-3.1-flash-image`, `gemini-3-pro-image`, `gemini-2.5-flash-image`) with a Gemini API key or Application Default Credentials (ADC).
+
+**Auth, first match wins:** `--api-key`, or `GEMINI_API_KEY` / `GOOGLE_API_KEY` (free key: https://aistudio.google.com/apikey) → Gemini API; otherwise ADC (`gcloud auth application-default login`) plus `GOOGLE_CLOUD_PROJECT` → Vertex AI. Force one with `--backend api|vertex`.
 
 ---
 
@@ -194,10 +196,13 @@ Use `uv run` to execute the image generation script at `{baseDir}/scripts/banana
 - `-p`, `--prompt`: Text prompt describing the image to generate or edit (required).
 - `-f`, `--filename`: Output image filename (required).
 - `-i`, `--input-image`: Path to input/reference image(s). Specified up to 14 times.
-- `-m`, `--model`: Model selection (`nano-banana-2-lite`, `nano-banana-2`, `nano-banana-pro`, `nano-banana`). Default: `nano-banana-pro`.
-- `-r`, `--resolution`: Output resolution (`1K`, `2K`, `4K`). Default: `1K`.
+- `-m`, `--model`: Model selection (`nano-banana-2-lite`, `nano-banana-2`, `nano-banana-pro`, `nano-banana`). Default: `nano-banana-2-lite`.
+- `-r`, `--resolution`: Output resolution (`1K`, `2K`, `4K`; Gemini 3 image models). Default: `1K`.
+- `-a`, `--aspect-ratio`: `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` (optional).
+- `--backend`: `auto` (API key if set, else Vertex AI), `api`, or `vertex`. Default: `auto`.
+- `--api-key`: Gemini API key (default: `GEMINI_API_KEY` / `GOOGLE_API_KEY`).
 - `--project`: GCP Project ID for Vertex AI (optional).
-- `--location`: GCP Location for Vertex AI (optional, default: `us-central1`).
+- `--location`: GCP Location for Vertex AI (optional, default: `global`).
 
 ### Examples
 

@@ -1,10 +1,13 @@
 // Thin client for pipeline3d/forge_server.py. Every call except health sends the bearer token.
 
-export type Settings = { serverUrl: string; token: string; geminiKey: string; model: string; speakReplies: boolean };
+export type Settings = {
+  serverUrl: string; token: string; geminiKey: string; model: string; speakReplies: boolean;
+  shareGeminiKey: boolean;   // send the key with forge jobs (Nano Banana reference + fitting)
+};
 
 export type Health = {
   ok: boolean; blender: boolean; godot: boolean; godot_project: string; godot_project_exists: boolean;
-  keys: Record<string, boolean>; google_image: boolean;
+  keys: Record<string, boolean>; google_image: boolean; gemini_key?: boolean;
 };
 
 export type AssetSummary = { name: string; status: string; stages: Record<string, string>; previews: string[]; export: string | null };
@@ -40,14 +43,22 @@ export class ForgeApi {
   assets() { return this.req<AssetSummary[]>("/api/assets"); }
   asset(name: string) { return this.req<AssetDetail>(`/api/assets/${encodeURIComponent(name)}`); }
 
+  /** The server uses this for the job's Nano Banana reference and fitting when it has no key of its own. */
+  private jobHeaders(): Record<string, string> {
+    return this.s.shareGeminiKey && this.s.geminiKey ? { "X-Gemini-Key": this.s.geminiKey } : {};
+  }
+
   forge(manifest: unknown, restart = false) {
     return this.req<{ ok: boolean; name: string; status: string }>("/api/assets", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ manifest, restart }),
+      method: "POST", headers: { "Content-Type": "application/json", ...this.jobHeaders() },
+      body: JSON.stringify({ manifest, restart }),
     });
   }
 
   resume(name: string) {
-    return this.req<{ ok: boolean }>(`/api/assets/${encodeURIComponent(name)}/resume`, { method: "POST" });
+    return this.req<{ ok: boolean }>(`/api/assets/${encodeURIComponent(name)}/resume`, {
+      method: "POST", headers: this.jobHeaders(),
+    });
   }
 
   upload(name: string, slot: string, file: File) {

@@ -19,13 +19,17 @@ API (JSON; every call except /api/health needs "Authorization: Bearer <token>"):
     GET  /api/examples                      the example manifests (for the chat model's context)
     GET  /api/assets                        every asset with status
     POST /api/assets        {manifest}      validate, save, queue          -> 202
+                                            optional header X-Gemini-Key: used for this job's Nano Banana
+                                            reference and fitting when the server has no GEMINI_API_KEY
+                                            (kept in memory only, never written to disk or logs)
     GET  /api/assets/<name>                 state, manifest, instructions, previews, log tail
     POST /api/assets/<name>/resume          queue again (after a manual step)
-    POST /api/assets/<name>/upload?slot=concept|model|rigged|clip&filename=x.ext   raw body
+    POST /api/assets/<name>/upload?slot=concept|model|rigged|clip|keypoints&filename=x.ext   raw body
+                                            (keypoints: hand-placed joints for fit_reference, JSON)
     GET  /api/assets/<name>/files/<previews|export|handoff>/<file>   previews, final GLB, file to rig
 
 Environment: FORGE_TOKEN, FORGE_GODOT_PROJECT (default ~/pipeline3d_game), BLENDER, GODOT,
-TRIPO_API_KEY / MESHY_API_KEY / RODIN_API_KEY (passed through to forge).
+TRIPO_API_KEY / MESHY_API_KEY / RODIN_API_KEY / GEMINI_API_KEY (passed through to forge).
 """
 
 import argparse
@@ -54,6 +58,10 @@ MAX_UPLOAD = 200 * 1024 * 1024
 
 NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,39}$")
 FILE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _.\-]{0,99}$")
+KEY_RE = re.compile(r"^[A-Za-z0-9_\-]{8,200}$")
+GEMINI_MODEL_RE = re.compile(r"^gemini-[a-z0-9.\-]{1,40}$")
+BANANA_MODELS = {"nano-banana", "nano-banana-pro", "nano-banana-2", "nano-banana-2-lite", "nano-banana-lite"}
+ASPECTS = {"1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"}
 ENUMS = {
     ("generate", "provider"): {"tripo", "meshy", "rodin"},
     ("generate", "mode"): {"text", "image", "multiview"},
@@ -112,6 +120,14 @@ def sanitize_manifest(m, godot_project):
                    "out": f"{name}_ref.png"}
         if c.get("tool") in ("banana", "manual"):
             concept["tool"] = c["tool"]
+        if c.get("subject"):
+            concept["subject"] = str(c["subject"])[:120]     # side-view reference prompt for fitting
+        if c.get("model") in BANANA_MODELS:
+            concept["model"] = c["model"]
+        if c.get("aspect") in ASPECTS:
+            concept["aspect"] = c["aspect"]
+        if c.get("auto_approve") is True:
+            concept["auto_approve"] = True
         if c.get("image"):
             concept["image"] = upload_path(c["image"], "concept.image")
         out["concept"] = concept
@@ -127,6 +143,19 @@ def sanitize_manifest(m, godot_project):
         _scalar_tree(cfg)
         cfg = {k: v for k, v in cfg.items() if k not in ("export_path", "import_path")}
         out["generate"] = {"procedural": script, "config": cfg}
+        fit = g.get("fit_reference")
+        if fit:
+            if script != "build_lowpoly_creature.py":
+                raise BadRequest("fit_reference only works with build_lowpoly_creature.py")
+            spec = {}
+            if isinstance(fit, dict):
+                if fit.get("animal"):
+                    spec["animal"] = str(fit["animal"])[:120]
+                if fit.get("model"):
+                    if not GEMINI_MODEL_RE.match(str(fit["model"])):
+                        raise BadRequest("fit_reference.model must be a Gemini model id like gemini-3.5-flash")
+                    spec["model"] = fit["model"]
+            out["generate"]["fit_reference"] = spec or True
     elif g.get("file"):
         out["generate"] = {"file": upload_path(g["file"], "generate.file")}
     else:
@@ -194,6 +223,7 @@ class Forge:
     def __init__(self, godot_project):
         self.godot_project = godot_project
         self.jobs = {}               # name -> {"status", "queued_at", ...}
+        self.keys = {}               # name -> Gemini key sent by the client for that job (memory only)
         self.q = queue.Queue()
         self.lock = threading.Lock()
         threading.Thread(target=self._worker, daemon=True).start()
@@ -202,8 +232,10 @@ class Forge:
         with self.lock:
             return self.jobs.get(name, {}).get("status") in ("queued", "running")
 
-    def enqueue(self, name):
+    def enqueue(self, name, gemini_key=None):
         with self.lock:
+            if gemini_key:
+                self.keys[name] = gemini_key
             job = self.jobs.get(name)
             if job and job["status"] in ("queued", "running"):
                 return job
@@ -222,8 +254,13 @@ class Forge:
             with open(log_path, "a") as log:
                 log.write(f"\n=== {time.strftime('%Y-%m-%d %H:%M:%S')} forge {name}\n")
                 log.flush()
+                env = dict(os.environ)
+                with self.lock:
+                    key = self.keys.get(name)
+                if key and not (env.get("GEMINI_API_KEY") or env.get("GOOGLE_API_KEY")):
+                    env["GEMINI_API_KEY"] = key
                 proc = subprocess.run([sys.executable, FORGE, os.path.join(REQUESTS, f"{name}.json")],
-                                      stdout=log, stderr=subprocess.STDOUT)
+                                      stdout=log, stderr=subprocess.STDOUT, env=env)
             status = {0: "done", 3: "waiting"}.get(proc.returncode, "error")
             if status == "done":
                 try:
@@ -236,10 +273,14 @@ class Forge:
 
     def _previews(self, name):
         glb = os.path.join(BUILD, name, "export", f"{name}.glb")
+        out_dir = os.path.join(BUILD, name, "previews")
+        overlay = os.path.join(BUILD, name, "work", "fit_overlay.svg")
+        if os.path.exists(overlay):                  # the reference with the joints Gemini marked
+            os.makedirs(out_dir, exist_ok=True)
+            shutil.copy2(overlay, os.path.join(out_dir, f"{name}_fit.svg"))
         blender = os.environ.get("BLENDER") or shutil.which("blender")
         if not (blender and os.path.exists(glb)):
             return
-        out_dir = os.path.join(BUILD, name, "previews")
         subprocess.run([blender, "-b", "--factory-startup", "-P", os.path.join(BLENDER_DIR, "render_preview.py"), "--",
                         f"import_path={json.dumps(glb)}", "clear_scene=true", f"out_dir={json.dumps(out_dir)}",
                         f"prefix={json.dumps(name)}", f"views={json.dumps(PREVIEW_VIEWS)}", "resolution=512"],
@@ -263,7 +304,7 @@ class Forge:
         waiting = next((v.get("instructions") for v in state.values() if v.get("status") == "waiting"), None)
         error = next((v.get("error") for v in state.values() if v.get("status") == "error"), None)
         prev_dir = os.path.join(workdir, "previews")
-        previews = sorted(f for f in os.listdir(prev_dir) if f.endswith(".png")) if os.path.isdir(prev_dir) else []
+        previews = sorted(f for f in os.listdir(prev_dir) if f.endswith((".png", ".svg"))) if os.path.isdir(prev_dir) else []
         glb = os.path.join(workdir, "export", f"{name}.glb")
         hand_dir = os.path.join(workdir, "handoff")
         handoff = sorted(f for f in os.listdir(hand_dir)) if os.path.isdir(hand_dir) else []
@@ -307,7 +348,7 @@ class Handler(BaseHTTPRequestHandler):
         if allowed == "*" or origin in allowed.split(","):
             self.send_header("Access-Control-Allow-Origin", origin or "*")
             self.send_header("Vary", "Origin")
-        self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Gemini-Key")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         # Chrome's Private Network Access: allow https pages (AI Studio, Cloud Run) to call localhost
         self.send_header("Access-Control-Allow-Private-Network", "true")
@@ -327,6 +368,12 @@ class Handler(BaseHTTPRequestHandler):
             return True
         self._json(401, {"ok": False, "error": "missing or wrong token (Authorization: Bearer <FORGE_TOKEN>)"})
         return False
+
+    def _gemini_key(self):
+        key = self.headers.get("X-Gemini-Key", "").strip()
+        if key and not KEY_RE.match(key):
+            raise BadRequest("X-Gemini-Key doesn't look like an API key")
+        return key or None
 
     def _body(self, limit=1024 * 1024):
         length = int(self.headers.get("Content-Length") or 0)
@@ -387,11 +434,11 @@ class Handler(BaseHTTPRequestHandler):
                     # so starting over must remove the whole build folder, not just the state file.
                     # Uploaded source files live in uploads/ and are kept.
                     shutil.rmtree(os.path.join(BUILD, manifest["name"]), ignore_errors=True)
-                job = self.forge.enqueue(manifest["name"])
+                job = self.forge.enqueue(manifest["name"], self._gemini_key())
                 return self._json(202, {"ok": True, "name": manifest["name"], "status": job["status"]})
             if len(parts) == 4 and parts[:2] == ["api", "assets"] and parts[3] == "resume":
                 self._check_name(parts[2], must_exist=True)
-                job = self.forge.enqueue(parts[2])
+                job = self.forge.enqueue(parts[2], self._gemini_key())
                 return self._json(202, {"ok": True, "name": parts[2], "status": job["status"]})
             if len(parts) == 4 and parts[:2] == ["api", "assets"] and parts[3] == "upload":
                 return self._upload(parts[2], parse_qs(url.query))
@@ -408,7 +455,9 @@ class Handler(BaseHTTPRequestHandler):
                 "godot_project": _strip_paths(self.forge.godot_project),
                 "godot_project_exists": os.path.exists(os.path.join(self.forge.godot_project, "project.godot")),
                 "keys": {p: bool(os.environ.get(f"{p.upper()}_API_KEY")) for p in ("tripo", "meshy", "rodin")},
-                "google_image": bool(os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("GCP_PROJECT"))}
+                "gemini_key": bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")),
+                "google_image": bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+                                     or os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("GCP_PROJECT"))}
 
     def _check_name(self, name, must_exist=False):
         if not NAME_RE.match(name):
@@ -425,16 +474,23 @@ class Handler(BaseHTTPRequestHandler):
         ext = os.path.splitext(filename)[1].lower()
         # .gltf is excluded on purpose: its buffers/textures live in separate files. Upload .glb instead.
         allowed = {"concept": {".png", ".jpg", ".jpeg", ".webp"}, "model": {".glb", ".fbx", ".obj"},
-                   "rigged": {".fbx"}, "clip": {".fbx", ".glb"}}
+                   "rigged": {".fbx"}, "clip": {".fbx", ".glb"}, "keypoints": {".json"}}
         if slot not in allowed or ext not in allowed[slot]:
             raise BadRequest(f"slot must be one of {sorted(allowed)} with a matching file type")
-        data = self._body(MAX_UPLOAD)
+        data = self._body(1024 * 1024 if slot == "keypoints" else MAX_UPLOAD)
+        if slot == "keypoints":
+            try:
+                if not isinstance(json.loads(data), dict):
+                    raise ValueError
+            except ValueError:
+                raise BadRequest("keypoints must be a JSON object (see fit_reference.py --schema)") from None
         workdir = os.path.join(BUILD, name)
         dest = {
             "concept": os.path.join(workdir, "refs", f"{name}_ref.png"),
             "model": os.path.join(UPLOADS, name, filename),
             "rigged": os.path.join(workdir, "incoming", f"{name}_rigged.fbx"),
             "clip": os.path.join(workdir, "incoming", "clips", filename),
+            "keypoints": os.path.join(workdir, "handoff", "fit_keypoints.json"),
         }[slot]
         if slot == "concept" and ext != ".png":
             dest = os.path.join(UPLOADS, name, filename)   # non-PNG: reference it as concept.image instead
@@ -450,7 +506,8 @@ class Handler(BaseHTTPRequestHandler):
         path = os.path.join(BUILD, name, folder, filename)
         if not os.path.isfile(path):
             return self._json(404, {"ok": False, "error": "no such file"})
-        ctype = {".png": "image/png", ".glb": "model/gltf-binary"}.get(os.path.splitext(path)[1], "application/octet-stream")
+        ctype = {".png": "image/png", ".glb": "model/gltf-binary", ".svg": "image/svg+xml"}.get(
+            os.path.splitext(path)[1], "application/octet-stream")
         with open(path, "rb") as fh:
             data = fh.read()
         self.send_response(200)
@@ -458,6 +515,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Cache-Control", "no-store")
+        if ctype == "image/svg+xml":   # our fit overlay: an embedded image and shapes, never scripts
+            self.send_header("Content-Security-Policy", "default-src 'none'; img-src data:; style-src 'unsafe-inline'")
         self.end_headers()
         self.wfile.write(data)
 
