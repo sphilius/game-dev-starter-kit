@@ -8,8 +8,13 @@ Blender's Skin modifier (which wraps a quad hull around the graph), then decimat
 budget and flat-shades. The result is one watertight mesh facing -Y with its feet on the
 ground, ready for quadruped_rig.py.
 
-Presets give recognisable animals by changing proportions only:
-    wolf, boar, bear, deer, cat
+Presets give recognisable animals by changing proportions and stance:
+    wolf, cat   digitigrade (toe-walking)       boar, deer   unguligrade (hoofed)
+    bear        plantigrade (flat-footed)
+Legs are anatomical chains (see STANCES): the front elbow points back, the hind knee forward and
+the hock back, so front and hind legs are different shapes, not mirror copies. The joint
+positions are saved on the object ("quadruped_landmarks", exported as glTF extras), and
+quadruped_rig.py uses them so bones bend exactly where the mesh has joints.
 Every number is in the preset dict and can be overridden through CONFIG["overrides"].
 Colours come from a small palette as vertex-free material slots (body, belly/muzzle,
 dark accents: hooves/nose), so no UVs or textures are needed.
@@ -40,6 +45,7 @@ CONFIG = {
 # legs: shoulder/hip y, leg length, thickness, spread; tail: list of (dy, dz, radius).
 PRESETS = {
     "wolf": {
+        "stance": "digitigrade",
         "body": [(0.42, 0.62, 0.13), (0.15, 0.64, 0.17), (-0.15, 0.66, 0.18), (-0.35, 0.68, 0.16)],
         "head": [(-0.50, 0.80, 0.10), (-0.62, 0.84, 0.11), (-0.78, 0.78, 0.06), (-0.88, 0.75, 0.04)],
         "ears": 0.09, "front_y": -0.30, "hind_y": 0.36, "leg_len": 0.58, "leg_r": 0.055, "spread": 0.11,
@@ -47,6 +53,7 @@ PRESETS = {
         "palette": [(0.42, 0.42, 0.45), (0.78, 0.76, 0.72), (0.12, 0.12, 0.13)],
     },
     "boar": {
+        "stance": "unguligrade",
         "body": [(0.40, 0.58, 0.17), (0.12, 0.62, 0.22), (-0.18, 0.66, 0.24), (-0.36, 0.64, 0.20)],
         "head": [(-0.50, 0.58, 0.15), (-0.64, 0.52, 0.12), (-0.78, 0.46, 0.08), (-0.86, 0.44, 0.06)],
         "ears": 0.07, "front_y": -0.28, "hind_y": 0.34, "leg_len": 0.44, "leg_r": 0.055, "spread": 0.13,
@@ -54,6 +61,7 @@ PRESETS = {
         "palette": [(0.32, 0.22, 0.16), (0.55, 0.42, 0.32), (0.10, 0.08, 0.07)],
     },
     "bear": {
+        "stance": "plantigrade",
         "body": [(0.45, 0.70, 0.22), (0.15, 0.78, 0.28), (-0.20, 0.84, 0.28), (-0.42, 0.82, 0.24)],
         "head": [(-0.58, 0.86, 0.17), (-0.72, 0.86, 0.16), (-0.86, 0.80, 0.09), (-0.94, 0.78, 0.06)],
         "ears": 0.06, "front_y": -0.36, "hind_y": 0.40, "leg_len": 0.62, "leg_r": 0.085, "spread": 0.16,
@@ -61,6 +69,7 @@ PRESETS = {
         "palette": [(0.30, 0.20, 0.13), (0.50, 0.36, 0.25), (0.08, 0.06, 0.05)],
     },
     "deer": {
+        "stance": "unguligrade",
         "body": [(0.38, 0.92, 0.12), (0.12, 0.95, 0.15), (-0.14, 0.97, 0.15), (-0.32, 1.00, 0.13)],
         "head": [(-0.40, 1.20, 0.07), (-0.46, 1.42, 0.09), (-0.60, 1.40, 0.06), (-0.70, 1.36, 0.04)],
         "ears": 0.10, "front_y": -0.28, "hind_y": 0.32, "leg_len": 0.90, "leg_r": 0.035, "spread": 0.10,
@@ -68,11 +77,36 @@ PRESETS = {
         "palette": [(0.55, 0.38, 0.22), (0.86, 0.80, 0.70), (0.12, 0.09, 0.07)],
     },
     "cat": {
+        "stance": "digitigrade",
         "body": [(0.20, 0.26, 0.07), (0.07, 0.27, 0.08), (-0.07, 0.28, 0.08), (-0.18, 0.29, 0.07)],
         "head": [(-0.26, 0.36, 0.07), (-0.32, 0.38, 0.07), (-0.39, 0.36, 0.035), (-0.42, 0.35, 0.025)],
         "ears": 0.05, "front_y": -0.14, "hind_y": 0.17, "leg_len": 0.24, "leg_r": 0.022, "spread": 0.05,
         "tail": [(0.08, 0.06, 0.02), (0.06, 0.12, 0.018), (0.02, 0.12, 0.015), (-0.03, 0.08, 0.012)],
         "palette": [(0.85, 0.55, 0.25), (0.95, 0.90, 0.82), (0.15, 0.10, 0.08)],
+    },
+}
+
+
+# Leg chains by stance. Each point: (forward, height, radius-scale).
+#   forward: metres of forward (+) / backward (-) offset per metre of leg height, from the leg root
+#   height:  fraction of the spine height at the leg root (1.0 = spine, 0 = ground)
+#   radius:  multiple of the preset's leg_r
+# Front chain: scapula top, shoulder, elbow, carpus (wrist), paw/fetlock, toe tip
+# Hind chain:  hip, stifle (knee), hock (ankle), paw/fetlock, toe tip
+# The anatomy that matters: the elbow points BACK, the stifle points FORWARD, the hock points
+# BACK and sits well off the ground on toe- and hoof-walkers, and hind legs carry a heavy thigh.
+STANCES = {
+    "digitigrade": {   # walks on toes: wolf, dog, cat
+        "front": [(0.10, 1.18, 1.3), (0.06, 0.88, 1.7), (-0.08, 0.55, 1.2), (0.00, 0.15, 0.8), (0.05, 0.04, 0.9), (0.12, 0.01, 0.6)],
+        "hind":  [(0.00, 0.98, 2.2), (0.15, 0.60, 1.5), (-0.14, 0.27, 0.8), (-0.06, 0.04, 0.9), (0.03, 0.01, 0.6)],
+    },
+    "unguligrade": {   # walks on hoof tips: deer, boar, horse
+        "front": [(0.10, 1.15, 1.3), (0.06, 0.88, 1.6), (-0.07, 0.62, 1.1), (0.00, 0.33, 0.6), (0.02, 0.07, 0.55), (0.05, 0.00, 0.65)],
+        "hind":  [(0.00, 0.98, 2.1), (0.13, 0.66, 1.4), (-0.14, 0.38, 0.65), (-0.07, 0.07, 0.55), (-0.04, 0.00, 0.65)],
+    },
+    "plantigrade": {   # walks on the whole foot: bear
+        "front": [(0.08, 1.12, 1.4), (0.05, 0.88, 1.8), (-0.07, 0.52, 1.35), (0.00, 0.10, 1.0), (0.10, 0.03, 1.0), (0.20, 0.02, 0.7)],
+        "hind":  [(0.00, 0.98, 2.2), (0.10, 0.55, 1.5), (-0.06, 0.08, 1.0), (0.10, 0.03, 1.0), (0.20, 0.02, 0.7)],
     },
 }
 
@@ -111,19 +145,35 @@ def _graph(p):
     for dy, dz, r in p["tail"]:
         pos = pos + Vector((0, dy, dz))
         prev = add(tuple(pos), r, prev)
-    # legs: shoulder -> elbow -> wrist -> paw, hip -> knee -> hock -> paw
-    body_z = lambda y: min(p["body"], key=lambda j: abs(j[0] - y))[1]
+    p["_spine"] = [verts[i][0].copy() for i in spine]
+    p["_head"] = [verts[i][0].copy() for i in head_ids]
+    p["_head_r"] = [verts[i][1] for i in head_ids]
+    tail_pts = [verts[spine[0]][0].copy()]
+    pos = tail_pts[0].copy()
+    for dy, dz, _ in p["tail"]:
+        pos = pos + Vector((0, dy, dz))
+        tail_pts.append(pos.copy())
+    p["_tail"] = tail_pts
+    # legs: anatomical chains per stance (see STANCES); front and hind are NOT mirror images
+    stance = STANCES[p.get("stance", "digitigrade")]
+    spine_at = lambda y: min(p["body"], key=lambda j: abs(j[0] - y))
     body_i = lambda y: spine[min(range(len(p["body"])), key=lambda k: abs(p["body"][k][0] - y))]
-    L, r = p["leg_len"], p["leg_r"]
+    r = p["leg_r"]
+    chains = {}
     for side in (-1, 1):
         x = side * p["spread"]
-        for y0, bend in ((p["front_y"], -1), (p["hind_y"], 1)):
-            top = body_z(y0) - 0.02
-            a = add((x, y0, top), r * 1.5, body_i(y0))
-            b = add((x, y0 + bend * 0.04 * L / 0.6, top - L * 0.45), r)
-            c = add((x, y0 - bend * 0.03 * L / 0.6, top - L * 0.85), r * 0.8, b)
-            edges.append((a, b))
-            add((x, y0 - 0.05 * L / 0.6, max(0.0, top - L)), r * 0.9, c)
+        for leg, y0 in (("front", p["front_y"]), ("hind", p["hind_y"])):
+            h = spine_at(y0)[1]                          # spine height above the leg
+            pts = []
+            prev = body_i(y0)
+            for i, (fwd, hz, rs) in enumerate(stance[leg]):
+                # the scapula top / hip sit closer to the midline than the lower leg
+                xi = x * (0.55 if i == 0 else 1.0)
+                co = (xi, y0 - fwd * h, max(0.0, hz * h))
+                prev = add(co, r * rs, prev)
+                pts.append(co)
+            chains[(leg, side)] = pts
+    p["_chains"] = chains
     return verts, edges
 
 
@@ -172,8 +222,8 @@ def main(config=None):
         sv.radius = (r, r)
     mesh.skin_vertices[0].data[0].use_root = True
     sub = obj.modifiers.new("Subdiv", 'SUBSURF')
-    sub.levels = 1
-    sub.render_levels = 1
+    # One level of smoothing covers low-poly budgets; higher budgets need more source detail
+    sub.levels = sub.render_levels = 1 if c["target_tris"] <= 2500 else (2 if c["target_tris"] <= 12000 else 3)
     for m in list(obj.modifiers):
         bpy.ops.object.modifier_apply(modifier=m.name)
 
@@ -181,6 +231,13 @@ def main(config=None):
     bm = bmesh.new()
     bm.from_mesh(obj.data)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-4)
+    # Skin can leave small holes or stray edges where several limbs meet the body; patch them
+    loose = [e for e in bm.edges if not e.link_faces]
+    if loose:
+        bmesh.ops.delete(bm, geom=loose, context='EDGES')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_edges], context='VERTS')
+    bmesh.ops.holes_fill(bm, edges=[e for e in bm.edges if e.is_boundary], sides=0)
+    bmesh.ops.triangulate(bm, faces=[f for f in bm.faces if len(f.verts) > 4])
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(obj.data)
     bm.free()
@@ -221,6 +278,57 @@ def main(config=None):
         else:
             poly.material_index = 0
 
+    # Tell quadruped_rig where the joints really are (fractions of the final bounding box),
+    # so bones bend exactly at the mesh's elbows, knees and hocks.
+    xs = [v.co.x for v in obj.data.vertices]
+    ys = [v.co.y for v in obj.data.vertices]
+    zs = [v.co.z for v in obj.data.vertices]
+    lo = Vector((min(xs), min(ys), min(zs)))
+    size = Vector((max(xs) - lo.x, max(ys) - lo.y, max(zs) - lo.z))
+    k = s if c.get("height_m") else 1.0
+
+    def frac(co):
+        w = (Vector(co) * k) + shift
+        return [round((w.y - lo.y) / size.y, 4), round((w.z - lo.z) / size.z, 4),
+                round(abs(w.x) / (size.x / 2), 4)]
+
+    fl = [frac(co) for co in p["_chains"][("front", 1)]]
+    hl = [frac(co) for co in p["_chains"][("hind", 1)]]
+    def resample(points, n):
+        """n+1 evenly spaced points along a polyline (so any tail/spine length maps to fixed bones)."""
+        pts = [Vector(q) for q in points]
+        if len(pts) == 1:
+            pts.append(pts[0] + Vector((0, 0.05, -0.02)))
+        seg = [(pts[i + 1] - pts[i]).length for i in range(len(pts) - 1)]
+        total = sum(seg) or 1e-6
+        out = []
+        for j in range(n + 1):
+            d, i = total * j / n, 0
+            while i < len(seg) - 1 and d > seg[i]:
+                d -= seg[i]
+                i += 1
+            t = min(1.0, d / seg[i]) if seg[i] else 0.0
+            out.append(pts[i].lerp(pts[i + 1], t))
+        return out
+
+    sp = [frac(q) for q in resample(p["_spine"], 4)]          # rump -> chest, 4 bones
+    hd = p["_head"]
+    jaw_drop = Vector((0, 0, -0.45 * p["_head_r"][2]))
+    tl = [frac(q) for q in resample(p["_tail"], 4)]
+    landmarks = {
+        "pelvis": [sp[0], sp[1]], "spine_01": [sp[1], sp[2]], "spine_02": [sp[2], sp[3]], "spine_03": [sp[3], sp[4]],
+        "neck_01": [sp[4], frac(hd[0])], "neck_02": [frac(hd[0]), frac(hd[1])],
+        "head": [frac(hd[1]), frac(hd[3])],
+        "jaw": [frac(hd[1].lerp(hd[2], 0.5) + jaw_drop), frac(hd[3] + jaw_drop * 0.5)],
+        "tail_01": [tl[0], tl[1]], "tail_02": [tl[1], tl[2]], "tail_03": [tl[2], tl[3]], "tail_04": [tl[3], tl[4]],
+        "scapula": [fl[0], fl[1]], "upperarm": [fl[1], fl[2]], "forearm": [fl[2], fl[3]],
+        "hand": [fl[3], fl[4]], "front_toe": [fl[4], fl[5]],
+        "thigh": [hl[0], hl[1]], "shin": [hl[1], hl[2]], "hock": [hl[2], hl[3]], "hind_toe": [hl[3], hl[4]],
+    }
+    obj["quadruped_landmarks"] = json.dumps(landmarks)
+    obj["quadruped_head_direction"] = "-Y"
+    obj["flat_shaded"] = True          # quadruped_rig keeps the faceted look after welding
+
     bm = bmesh.new()
     bm.from_mesh(obj.data)
     report = {
@@ -228,12 +336,15 @@ def main(config=None):
         "tris": sum(len(f.verts) - 2 for f in bm.faces),
         "non_manifold": sum(1 for e in bm.edges if not e.is_manifold),
         "dimensions_m": [round(d, 3) for d in obj.dimensions],
+        "stance": p.get("stance", "digitigrade"),
+        "landmarks": landmarks,
     }
     bm.free()
     if c.get("export_path"):
         path = os.path.abspath(os.path.expanduser(c["export_path"]))
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', use_selection=True, export_yup=True)
+        bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', use_selection=True, export_yup=True,
+                                  export_extras=True)   # carries the rig landmarks
         report["export_path"] = path
     print(f"[lowpoly] {preset}: {report['tris']} tris, non-manifold edges {report['non_manifold']}")
     return report
