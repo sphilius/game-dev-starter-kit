@@ -115,8 +115,15 @@ def _graph(p):
     """Joints [(co, radius)] and edges [(i, j)] for Skin."""
     verts, edges = [], []
 
-    def add(co, r, parent=None):
-        verts.append((Vector(co), r))
+    # leg_len (overrides / seed_jitter) changes how far the body stands off the ground:
+    # everything above the legs is lifted by the difference from the preset.
+    lift = p["leg_len"] - p.get("_leg_base", p["leg_len"])
+
+    def add(co, r, parent=None, lifted=True):
+        co = Vector(co)
+        if lifted:
+            co.z += lift
+        verts.append((co, r))
         idx = len(verts) - 1
         if parent is not None:
             edges.append((parent, idx))
@@ -137,14 +144,14 @@ def _graph(p):
     if p.get("ears"):
         er = verts[head_ids[1]][1]
         for side in (-1, 1):
-            base = add((side * er * 0.55, skull.y + 0.01, skull.z + er * 0.85), p["ears"] * 0.32, head_ids[1])
-            add((side * er * 0.62, skull.y + 0.02, skull.z + er * 0.85 + p["ears"]), 0.006, base)
+            base = add((side * er * 0.55, skull.y + 0.01, skull.z + er * 0.85), p["ears"] * 0.32, head_ids[1], False)
+            add((side * er * 0.62, skull.y + 0.02, skull.z + er * 0.85 + p["ears"]), 0.006, base, False)
     # tail from the rump
     prev = spine[0]
     pos = verts[spine[0]][0].copy()
     for dy, dz, r in p["tail"]:
         pos = pos + Vector((0, dy, dz))
-        prev = add(tuple(pos), r, prev)
+        prev = add(tuple(pos), r, prev, False)          # relative to the (lifted) rump
     p["_spine"] = [verts[i][0].copy() for i in spine]
     p["_head"] = [verts[i][0].copy() for i in head_ids]
     p["_head_r"] = [verts[i][1] for i in head_ids]
@@ -163,14 +170,14 @@ def _graph(p):
     for side in (-1, 1):
         x = side * p["spread"]
         for leg, y0 in (("front", p["front_y"]), ("hind", p["hind_y"])):
-            h = spine_at(y0)[1]                          # spine height above the leg
+            h = spine_at(y0)[1] + lift                   # spine height above the leg
             pts = []
             prev = body_i(y0)
             for i, (fwd, hz, rs) in enumerate(stance[leg]):
                 # the scapula top / hip sit closer to the midline than the lower leg
                 xi = x * (0.55 if i == 0 else 1.0)
                 co = (xi, y0 - fwd * h, max(0.0, hz * h))
-                prev = add(co, r * rs, prev)
+                prev = add(co, r * rs, prev, lifted=False)   # already scaled by the lifted h
                 pts.append(co)
             chains[(leg, side)] = pts
     p["_chains"] = chains
@@ -193,6 +200,7 @@ def main(config=None):
     if preset not in PRESETS:
         return {"ok": False, "error": f"preset must be one of {sorted(PRESETS)}"}
     p = json.loads(json.dumps(PRESETS[preset]))       # deep copy
+    p["_leg_base"] = p["leg_len"]
     p.update(c.get("overrides") or {})
     name = c.get("name") or preset
 

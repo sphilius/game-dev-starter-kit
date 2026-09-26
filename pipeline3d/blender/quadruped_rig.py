@@ -297,6 +297,10 @@ def _heat_weights(mesh_obj, arm, log):
     bpy.context.view_layer.update()
     for o in bpy.context.view_layer.objects:
         o.select_set(o in (m2, a2))
+    # Bake the scale into the copies' data: auto-weighting works in the mesh's local space,
+    # so an unapplied object scale would cancel out and the solver would see the small mesh.
+    bpy.context.view_layer.objects.active = m2
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
     bpy.context.view_layer.objects.active = a2
     try:
         bpy.ops.object.parent_set(type='ARMATURE_AUTO')
