@@ -238,16 +238,96 @@ def _limit_and_normalize(mesh_obj, max_inf):
     return unweighted
 
 
+def _weld(mesh_obj, log):
+    """glTF stores flat-shaded / UV-seamed meshes with vertices split at every hard edge, so an
+    imported low-poly model is a soup of loose faces and bone heat fails. Welding restores the
+    connected surface; flat shading is per face, so the faceted look is unchanged."""
+    import bmesh
+    me = mesh_obj.data
+    # Remember which faces are flat-shaded (all corner normals == face normal) before welding,
+    # because welding blends the imported custom normals and would smooth a faceted model.
+    corner = me.corner_normals if hasattr(me, "corner_normals") else None
+    flat = []
+    for poly in me.polygons:
+        if corner is None:
+            flat.append(not poly.use_smooth)
+            continue
+        n = poly.normal
+        flat.append(all(corner[li].vector.dot(n) > 0.999 for li in poly.loop_indices))
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    before = len(bm.verts)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+    after = len(bm.verts)
+    bm.to_mesh(me)
+    bm.free()
+    if after < before:
+        with bpy.context.temp_override(object=mesh_obj, active_object=mesh_obj,
+                                       selected_objects=[mesh_obj], selected_editable_objects=[mesh_obj]):
+            if me.has_custom_normals:
+                bpy.ops.mesh.customdata_custom_splitnormals_clear()
+        if mesh_obj.get("flat_shaded"):
+            flat = [True] * len(me.polygons)          # tagged faceted asset (build_lowpoly_creature)
+        if len(flat) == len(me.polygons):
+            for poly, is_flat in zip(me.polygons, flat):
+                poly.use_smooth = not is_flat
+        log.append(f"welded {before - after} split vertices before skinning "
+                   f"({sum(flat)} flat-shaded faces kept flat)")
+    me.update()
+
+
+def _heat_weights(mesh_obj, arm, log):
+    """Bone-heat weights computed on a temporary copy scaled to ~10 m.
+
+    Blender's heat solver often fails on small (sub-metre) meshes; scaling a copy up and
+    copying the resulting weights back by vertex index avoids that without touching the
+    real mesh or armature. The real mesh is then parented with an Armature modifier.
+    """
+    dims = max(mesh_obj.dimensions) or 1.0
+    k = max(1.0, 10.0 / dims)
+    m2 = mesh_obj.copy()
+    m2.data = mesh_obj.data.copy()
+    a2 = arm.copy()
+    a2.data = arm.data.copy()
+    for o in (m2, a2):
+        bpy.context.scene.collection.objects.link(o)
+        o.matrix_world = arm.matrix_world.copy() if o is a2 else mesh_obj.matrix_world.copy()
+        o.scale = tuple(v * k for v in o.scale)
+        o.location = o.location * k
+    bpy.context.view_layer.update()
+    for o in bpy.context.view_layer.objects:
+        o.select_set(o in (m2, a2))
+    # Bake the scale into the copies' data: auto-weighting works in the mesh's local space,
+    # so an unapplied object scale would cancel out and the solver would see the small mesh.
+    bpy.context.view_layer.objects.active = m2
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    bpy.context.view_layer.objects.active = a2
+    try:
+        bpy.ops.object.parent_set(type='ARMATURE_AUTO')
+    except RuntimeError as exc:
+        log.append(f"bone heat failed: {exc}")
+    mesh_obj.vertex_groups.clear()
+    groups = {g.index: mesh_obj.vertex_groups.new(name=g.name) for g in m2.vertex_groups}
+    for v, v2 in zip(mesh_obj.data.vertices, m2.data.vertices):
+        for g in v2.groups:
+            if g.weight > 1e-5:
+                groups[g.group].add([v.index], g.weight, 'REPLACE')
+    for o in (m2, a2):
+        data = o.data
+        bpy.data.objects.remove(o, do_unlink=True)
+        (bpy.data.meshes if isinstance(data, bpy.types.Mesh) else bpy.data.armatures).remove(data)
+    mesh_obj.parent = arm
+    mesh_obj.matrix_parent_inverse = arm.matrix_world.inverted()
+    mod = next((m for m in mesh_obj.modifiers if m.type == 'ARMATURE'), None) \
+        or mesh_obj.modifiers.new("Armature", 'ARMATURE')
+    mod.object = arm
+
+
 def _skin(mesh_obj, arm, cfg, log):
     method = cfg["skinning"].upper()
+    _weld(mesh_obj, log)
     if method == "AUTO":
-        for o in bpy.context.view_layer.objects:
-            o.select_set(o in (mesh_obj, arm))
-        bpy.context.view_layer.objects.active = arm
-        try:
-            bpy.ops.object.parent_set(type='ARMATURE_AUTO')
-        except RuntimeError as exc:
-            log.append(f"bone heat failed: {exc}")
+        _heat_weights(mesh_obj, arm, log)
         missing = sum(1 for v in mesh_obj.data.vertices if not any(g.weight > 1e-5 for g in v.groups))
         if missing > len(mesh_obj.data.vertices) * 0.02:
             log.append(f"bone heat left {missing} verts unweighted -> using proximity weights")
@@ -439,6 +519,15 @@ def main(config=None):
     old = bpy.data.objects.get(cfg["armature_name"])
     if old:
         bpy.data.objects.remove(old, do_unlink=True)
+
+    # Meshes from build_lowpoly_creature.py carry their real joint positions; use them so the
+    # bones bend where the mesh bends. Landmarks passed in CONFIG still win.
+    baked = mesh_obj.get("quadruped_landmarks")
+    if baked:
+        cfg["landmarks"] = {**json.loads(baked), **(cfg.get("landmarks") or {})}
+        log.append("using joint landmarks stored on the mesh")
+        if cfg["head_direction"].upper() == "AUTO" and mesh_obj.get("quadruped_head_direction"):
+            cfg["head_direction"] = str(mesh_obj["quadruped_head_direction"])
 
     lo, hi = _orient(mesh_obj, cfg, log)
     arm = _build_armature(cfg, lo, hi)
