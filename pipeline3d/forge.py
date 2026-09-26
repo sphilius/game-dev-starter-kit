@@ -183,29 +183,45 @@ class Forge:
         """Fit build_lowpoly_creature to the reference: work/fit.json, reused on re-runs."""
         spec = g["fit_reference"] if isinstance(g["fit_reference"], dict) else {}
         fit_path = self.p("work", "fit.json")
-        if os.path.exists(fit_path):
-            with open(fit_path) as fh:
-                return json.load(fh)
         sys.path.insert(0, HERE)
         import fit_reference  # noqa: E402  (same folder)
         handoff = self.p("handoff", "fit_keypoints.json")
         keypoints = self.src(spec["keypoints"]) if spec.get("keypoints") else (handoff if os.path.exists(handoff) else None)
         image = self.src(spec["image"]) if spec.get("image") else self.out("concept")
         preset = cfg.get("preset", "wolf")
+        model = spec.get("model", os.environ.get("FIT_MODEL", fit_reference.DEFAULT_MODEL))
+        animal = spec.get("animal") or (self.m.get("concept") or {}).get("subject")
+
+        def digest(path):
+            if not path or not os.path.exists(path):
+                return None
+            import hashlib
+            with open(path, "rb") as fh:
+                return hashlib.sha256(fh.read()).hexdigest()
+        # reuse a fit only if it came from the same image, keypoints, preset, model and animal
+        inputs = {"image": digest(image), "keypoints": digest(keypoints), "preset": preset,
+                  "model": None if keypoints else model, "animal": None if keypoints else animal}
+        if os.path.exists(fit_path):
+            with open(fit_path) as fh:
+                cached = json.load(fh)
+            if cached.get("inputs") == inputs:
+                return cached
         if not keypoints and not (image and os.path.exists(image)):
             raise ManualStep(f"Fitting needs a side-view reference: add a concept section (e.g. "
                              f'{{"tool": "banana", "subject": "horse"}}), set generate.fit_reference.image, or save '
                              f"hand-placed joints as {handoff} (format: `python pipeline3d/fit_reference.py --schema`).")
         try:
-            return fit_reference.run(image=image, preset=preset, keypoints=keypoints,
-                                     animal=spec.get("animal") or (self.m.get("concept") or {}).get("subject"),
-                                     model=spec.get("model", os.environ.get("FIT_MODEL", fit_reference.DEFAULT_MODEL)),
-                                     out=fit_path, overlay=self.p("work", "fit_overlay.svg") if image else None)
+            rep = fit_reference.run(image=image, preset=preset, keypoints=keypoints, animal=animal, model=model,
+                                    overlay=self.p("work", "fit_overlay.svg") if image else None)
         except fit_reference.NoKey:
             raise ManualStep(f"Fitting the creature to {image or 'the reference'} needs GEMINI_API_KEY "
                              f"(free key: https://aistudio.google.com/apikey). Set it and re-run forge, or mark the "
                              f"joints yourself: save {handoff} in the format printed by "
                              f"`python pipeline3d/fit_reference.py --schema` (example: manifests/horse_keypoints.json).") from None
+        rep["inputs"] = inputs
+        with open(fit_path, "w") as fh:
+            json.dump(rep, fh, indent=1)
+        return rep
 
     def generate(self):
         g = self.m["generate"]

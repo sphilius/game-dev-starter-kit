@@ -234,8 +234,11 @@ class Forge:
 
     def enqueue(self, name, gemini_key=None):
         with self.lock:
+            # the key applies to this job only: a later submit without one must not reuse it
             if gemini_key:
                 self.keys[name] = gemini_key
+            else:
+                self.keys.pop(name, None)
             job = self.jobs.get(name)
             if job and job["status"] in ("queued", "running"):
                 return job
@@ -269,6 +272,7 @@ class Forge:
                     with open(log_path, "a") as log:
                         log.write(f"[server] preview render failed: {exc}\n")
             with self.lock:
+                self.keys.pop(name, None)          # finished: forget the job's key
                 self.jobs[name].update(status=status, finished_at=time.time(), exit_code=proc.returncode)
 
     def _previews(self, name):
