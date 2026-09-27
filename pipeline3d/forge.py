@@ -248,12 +248,21 @@ class Forge:
                 return hashlib.sha256(fh.read()).hexdigest()
         # reuse a fit only if it came from the same image, keypoints, preset, model and animal
         inputs = {"image": digest(image), "keypoints": digest(keypoints), "preset": preset,
-                  "model": None if keypoints else model, "animal": None if keypoints else animal}
+                  "model": None if keypoints else model, "animal": None if keypoints else animal,
+                  "fitter": fit_reference.FIT_VERSION}
         if os.path.exists(fit_path):
             with open(fit_path) as fh:
                 cached = json.load(fh)
             if cached.get("inputs") == inputs:
                 return cached
+            # same reference, older fitter: refit the joints Gemini already marked (no new call)
+            old = dict(cached.get("inputs") or {}, fitter=inputs["fitter"])
+            if old == inputs and cached.get("keypoints") and not keypoints:
+                rep = fit_reference.fit(cached["keypoints"], preset, *cached["image_size"])
+                rep = dict(cached, **rep, inputs=inputs)
+                with open(fit_path, "w") as fh:
+                    json.dump(rep, fh, indent=1)
+                return rep
         if not keypoints and not (image and os.path.exists(image)):
             raise ManualStep(f"Fitting needs a side-view reference: add a concept section (e.g. "
                              f'{{"tool": "banana", "subject": "horse"}}), set generate.fit_reference.image, or save '

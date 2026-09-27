@@ -59,13 +59,20 @@ HIND_JOINTS = ["hip", "stifle_knee", "hock", "fetlock_or_paw", "toe_tip"]
 STANCES = ("digitigrade", "unguligrade", "plantigrade")
 
 # Presets' proportions that an image can't give, and their chest height (used as the fitted scale)
+# width: trunk width / depth, which a side view can't show (a horse's barrel is ~0.85 as wide as deep)
 PRESET_BASICS = {
-    "wolf": {"spread": 0.11, "chest_z": 0.68},
-    "boar": {"spread": 0.13, "chest_z": 0.64},
-    "bear": {"spread": 0.16, "chest_z": 0.82},
-    "deer": {"spread": 0.10, "chest_z": 1.00},
-    "cat": {"spread": 0.05, "chest_z": 0.29},
+    "wolf": {"spread": 0.11, "chest_z": 0.68, "width": 0.80},
+    "boar": {"spread": 0.13, "chest_z": 0.64, "width": 0.95},
+    "bear": {"spread": 0.16, "chest_z": 0.82, "width": 1.00},
+    "deer": {"spread": 0.10, "chest_z": 1.00, "width": 0.85},
+    "cat": {"spread": 0.05, "chest_z": 0.29, "width": 0.85},
 }
+# Skin joint radius per unit of the depth measured on the image. Skin + one Subdiv level leave a
+# tube ~0.92 as thick as its radius says, so the radius is half the depth / 0.92: the model's
+# silhouette then matches the image (at 0.45 it came out ~0.8 as deep; a horse looked starved).
+SKIN_SHRINK = 0.92
+FIT_VERSION = 2          # bump when fit() maps keypoints differently, so cached fits are redone
+DEPTH_FRAC = {"body": 0.5 / SKIN_SHRINK, "muzzle": 0.44 / SKIN_SHRINK}
 
 _PT = {"type": "OBJECT", "properties": {"x": {"type": "NUMBER"}, "y": {"type": "NUMBER"}},
        "required": ["x", "y"]}
@@ -255,13 +262,13 @@ def fit(kp, preset="wolf", width=1000, height=1000):
     def world(x, y):          # image -> builder (y forward is -Y, z up)
         return -(x * sx - xc) * sign * s, (ground - y * sy) * s
 
-    def slice_joint(sl, depth_frac=0.45):
+    def slice_joint(sl, depth_frac=DEPTH_FRAC["body"]):
         y, z = world(sl["x"], (sl["top"] + sl["bottom"]) / 2)
         r = abs(sl["bottom"] - sl["top"]) * sy * s * depth_frac
         return [round(y, 4), round(z, 4), round(max(r, 0.005), 4)]
 
     body = [slice_joint(t) for t in kp["torso"]]
-    head = [slice_joint(kp["neck"]), slice_joint(kp["skull"]), slice_joint(kp["muzzle"], 0.40)]
+    head = [slice_joint(kp["neck"]), slice_joint(kp["skull"]), slice_joint(kp["muzzle"], DEPTH_FRAC["muzzle"])]
     ny, nz = world(kp["nose"]["x"], kp["nose"]["y"])
     head.append([round(ny, 4), round(nz, 4), round(head[2][2] * 0.6, 4)])
     ey, ez = world(kp["ear_tip"]["x"], kp["ear_tip"]["y"])
@@ -310,7 +317,8 @@ def fit(kp, preset="wolf", width=1000, height=1000):
         "stance": kp["stance"] if kp["stance"] in STANCES else "digitigrade",
         "body": body, "head": head, "ears": round(ears, 4), "tail": tail,
         "front_y": round(fy0, 4), "hind_y": round(hy0, 4),
-        "leg_r": round(leg_r, 4), "spread": basics["spread"],
+        "leg_r": round(leg_r, 4), "spread": basics["spread"], "body_width": basics["width"],
+        "keels": False,       # the image already shows the belly line; muscle doesn't deepen it again
         "leg_chains": chains,
     }
     return {"ok": True, "preset": preset, "overrides": overrides, "stance": overrides["stance"],

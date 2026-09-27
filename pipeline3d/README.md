@@ -30,7 +30,7 @@ Everything is plain Python and GDScript: **Blender 4.2+**, **Godot 4.3+**, and *
 | `forge_server.py` | Local HTTP API around forge (token auth, manifest whitelist, job queue, uploads for manual steps, previews) |
 | `forge_studio/` | **Forge Studio** web app: describe a model by text or voice, Gemini writes the manifest, one button builds it ([README](forge_studio/README.md)) |
 | `godot_template/` | Godot 4 project: import plugin (loop flags, summary), asset viewer, character controller, audit and smoke-test tools |
-| `manifests/` | Example assets: `karambit`, `fighter` (Mixamo), `wolf` (quadruped), `crate` (prop), `hero_api_rig` (hands-off API rig), `lowpoly_boar`, `wolf_fitted` (Nano Banana + fit), `horse_fitted` (fit from hand-placed joints, no key) |
+| `manifests/` | Example assets: `karambit`, `fighter` (Mixamo), `wolf` (quadruped), `crate` (prop), `hero_api_rig` (hands-off API rig), `lowpoly_boar`, `wolf_fitted` and `horse_banana` (Nano Banana + fit), `horse_fitted` (fit from hand-placed joints, no key) |
 | `mcp/` | Claude Desktop / Claude Code config for Blender MCP + Godot MCP |
 | `docs/` | Tool matrix (free/trial options per stage), MCP prompt playbook, and the source-document analysis |
 | `tests/` | End-to-end tests on procedural fixtures. No keys or credits needed |
@@ -40,7 +40,7 @@ Everything is plain Python and GDScript: **Blender 4.2+**, **Godot 4.3+**, and *
 | Script | Stage | What it guarantees |
 | --- | --- | --- |
 | `cleanup_for_godot.py` | cleanup | one joined mesh, welded, holes ≤ 4 sides filled, floaters removed, ≤ tri budget, real-world height, origin at feet; report with χ, non-manifold edges, UV tiles |
-| `build_lowpoly_creature.py` | generate (procedural) | faceted low-poly wolf/boar/bear/deer/cat, ~900 tris, watertight, flat colours. Legs follow real stance anatomy (toe-walking, hoofed, flat-footed: elbow back, knee forward, hock back) and the joint positions are stored on the mesh so `quadruped_rig.py` puts bones exactly at the joints. `muscle` 0–1 adds thigh, gaskin (calf), upper-arm and forearm bellies, a thicker neck and a deeper chest. `joint_loops` gives every elbow, carpus, stifle and hock support rings and routed deformation loops; `protect_joints` makes decimation take triangles from the trunk and leg shafts instead of the joints, head, ears, tail and paws. `overrides.leg_chains` (from `fit_reference.py`) replaces the generic stance with a fitted animal's legs. Zero cost, no keys |
+| `build_lowpoly_creature.py` | generate (procedural) | faceted low-poly wolf/boar/bear/deer/cat, ~900 tris, watertight, flat colours. Legs follow real stance anatomy (toe-walking, hoofed, flat-footed: elbow back, knee forward, hock back) and the joint positions are stored on the mesh so `quadruped_rig.py` puts bones exactly at the joints. `muscle` 0–1 adds thigh, gaskin (calf), upper-arm and forearm bellies, a thicker neck and a deeper chest. `joint_loops` gives every elbow, carpus, stifle and hock support rings and routed deformation loops; `protect_joints` makes decimation take triangles from the trunk and leg shafts instead of the joints, head, ears, tail and paws; `restore_trunk` then pushes the decimated trunk back out to its smooth silhouette (flat faces cut inside a round barrel, which cost a 1200-tri horse 18% of its depth). `overrides.body_width` sets trunk width / depth. `overrides.leg_chains` (from `fit_reference.py`) replaces the generic stance with a fitted animal's legs. Zero cost, no keys |
 | `build_karambit.py` | generate (procedural) | 576-tri watertight karambit, exactly one ring hole (χ = 0), origin = ring centre = swivel pivot |
 | `quadruped_rig.py` | rig + animate | 31-bone game skeleton + 8 volume helper bones (half-turn at elbow, carpus, stifle, hock, so bent joints keep their thickness in Godot), skinned (bone heat with leaked weights pruned, distance fallback, ≤ 4 influences), `idle` 2.5 s / `walk` 0.833 s / `attack` 1.7 s (bite at 1.3 s) / `death` 1.333 s, 30 fps, in place |
 | `transfer_weights.py` | rig (clothing) | garments/armour get the body's weights (Data Transfer, nearest-face interpolated), parented, normalized |
@@ -89,6 +89,7 @@ blender -b -P blender/cleanup_for_godot.py -- --config my_config.json
    python pipeline3d/forge.py pipeline3d/manifests/fighter.json --status
    python pipeline3d/forge.py pipeline3d/manifests/horse_fitted.json   # creature fitted to joints, no key
    GEMINI_API_KEY=... python pipeline3d/forge.py pipeline3d/manifests/wolf_fitted.json   # Nano Banana + fit
+   GEMINI_API_KEY=... python pipeline3d/forge.py pipeline3d/manifests/horse_banana.json  # same, as a horse
    ```
    Re-run the same command after a manual step and it resumes. `--from rig` redoes from a stage.
 6. **Look at it**: open the Godot project and press F5. The asset viewer lines up every model in
@@ -191,8 +192,11 @@ In a manifest, `generate.fit_reference` does all of that between the concept and
    * six joints down the near front leg, five down the near hind leg.
 3. **Fit.** The points become builder overrides: spine and head joints with radii, tail, ear
    length, stance and per-animal `leg_chains`. The legs then bend where the reference's legs
-   bend (a horse's long cannon bones, a hyena's sloping back). Width, leg spread and colours
-   stay from the preset, since a side view can't show them.
+   bend (a horse's long cannon bones, a hyena's sloping back). Each slice's radius is set so the
+   built silhouette is as deep as the image (Skin and smoothing leave a tube ~0.92 of its radius,
+   which the fit allows for). Width (a width / depth ratio per preset: 0.85 for deer and horse),
+   leg spread and colours come from the preset, since a side view can't show them. Muscle
+   doesn't deepen a fitted belly again, because the image already shows the real belly line.
 4. **Build and rig as usual.** The joint landmarks travel with the mesh, so the rig follows the
    fitted legs.
 
@@ -200,6 +204,11 @@ The fitter warns when the elbow or knee points the wrong way; that usually means
 the far leg. Without a key, forge stops and says where to save hand-placed joints
 (`handoff/fit_keypoints.json`, format from `fit_reference.py --schema`, example
 `manifests/horse_keypoints.json`).
+
+A fit is cached in `build/<name>/work/fit.json`. When the fitter changes (`FIT_VERSION`), forge
+refits the joints Gemini already marked, with no new API call; rebuild with `--from generate`.
+
+![Fitted horse before and after the trunk fix](docs/images/horse_trunk_before_after.jpg)
 
 Only fit images you made or have the rights to use. Google's terms don't claim ownership of
 images you generate; photos need the photographer's permission.
