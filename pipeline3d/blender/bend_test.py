@@ -129,6 +129,8 @@ def bend(arm, bone, degrees):
         pb = arm.pose.bones.get(name)
         if pb is None:
             continue
+        if frac < 1 and any(c.type == 'COPY_ROTATION' and c.enabled and c.influence > 0 for c in pb.constraints):
+            continue                               # a live rig's half-turn constraint already drives it
         rot = (Matrix.Translation(pivot) @ Matrix.Rotation(math.radians(degrees) * sign * frac, 4, axis)
                @ Matrix.Translation(-pivot))
         pb.matrix = rot @ pb.matrix
@@ -199,10 +201,25 @@ def main(config=None):
         arm, mesh_obj = _find_rig()
     except RuntimeError as exc:
         return {"ok": False, "error": str(exc)}
+    # measure the rest pose, not a clip frame; put the scene's animation back afterwards
+    saved = None
     if arm.animation_data:
-        arm.animation_data.action = None             # measure the rest pose, not a clip frame
+        saved = (arm.animation_data.action, [(t, t.mute) for t in arm.animation_data.nla_tracks])
+        arm.animation_data.action = None
         for t in arm.animation_data.nla_tracks:
             t.mute = True
+    try:
+        return _run(arm, mesh_obj, cfg)
+    finally:
+        _reset(arm)
+        if saved:
+            arm.animation_data.action = saved[0]
+            for t, mute in saved[1]:
+                t.mute = mute
+        bpy.context.view_layer.update()
+
+
+def _run(arm, mesh_obj, cfg):
     joints = measure(arm, mesh_obj, cfg)
     if not joints:
         return {"ok": False, "error": "no quadruped leg bones (forearm/hand/shin/hock) found"}
