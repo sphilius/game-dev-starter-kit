@@ -213,17 +213,34 @@ def detect_keypoints(image_path, animal="animal", model=DEFAULT_MODEL, key=None,
     base = os.environ.get("GEMINI_API_BASE", API_BASE).rstrip("/")
     req = urllib.request.Request(f"{base}/models/{model}:generateContent", data=json.dumps(body).encode(),
                                  headers={"Content-Type": "application/json", "x-goog-api-key": key})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            out = json.load(resp)
-    except urllib.error.HTTPError as exc:
-        detail = exc.read().decode(errors="replace")[:400]
-        raise RuntimeError(f"Gemini {model} HTTP {exc.code}: {detail}") from None
+    out = _post(req, model, timeout)
     try:
         text = "".join(p.get("text", "") for p in out["candidates"][0]["content"]["parts"])
         return json.loads(text)
     except (KeyError, IndexError, ValueError):
         raise RuntimeError(f"Gemini returned no keypoints: {json.dumps(out)[:400]}") from None
+
+
+# Busy (503/500/504) and rate-limited (429) answers are usually gone within a minute: retry with
+# backoff. A 429 with "limit: 0" is a plan without quota for this model, so it fails at once.
+RETRY_DELAYS = (5, 10, 20, 40)
+
+
+def _post(req, model, timeout, delays=RETRY_DELAYS):
+    import time
+    for attempt in range(len(delays) + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.load(resp)
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode(errors="replace")[:400]
+            retry = exc.code in (429, 500, 503, 504) and "limit: 0" not in detail
+            if not retry or attempt == len(delays):
+                tip = (" Gemini is busy; re-run forge later, or set FIT_MODEL to another vision model."
+                       if retry else "")
+                raise RuntimeError(f"Gemini {model} HTTP {exc.code}: {detail}{tip}") from None
+            print(f"[fit] Gemini {model} HTTP {exc.code}, retrying in {delays[attempt]} s", file=sys.stderr, flush=True)
+            time.sleep(delays[attempt])
 
 
 # ----------------------------------------------------------------------------- 3. fit

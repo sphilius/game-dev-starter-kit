@@ -220,9 +220,17 @@ class Forge:
             # Usually missing credentials: fall back to the manual step instead of failing.
             err = (proc.stderr or proc.stdout).strip().splitlines()
             last = err[-1] if err else "unknown error"
-            hint = "" if "GEMINI_API_KEY" in last else (" Set GEMINI_API_KEY (free key: "
-                                                        "https://aistudio.google.com/apikey) to generate it automatically.")
-            why = f"Nano Banana couldn't run ({last}).{hint}\n\n"
+            if "limit: 0" in last or "free_tier" in last:
+                # the key works, but the free tier has no image-generation quota for this model
+                hint = (" Your key works, but the free tier gives this image model no quota (limit: 0). "
+                        "Turn on billing for the key's project (https://aistudio.google.com/apikey) to "
+                        "generate automatically, or make the image by hand as below.")
+            elif "GEMINI_API_KEY" in last or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"):
+                hint = ""
+            else:
+                hint = (" Set GEMINI_API_KEY (free key: https://aistudio.google.com/apikey) to generate it "
+                        "automatically.")
+            why = f"Nano Banana couldn't run ({last[:300]}).{hint}\n\n"
         raise ManualStep(why + f"Generate a reference image with this prompt (Nano Banana / Gemini, Flux, "
                          f"Midjourney, Bing Image Creator) and save it as {out}, or set concept.image:\n\n"
                          f"{prompt or '(no prompt in manifest)'}")
