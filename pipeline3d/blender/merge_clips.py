@@ -65,6 +65,24 @@ def _strip_root_motion(action, hips):
     return removed
 
 
+def _helper_constraints(arm, actions):
+    """quadruped_rig.py volume helpers (<bone>_vol.L) turn half as far as their lower bone by a
+    constraint, which a GLB round trip drops: put it back and drop any keys the clips carry for
+    the helpers, so the export samples fresh half-turns for every clip."""
+    helpers = [b.name for b in arm.data.bones if "_vol." in b.name]
+    for h in helpers:
+        pb = arm.pose.bones[h]
+        if not any(con.type == 'COPY_ROTATION' for con in pb.constraints):
+            con = pb.constraints.new('COPY_ROTATION')
+            con.target, con.subtarget = arm, h.replace("_vol", "")
+            con.owner_space = con.target_space = 'LOCAL'
+            con.mix_mode, con.influence = 'REPLACE', 0.5
+    for act in actions:
+        for fc in [fc for fc in act.fcurves if "_vol." in fc.data_path]:
+            act.fcurves.remove(fc)
+    return len(helpers)
+
+
 def main(config=None):
     c = dict(CONFIG)
     c.update(config or {})
@@ -118,7 +136,9 @@ def main(config=None):
         for o in new_objs:
             bpy.data.objects.remove(o, do_unlink=True)
 
-    report = {"ok": bool(clips), "armature": arm.name, "clips": clips, "warnings": warnings}
+    report = {"ok": bool(clips), "armature": arm.name, "clips": clips, "warnings": warnings,
+              "volume_helpers": _helper_constraints(arm, [t.strips[0].action for t in arm.animation_data.nla_tracks
+                                                          if t.strips and t.strips[0].action])}
     if c.get("export_path"):
         path = os.path.abspath(os.path.expanduser(c["export_path"]))
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -127,7 +147,8 @@ def main(config=None):
             o.select_set(o in keep)
         bpy.context.view_layer.objects.active = arm
         bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', use_selection=True, export_yup=True,
-                                  export_animations=True, export_animation_mode='NLA_TRACKS')
+                                  export_animations=True, export_animation_mode='NLA_TRACKS',
+                                  export_force_sampling=True)   # bakes the helpers' half-turns
         report["export_path"] = path
     print("[clips]", json.dumps(report, indent=1))
     return report

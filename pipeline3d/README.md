@@ -40,14 +40,15 @@ Everything is plain Python and GDScript: **Blender 4.2+**, **Godot 4.3+**, and *
 | Script | Stage | What it guarantees |
 | --- | --- | --- |
 | `cleanup_for_godot.py` | cleanup | one joined mesh, welded, holes ≤ 4 sides filled, floaters removed, ≤ tri budget, real-world height, origin at feet; report with χ, non-manifold edges, UV tiles |
-| `build_lowpoly_creature.py` | generate (procedural) | faceted low-poly wolf/boar/bear/deer/cat, ~900 tris, watertight, flat colours. Legs follow real stance anatomy (toe-walking, hoofed, flat-footed: elbow back, knee forward, hock back) and the joint positions are stored on the mesh so `quadruped_rig.py` puts bones exactly at the joints. `muscle` 0–1 adds thigh, gaskin (calf), upper-arm and forearm bellies, a thicker neck and a deeper chest. `overrides.leg_chains` (from `fit_reference.py`) replaces the generic stance with a fitted animal's legs. Zero cost, no keys |
+| `build_lowpoly_creature.py` | generate (procedural) | faceted low-poly wolf/boar/bear/deer/cat, ~900 tris, watertight, flat colours. Legs follow real stance anatomy (toe-walking, hoofed, flat-footed: elbow back, knee forward, hock back) and the joint positions are stored on the mesh so `quadruped_rig.py` puts bones exactly at the joints. `muscle` 0–1 adds thigh, gaskin (calf), upper-arm and forearm bellies, a thicker neck and a deeper chest. `joint_loops` gives every elbow, carpus, stifle and hock support rings and routed deformation loops; `protect_joints` makes decimation take triangles from the trunk and leg shafts instead of the joints, head, ears, tail and paws. `overrides.leg_chains` (from `fit_reference.py`) replaces the generic stance with a fitted animal's legs. Zero cost, no keys |
 | `build_karambit.py` | generate (procedural) | 576-tri watertight karambit, exactly one ring hole (χ = 0), origin = ring centre = swivel pivot |
-| `quadruped_rig.py` | rig + animate | 31-bone game skeleton, skinned (bone heat with leaked weights pruned, distance fallback, ≤ 4 influences), `idle` 2.5 s / `walk` 0.833 s / `attack` 1.7 s (bite at 1.3 s) / `death` 1.333 s, 30 fps, in place |
+| `quadruped_rig.py` | rig + animate | 31-bone game skeleton + 8 volume helper bones (half-turn at elbow, carpus, stifle, hock, so bent joints keep their thickness in Godot), skinned (bone heat with leaked weights pruned, distance fallback, ≤ 4 influences), `idle` 2.5 s / `walk` 0.833 s / `attack` 1.7 s (bite at 1.3 s) / `death` 1.333 s, 30 fps, in place |
 | `transfer_weights.py` | rig (clothing) | garments/armour get the body's weights (Data Transfer, nearest-face interpolated), parented, normalized |
 | `merge_clips.py` | animate | Mixamo / ActorCore / mocap clip files → one armature, one NLA track per clip, optional root-motion strip |
 | `udim_to_01.py` | UV fix | UDIM tiles 1002+ shifted back into 0-1, one material per tile |
 | `bake_diffuse.py` | texture | high → low colour (and optional normal) bake, Cycles, cage 0.01 |
 | `export_for_godot.py` | export | GLB, +Y up, clips start at t = 0, `-convcolonly` / `-colonly` collision helpers, copy into the Godot project |
+| `bend_test.py` | QA | bends every leg joint to 90° and measures how much thickness the skin keeps (worst-decile retention ≥ 0.85) and whether any joint folds like a hinge. Runs automatically after the forge `quadruped` rig; `render_dir=` renders the bent legs |
 | `render_preview.py` | QA | orthographic front/side/back/¾ PNGs, optionally posed on a clip frame, without a viewport |
 
 Three ways to run any of them:
@@ -145,6 +146,7 @@ is already skinned.
 | `tests/run_all.sh` | every Blender stage on fixtures → Godot headless import → audit → controller smoke test | ~2 min |
 | `tests/test_forge.sh` | forge manifests: procedural karambit, auto-rigged wolf, humanoid through the Mixamo gate (simulated with FBX files), fitted horse, fitted wolf through the no-key gates | ~2 min |
 | `tests/test_fit_reference.py` (in `run_all.sh`) | fit round trip on every preset (joint error < 2 %), noisy keypoints stay watertight and fully skinned, the Gemini request path against a mock | ~1 min |
+| bend test (in `run_all.sh` and every forge quadruped rig) | leg joints bent 90° keep ≥ 0.85 of their thickness; `rig.bend_test: {"strict": true}` stops the build on a failure | seconds |
 | `tests/mock_gemini.py` | stand-in Gemini API (image + keypoints) for testing Nano Banana and fitting without a key | – |
 | `godot --headless --path <game> -s res://tools/asset_audit.gd` | per-asset tris, bones, clips, texture sizes, collision; exit 1 on errors | seconds |
 
@@ -206,3 +208,39 @@ They are pushed behind the bone, where those muscles actually sit. It also thick
 base and drops the belly line under the ribs and brisket (the brisket is the lower chest between
 the front legs). Bones and landmarks don't move, so rigging is unchanged. At 900 tris the effect
 is a silhouette change, not surface detail; raise `target_tris` (2–3k) to see more of it.
+
+---
+
+## Joints that bend without collapsing
+
+Game engines (Godot included) skin with linear blending: a vertex shared between the upper and
+lower leg moves to the average of where each bone would put it. At a 90° bend, that pulls a 50/50
+vertex in to 71 % of its distance from the joint. The knee or elbow thins out, the "rubber hose"
+look. Three fixes work together, and `bend_test.py` measures the result:
+
+| Fix | What it does | Alone |
+| --- | --- | --- |
+| **Volume helper bones** (`quadruped_rig.py`, `volume_helpers`) | A bone on each elbow, carpus, stifle and hock turns half as far as the lower leg. The blended part of each joint vertex moves to it, so the joint turns as a rigid half-rotation. It's a Copy Rotation constraint that the glTF export bakes into every clip, including merged mocap clips, so Godot just sees animated bones | fixes the pinch (0.71–0.87 → 0.93–0.97), but not a joint with no geometry to bend (the horse's carpus stays a hinge) |
+| **Deformation loops** (`build_lowpoly_creature.py`, `joint_loops`) | Support rings either side of each joint. Rings on the fold side are pulled toward the joint so they stack when it bends; rings on the outer side are spread to leave room to stretch over the elbow or kneecap. The fold side comes from each chain's real bend direction | gives every joint geometry to bend, but on its own scores 0.75–0.88: more vertices sit exactly where linear blending collapses |
+| **Joint and detail protection** (`protect_joints`) | Decimation keeps the joints, head, ears, tail and paws, and takes the triangles from the long smooth tubes of the trunk and leg shafts (their facets get a little larger) | protecting joints only turned heads into cones at 900 tris; detail areas are protected with them |
+
+Measured on the presets and a fitted horse (worst-decile retention, 90° bend, the gate is 0.85):
+
+| | wolf | deer | bear | horse |
+| --- | --- | --- | --- | --- |
+| before | 0.80–0.87 | 0.71–0.86 | 0.80–0.86 | 0.78–0.84 + hinged carpus |
+| helpers only | 0.94–0.95 | 0.93–0.97 | 0.95 | 0.93–0.97 + hinged carpus |
+| loops + protection only | 0.80–0.84 | 0.75–0.88 | 0.75–0.85 | 0.76–0.80 |
+| **all** | **0.94–0.95** | **0.93–0.95** | **0.94–0.95** | **0.94–0.95** |
+
+For meshes from Tripo, Meshy or Rodin, whose edge layout can't be controlled, the helper bones do
+the work. Forge warns when the bend test fails; add `"bend_test": {"strict": true}` to the rig
+section to stop the build instead.
+
+![Wolf joints bent 90 degrees: before, loops only, helpers only, all](docs/images/bend90_wolf.jpg)
+![Fitted horse joints bent 90 degrees](docs/images/bend90_horse.jpg)
+
+Close-ups of the left legs bent to 90°. Rows: before, loops + protection only, helper bones only,
+all three. More: [deer](docs/images/bend90_deer.jpg), [bear](docs/images/bend90_bear.jpg), and the
+[rest pose at the same budget](docs/images/bend90_rest_pose.jpg). Make your own:
+`blender -b -P pipeline3d/blender/bend_test.py -- import_path=my_rigged.glb render_dir=renders`.
