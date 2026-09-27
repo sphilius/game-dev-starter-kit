@@ -79,17 +79,33 @@ def ensure_godot_project(proj):
 
     Missing, empty, or holding only what forge itself put there (assets/, .godot/): create it
     from godot_template/, never overwriting a file that is already there. A template copied one
-    level too deep (Copy-Item / cp -r into an existing folder) or any other folder without a
-    project.godot: stop with the fix, rather than fill an unrelated folder with the template."""
+    level too deep (Copy-Item / cp -r into an existing folder): move its files up, again never
+    over an existing file; if any clash, stop and leave both copies. Any other folder without a
+    project.godot: stop, rather than fill an unrelated folder with the template."""
     if os.path.exists(os.path.join(proj, "project.godot")):
         return None
     nested = os.path.join(proj, os.path.basename(GODOT_TEMPLATE))
     if os.path.exists(os.path.join(nested, "project.godot")):
-        raise RuntimeError(
-            f"{proj} has no project.godot, but {nested} does: the template was copied one level too deep "
-            f"(copying into a folder that already existed). Move it up and re-run forge:\n"
-            f'  PowerShell: Copy-Item -Recurse -Force "{nested}\\*" "{proj}\\"; Remove-Item -Recurse -Force "{nested}"\n'
-            f'  macOS/Linux: cp -rn "{nested}/." "{proj}/" && rm -rf "{nested}"')
+        # template copied one level too deep: move its files up, never over an existing file
+        moved, kept = 0, []
+        for root, _, files in os.walk(nested):
+            for fn in files:
+                src = os.path.join(root, fn)
+                dst = os.path.join(proj, os.path.relpath(src, nested))
+                if os.path.exists(dst):
+                    kept.append(os.path.relpath(src, nested))
+                    continue
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                shutil.move(src, dst)
+                moved += 1
+        if kept:
+            raise RuntimeError(
+                f"{proj}: the Godot template was copied one level too deep ({nested}). Moved {moved} files up; "
+                f"{len(kept)} are also in {proj} and were left in place, nothing deleted (e.g. "
+                f"{', '.join(kept[:3])}). Keep the version you want in {proj}, delete {nested}, then re-run forge.")
+        shutil.rmtree(nested)                 # only empty folders are left
+        print(f"[forge] moved the Godot template up from {nested} ({moved} files; it was copied one level too deep)")
+        return proj
     extra = [n for n in (os.listdir(proj) if os.path.isdir(proj) else []) if n not in ("assets", ".godot")]
     if extra:
         raise RuntimeError(

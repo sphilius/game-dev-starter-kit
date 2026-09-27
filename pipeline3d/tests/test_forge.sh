@@ -50,7 +50,8 @@ JSON
 
 run() { python3 "$P3D/forge.py" "$@" || echo "exit=$?"; }
 echo "== fresh (export into a Godot project that doesn't exist yet: forge creates it from the template)"
-run "$OUT/manifests/fresh.json" | grep -E "created Godot project|complete|ERROR"
+python3 "$P3D/forge.py" "$OUT/manifests/fresh.json" | grep -E "created Godot project|complete"
+test -f "$OUT/fresh_game/project.godot" || { echo "fresh: forge did not create the Godot project"; exit 1; }
 echo "== horse (fitted to a keypoints file, no key)"; run "$OUT/manifests/horse.json"
 echo "== wolf_fit without GEMINI_API_KEY (expect the concept gate, then the fit gate)"
 env -u GEMINI_API_KEY -u GOOGLE_API_KEY python3 "$P3D/forge.py" "$OUT/manifests/wolf_fit.json" | grep -E "WAITING|GEMINI_API_KEY" | head -2 || true
@@ -93,7 +94,7 @@ echo "== fighter (after the simulated Mixamo downloads)"; run "$OUT/manifests/fi
 python3 "$P3D/forge.py" "$OUT/manifests/fighter.json" --status
 python3 - "$OUT" <<'PY'
 import json, sys
-for n in ["karambit", "wolf", "fighter", "horse", "wolf_fit"]:
+for n in ["karambit", "wolf", "fighter", "horse", "wolf_fit", "fresh"]:
     audit = json.load(open(f"{sys.argv[1]}/build/{n}/forge_state.json"))["godot"]["report"]["audit"]
     for a in audit:
         print(f"[forge-test] {n}: tris={a['tris']} bones={a['bones']} collision={a['static_bodies']} "

@@ -75,7 +75,7 @@ blender -b -P blender/cleanup_for_godot.py -- --config my_config.json
 3. **Your game project**: the example manifests export to `~/pipeline3d_game`, and forge creates it
    from `godot_template/` on the first run (it never overwrites files already there). To make it by
    hand, copy the template to a folder that doesn't exist yet: copying into an existing folder puts
-   it one level too deep, and forge stops with the command that fixes it. Use Godot's
+   it one level too deep (forge then moves it up, never over a file that's already there). Use Godot's
    `_console.exe` for `GODOT` on Windows so forge can read its output.
 4. **Prove the chain works** (no keys needed; about 2 minutes):
    ```bash
