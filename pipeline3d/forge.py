@@ -38,6 +38,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BLENDER_DIR = os.path.join(HERE, "blender")
+GODOT_TEMPLATE = os.path.join(HERE, "godot_template")
 BANANA = os.path.join(os.path.dirname(HERE), ".agents", "skills", "nano-banana", "scripts", "banana.py")
 STAGES = ["concept", "generate", "cleanup", "rig", "animate", "export", "godot"]
 API_RIGS = ("tripo", "meshy")
@@ -71,6 +72,36 @@ def _blender(script, config, workdir, label):
     if proc.returncode != 0 or not result.get("ok"):
         raise RuntimeError(f"{script} failed (see .forge/{label}.log): {result.get('error') or proc.stderr[-400:]}")
     return result
+
+
+def ensure_godot_project(proj):
+    """Make sure `proj` is a Godot project before forge copies assets into it or imports.
+
+    Missing, empty, or holding only what forge itself put there (assets/, .godot/): create it
+    from godot_template/, never overwriting a file that is already there. A template copied one
+    level too deep (Copy-Item / cp -r into an existing folder) or any other folder without a
+    project.godot: stop with the fix, rather than fill an unrelated folder with the template."""
+    if os.path.exists(os.path.join(proj, "project.godot")):
+        return None
+    nested = os.path.join(proj, os.path.basename(GODOT_TEMPLATE))
+    if os.path.exists(os.path.join(nested, "project.godot")):
+        raise RuntimeError(
+            f"{proj} has no project.godot, but {nested} does: the template was copied one level too deep "
+            f"(copying into a folder that already existed). Move it up and re-run forge:\n"
+            f'  PowerShell: Copy-Item -Recurse -Force "{nested}\\*" "{proj}\\"; Remove-Item -Recurse -Force "{nested}"\n'
+            f'  macOS/Linux: cp -rn "{nested}/." "{proj}/" && rm -rf "{nested}"')
+    extra = [n for n in (os.listdir(proj) if os.path.isdir(proj) else []) if n not in ("assets", ".godot")]
+    if extra:
+        raise RuntimeError(
+            f"{proj} is not a Godot project (no project.godot) and holds other files ({', '.join(sorted(extra)[:5])}). "
+            f"Point export.godot_project at your game's folder, or at a new folder for forge to create.")
+
+    def copy_new(src, dst):
+        if not os.path.exists(dst):
+            shutil.copy2(src, dst)
+    shutil.copytree(GODOT_TEMPLATE, proj, dirs_exist_ok=True, copy_function=copy_new)
+    print(f"[forge] created Godot project {proj} from godot_template/")
+    return proj
 
 
 def _gen3d(args):
@@ -367,6 +398,8 @@ class Forge:
         src = self.latest_mesh("export")
         out = self.p("export", f"{self.name}.glb")
         proj = e.get("godot_project")
+        if proj:
+            ensure_godot_project(os.path.expanduser(self.src(proj)))
         cfg = {"import_path": src, "export_path": out, "collision": e.get("collision"),
                "copy_to": os.path.join(os.path.expanduser(self.src(proj)), e.get("assets_dir", "assets")) if proj else None}
         return out, _blender("export_for_godot.py", cfg, self.workdir, "export")
@@ -376,6 +409,7 @@ class Forge:
         if not proj:
             return None, "skipped (no export.godot_project)"
         proj = os.path.expanduser(self.src(proj))
+        ensure_godot_project(proj)
         godot = _exe("GODOT", "godot")
         imp = subprocess.run([godot, "--headless", "--path", proj, "--import"], capture_output=True, text=True)
         if imp.returncode != 0:

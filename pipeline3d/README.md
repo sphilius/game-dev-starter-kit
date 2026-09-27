@@ -72,9 +72,11 @@ blender -b -P blender/cleanup_for_godot.py -- --config my_config.json
    $env:BLENDER = "C:\Program Files\Blender Foundation\Blender 4.2\blender.exe"
    $env:GODOT   = "C:\Tools\Godot_v4.4.1-stable_win64.exe"
    ```
-3. **Make your game project** from the template: copy `godot_template/` to e.g. `~/pipeline3d_game`
-   (the example manifests export there), open it once in Godot. It already has `shaders/`, `scripts/`,
-   `assets/` and `scenes/`, so the karambit benchmark files drop straight in.
+3. **Your game project**: the example manifests export to `~/pipeline3d_game`, and forge creates it
+   from `godot_template/` on the first run (it never overwrites files already there). To make it by
+   hand, copy the template to a folder that doesn't exist yet: copying into an existing folder puts
+   it one level too deep, and forge stops with the command that fixes it. Use Godot's
+   `_console.exe` for `GODOT` on Windows so forge can read its output.
 4. **Prove the chain works** (no keys needed; about 2 minutes):
    ```bash
    BLENDER=... GODOT=... ./pipeline3d/tests/run_all.sh

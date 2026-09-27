@@ -43,7 +43,14 @@ cat > "$OUT/manifests/wolf_fit.json" <<JSON
  "export": {"godot_project": "../game"}}
 JSON
 
+cat > "$OUT/manifests/fresh.json" <<JSON
+{"name": "fresh", "generate": {"procedural": "build_karambit.py"}, "cleanup": false,
+ "rig": {"method": "none"}, "export": {"godot_project": "../fresh_game"}}
+JSON
+
 run() { python3 "$P3D/forge.py" "$@" || echo "exit=$?"; }
+echo "== fresh (export into a Godot project that doesn't exist yet: forge creates it from the template)"
+run "$OUT/manifests/fresh.json" | grep -E "created Godot project|complete|ERROR"
 echo "== horse (fitted to a keypoints file, no key)"; run "$OUT/manifests/horse.json"
 echo "== wolf_fit without GEMINI_API_KEY (expect the concept gate, then the fit gate)"
 env -u GEMINI_API_KEY -u GOOGLE_API_KEY python3 "$P3D/forge.py" "$OUT/manifests/wolf_fit.json" | grep -E "WAITING|GEMINI_API_KEY" | head -2 || true
