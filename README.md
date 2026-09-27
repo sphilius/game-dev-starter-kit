@@ -93,7 +93,7 @@ The skills and reference modules here are generic building blocks for any 2D gam
 ### Requirements
 - Go 1.26 or newer
 - `uv` Python package runner
-- Google Cloud SDK (`gcloud`) with Application Default Credentials configured (`gcloud auth application-default login`)
+- Google Cloud SDK (`gcloud`) with Application Default Credentials configured (`gcloud auth application-default login`). Nano Banana images and the 3D reference fitting also work with just a Gemini API key (`GEMINI_API_KEY`, free at https://aistudio.google.com/apikey)
 
 ### Environment Pre-Flight Check
 Run the included doctor script to verify all local tools before starting:

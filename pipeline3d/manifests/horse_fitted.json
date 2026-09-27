@@ -1,0 +1,15 @@
+{
+  "name": "horse_fitted",
+  "kind": "quadruped",
+  "notes": "Reference fitting without a key: the deer preset reshaped to hand-placed horse keypoints (horse_keypoints.json, the same format Gemini returns). Swap in your own points, or use wolf_fitted.json to have Nano Banana draw the reference and Gemini mark the joints.",
+  "generate": {
+    "procedural": "build_lowpoly_creature.py",
+    "config": {"preset": "deer", "target_tris": 1200, "height_m": 1.6, "muscle": 0.6,
+               "palette": [[0.36, 0.22, 0.12], [0.55, 0.40, 0.28], [0.08, 0.06, 0.05]]},
+    "fit_reference": {"keypoints": "horse_keypoints.json"}
+  },
+  "cleanup": false,
+  "rig": {"method": "quadruped", "clip_prefix": "horse_"},
+  "animations": {"method": "procedural"},
+  "export": {"godot_project": "~/pipeline3d_game"}
+}

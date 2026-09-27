@@ -27,6 +27,7 @@ full picture. This skill is the operating procedure for an agent.
 | --- | --- | --- | --- |
 | Humanoid | `mixamo` or `accurig` (manual gate), `meshy`/`tripo` (API) | `clips_dir` (Mixamo In Place, 30 fps, Without Skin) | cleanup BEFORE rigging |
 | Quadruped / creature | `quadruped` | `procedural` (idle, walk, attack, death) | tweak `landmarks` if bones miss legs |
+| Low-poly quadruped, any species | `build_lowpoly_creature.py` preset + `generate.fit_reference` → `quadruped` | `procedural` | Nano Banana side view + Gemini joint marks (`GEMINI_API_KEY`), `muscle` 0-1; see `wolf_fitted.json` / `horse_fitted.json` |
 | Clothing / armour | `transfer_weights.py` from the rigged body | inherits | generate parts separately |
 | Weapon / mechanism / anything with holes | procedural script (`build_karambit.py` pattern) | none or code | generators fuse holes |
 | Prop | none | none | `export.collision: "convex"` |

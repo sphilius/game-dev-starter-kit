@@ -1,0 +1,15 @@
+{
+  "name": "wolf_fitted",
+  "kind": "quadruped",
+  "notes": "Needs GEMINI_API_KEY. Nano Banana draws a side view of the subject, Gemini marks the joints, and the low-poly wolf is rebuilt on those proportions and leg shapes. Without a key, forge stops and says where to put an image and keypoints.",
+  "concept": {"tool": "banana", "subject": "grey wolf", "out": "wolf_side.png", "auto_approve": true},
+  "generate": {
+    "procedural": "build_lowpoly_creature.py",
+    "config": {"preset": "wolf", "target_tris": 1000, "height_m": 0.85, "muscle": 0.6},
+    "fit_reference": {"animal": "grey wolf"}
+  },
+  "cleanup": false,
+  "rig": {"method": "quadruped", "clip_prefix": "wolf_"},
+  "animations": {"method": "procedural"},
+  "export": {"godot_project": "~/pipeline3d_game"}
+}

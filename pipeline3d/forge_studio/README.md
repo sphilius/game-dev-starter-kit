@@ -31,6 +31,17 @@ Forge Studio (browser, phone, or AI Studio)  ──HTTPS/HTTP + token──►  
 4. Say "a low-poly bear about a metre tall that walks and attacks", check the manifest,
    and press **Forge it**.
 
+**Any four-legged animal, fitted to a reference.** Ask for an animal that isn't a preset ("a
+low-poly horse", "a hyena") and the assistant picks the closest preset and adds
+`fit_reference`. Nano Banana then draws a side view, Gemini marks the joints on it, and the
+creature is rebuilt on those proportions and leg shapes. That needs a Gemini key on the server.
+By default Studio sends the key from Settings with each job ("Let the forge server use this
+key…"). The server keeps it in memory for that job and never writes it to disk; turn the option
+off for a server you don't run, and set `GEMINI_API_KEY` there instead. The finished asset shows
+the reference with the marked joints as its first preview. Without a key, forge stops at the fit
+step and the asset panel offers an upload for hand-placed joints (format:
+`python pipeline3d/fit_reference.py --schema`, example `manifests/horse_keypoints.json`).
+
 **From your phone**: run the server with `--host 0.0.0.0`, open the app on the PC's LAN address
 (`npm run dev -- --host`), and set the server URL to `http://<PC-LAN-IP>:8765`. Away from home, put
 the server behind a tunnel (Cloudflare Tunnel, Tailscale Funnel or ngrok). **Keep the token secret**:
@@ -56,7 +67,12 @@ I haven't run the AI Studio version myself; the local version is tested (see Tes
 
 `tests/e2e.mjs` drives the built app in Chromium against a real `forge_server.py`, with Gemini
 mocked at the network layer. It checks that chat fills the manifest, **Forge it** runs all seven
-stages, previews load, and the phone layout has no sideways scroll.
+stages, previews load, and the phone layout has no sideways scroll. Its second scenario builds a
+fitted horse with the server's Gemini calls pointed at `pipeline3d/tests/mock_gemini.py` (start the
+server with `GOOGLE_GEMINI_BASE_URL=http://127.0.0.1:8799 GEMINI_API_BASE=http://127.0.0.1:8799/v1beta`
+and no key of its own). It checks that the key from Settings goes with the job, and that the
+Nano Banana → fit → rig → Godot chain finishes with the fit overlay in the previews. Set
+`FIT_SCENARIO=0` to skip it.
 
 ```bash
 npm run build && npx vite preview --port 4173 &

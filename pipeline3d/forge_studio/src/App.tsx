@@ -10,6 +10,7 @@ const DEFAULTS: Settings = {
   geminiKey: (import.meta.env.VITE_GEMINI_API_KEY as string) || "",
   model: "gemini-flash-latest",
   speakReplies: false,
+  shareGeminiKey: true,
 };
 
 function loadSettings(): Settings {
@@ -46,6 +47,10 @@ function SettingsPanel({ s, onSave, onClose }: { s: Settings; onSave: (s: Settin
         <label className="check">
           <input type="checkbox" checked={draft.speakReplies} onChange={(e) => setDraft({ ...draft, speakReplies: e.target.checked })} />
           Read replies aloud
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={draft.shareGeminiKey} onChange={(e) => setDraft({ ...draft, shareGeminiKey: e.target.checked })} />
+          Let the forge server use this key for Nano Banana reference images and fitting (sent with each job, kept in the server's memory only; turn off for a server you don't run)
         </label>
         <div className="row">
           <button onClick={onClose} className="ghost">Cancel</button>
@@ -128,6 +133,8 @@ function AssetPanel({ api, detail, onChanged }: { api: ForgeApi; detail: AssetDe
                 <Uploader api={api} name={detail.name} slot="rigged" label="Upload rigged FBX" accept=".fbx" onDone={onChanged} />
               </>
             )}
+            {waitingStage === "generate" && detail.manifest && JSON.stringify(detail.manifest).includes("fit_reference") &&
+              <Uploader api={api} name={detail.name} slot="keypoints" label="Upload joint keypoints (JSON)" accept=".json,application/json" onDone={onChanged} />}
             {waitingStage === "animate" && <Uploader api={api} name={detail.name} slot="clip" label="Upload clip FBX files" accept=".fbx,.glb" multiple onDone={onChanged} />}
             <button onClick={async () => { await api.resume(detail.name); onChanged("Resumed"); }}>Resume</button>
           </div>
@@ -258,7 +265,7 @@ export default function App() {
         <span className={`dot ${connected ? "on" : "off"}`} title={serverError || "connected"} />
         <span className="muted small">
           {connected
-            ? `Blender ${health!.blender ? "✓" : "✗"} · Godot ${health!.godot ? "✓" : "✗"} · keys: ${Object.entries(health!.keys).filter(([, v]) => v).map(([k]) => k).join(", ") || "none"}`
+            ? `Blender ${health!.blender ? "✓" : "✗"} · Godot ${health!.godot ? "✓" : "✗"} · keys: ${[...Object.entries(health!.keys).filter(([, v]) => v).map(([k]) => k), ...(health!.gemini_key || (settings.shareGeminiKey && settings.geminiKey) ? ["gemini"] : [])].join(", ") || "none"}`
             : `server offline${serverError ? `: ${serverError}` : ""}`}
         </span>
         <button className="ghost" onClick={() => setShowSettings(true)}>Settings</button>
