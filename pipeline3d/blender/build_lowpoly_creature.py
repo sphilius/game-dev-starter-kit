@@ -37,6 +37,8 @@ CONFIG = {
     "seed_jitter": 0.0,            # 0..0.15 random proportion variation (same seed = same result)
     "seed": 1,
     "muscle": None,                # 0..1 muscle mass (None = preset): thigh, gaskin, upper arm, forearm, neck, chest
+    "joint_loops": True,           # support rings + routed deformation loops at elbow, carpus, stifle, hock
+    "protect_joints": True,        # decimation takes triangles from the body, not from the joints
     "overrides": {},               # e.g. {"leg_len": 0.5, "tail": [..], "leg_chains": {...}} (see fit_reference.py)
     "palette": None,               # [[r,g,b], [r,g,b], [r,g,b]] body, light, dark (0-1)
 }
@@ -126,6 +128,12 @@ MUSCLES = {
 }
 
 
+# Joints that bend a lot, by leg-chain index, with the side their fold closes toward
+# (the inside of the angle) for a chain too straight to tell: -1 = front (-Y), +1 = back.
+BENDING_JOINTS = {"front": {2: -1, 3: +1},    # elbow folds in front, carpus behind
+                  "hind": {1: +1, 2: -1}}     # stifle folds behind, hock in front
+
+
 def _graph(p):
     """Joints [(co, radius)] and edges [(i, j)] for Skin."""
     verts, edges = [], []
@@ -202,18 +210,40 @@ def _graph(p):
                 xi = x * (0.55 if i == 0 else 1.0)
                 pts.append((xi, y0 - fwd * h, max(0.0, hz * h)))
                 radii.append(r * rs)
-            bulges = {seg: (t, back, gain) for seg, t, back, gain in MUSCLES[leg]} if m > 0 else {}
+            # Extra Skin joints inside each segment, as (t along the segment, co, radius):
+            # muscle bellies, and a support ring either side of each bending joint so the joint
+            # has three edge rings to fold with instead of one (the "single loop" collapse)
+            inserts = {i: [] for i in range(len(pts) - 1)}
+            if m > 0:
+                for seg, t, back, gain in MUSCLES[leg]:
+                    if seg + 1 < len(pts):
+                        a, b = Vector(pts[seg]), Vector(pts[seg + 1])
+                        rb = (radii[seg] + (radii[seg + 1] - radii[seg]) * t) * (1 + gain * m)
+                        mid = a.lerp(b, t) + Vector((0, back * m * rb, 0))
+                        mid.z = max(mid.z, rb * 0.5)
+                        inserts[seg].append((t, tuple(mid), rb))
+            if p.get("joint_loops", True):
+                for j in BENDING_JOINTS[leg]:
+                    if not 0 < j < len(pts) - 1:
+                        continue
+                    for seg, near_end in ((j - 1, True), (j, False)):
+                        a, b = Vector(pts[seg]), Vector(pts[seg + 1])
+                        length = (b - a).length or 1e-6
+                        d = min(0.9 * radii[j], 0.3 * length) / length
+                        t = 1 - d if near_end else d
+                        r_t = radii[seg] + (radii[seg + 1] - radii[seg]) * t
+                        inserts[seg].append((t, tuple(a.lerp(b, t)), r_t))
             prev = body_i(y0)
             for i, co in enumerate(pts):
                 prev = add(co, radii[i], prev, lifted=False)   # already scaled by the lifted h
-                if i in bulges and i + 1 < len(pts):
-                    t, back, gain = bulges[i]
-                    a, b = Vector(pts[i]), Vector(pts[i + 1])
-                    rb = (radii[i] + (radii[i + 1] - radii[i]) * t) * (1 + gain * m)
-                    mid = a.lerp(b, t) + Vector((0, back * m * rb, 0))
-                    mid.z = max(mid.z, rb * 0.5)
-                    prev = add(tuple(mid), rb, prev, lifted=False)
+                for _, ico, ir in sorted(inserts.get(i, []), key=lambda e: e[0]):
+                    prev = add(ico, ir, prev, lifted=False)
             chains[(leg, side)] = pts
+            p.setdefault("_feet", []).extend((Vector(pts[k]), radii[k]) for k in (-2, -1))
+            for j, fold in BENDING_JOINTS[leg].items():
+                if 0 < j < len(pts) - 1:
+                    p.setdefault("_bends", []).append((Vector(pts[j - 1]), Vector(pts[j]), Vector(pts[j + 1]),
+                                                       radii[j], fold))
     p["_chains"] = chains
     return verts, edges
 
@@ -232,6 +262,81 @@ def _deepen(mesh, keels):
             w = 0.5 * (1 + math.cos(math.pi * (co.y - cy) / (1.6 * r)))
             w *= min(1.0, below) * max(0.0, 1 - (co.x / r) ** 2)
             co.z -= depth * r * w
+
+
+def _bend_frame(a, j, c, fold):
+    """Limb axis u (down the leg) and fold direction f (toward the inside of the joint angle)."""
+    u = (c - a).normalized()
+    inside = (a - j).normalized() + (c - j).normalized()
+    inside -= u * inside.dot(u)
+    if inside.length < 0.15:                          # nearly straight: use the anatomy
+        inside = Vector((0, fold, 0)) - u * u.dot(Vector((0, fold, 0)))
+    return u, inside.normalized()
+
+
+def _joint_zone(co, j, u, r):
+    """(s along the limb, radial vector, falloff 1 at the joint .. 0 at the zone edge) or None."""
+    d = co - j
+    s = d.dot(u)
+    radial = d - u * s
+    span = 1.7 * r
+    if abs(s) >= span or radial.length > 1.8 * r or abs(d.x) > 1.4 * r:
+        return None
+    return s, radial, 1 - abs(s) / span
+
+
+def _route_joint_loops(mesh, bends):
+    """Deformation loops: at each bending joint, pull the edge rings on the fold side toward the
+    joint (they stack like a sandwich when it bends) and spread them on the outer side (room to
+    stretch over the elbow or kneecap), with a slight bulge there to keep the bone's silhouette.
+    Each ring ends up tilted, running up and around the joint instead of straight across.
+    The remap is monotonic along the limb, so no faces flip."""
+    for a, j, c, r, fold in bends:
+        u, f = _bend_frame(a, j, c, fold)
+        span = 1.7 * r
+        for v in mesh.vertices:
+            z = _joint_zone(v.co, j, u, r)
+            if z is None:
+                continue
+            s, radial, fall = z
+            side = radial.normalized().dot(f) if radial.length > 1e-9 else 0.0
+            k = 0.35 if side > 0 else 0.25
+            s2 = s - s * k * side * fall if side > 0 else s + s * k * (-side) * fall
+            if side < 0:
+                radial = radial * (1 + 0.10 * (-side) * max(0.0, 1 - abs(s) / (0.6 * r)))
+            v.co = j + u * s2 + radial
+
+
+def _protect_group(obj, p):
+    """Vertex weights for the decimator (1 = keep): the bending joints, and the details a
+    silhouette is read by (head, ears, tail, paws). Protecting joints alone starves those at a
+    900-tri budget (the head turns into a cone); with both protected, the triangles come out of
+    the long smooth tubes of the trunk and leg shafts, which read the same with fewer faces."""
+    feats = [(co, 1.6 * r) for co, r in zip(p["_head"], p["_head_r"])]
+    skull, er = p["_head"][1], p["_head_r"][1]
+    if p.get("ears"):
+        for side in (-1, 1):
+            feats.append((skull + Vector((side * er * 0.6, 0.015, er * 0.85 + p["ears"] * 0.6)), p["ears"]))
+    tail_r = [t[2] for t in p["tail"]] or [0.03]
+    feats += [(pt, 2.5 * tail_r[min(i, len(tail_r) - 1)]) for i, pt in enumerate(p["_tail"][1:])]
+    feats += [(co, 2.2 * r) for co, r in p.get("_feet", [])]
+    weights = [0.0] * len(obj.data.vertices)
+    for v in obj.data.vertices:
+        for co, reach in feats:
+            d = (v.co - co).length
+            if d < reach:
+                weights[v.index] = max(weights[v.index], 0.8 * (1 - d / reach) + 0.2)
+    for a, j, c, r, fold in p.get("_bends") or []:
+        u, _ = _bend_frame(a, j, c, fold)
+        for v in obj.data.vertices:
+            z = _joint_zone(v.co, j, u, r)
+            if z is not None:
+                weights[v.index] = max(weights[v.index], 0.3 + 0.7 * z[2])
+    grp = obj.vertex_groups.new(name="joint_protect")
+    for i, w in enumerate(weights):
+        if w > 0:
+            grp.add([i], w, 'REPLACE')
+    return grp
 
 
 def _material(name, rgb):
@@ -254,6 +359,7 @@ def main(config=None):
     p.update(c.get("overrides") or {})
     if c.get("muscle") is not None:
         p["muscle"] = c["muscle"]
+    p["joint_loops"] = c.get("joint_loops", True)
     name = c.get("name") or preset
 
     if c.get("clear_scene"):
@@ -287,6 +393,9 @@ def main(config=None):
     for m in list(obj.modifiers):
         bpy.ops.object.modifier_apply(modifier=m.name)
     _deepen(obj.data, p.get("_keels") or [])
+    bends = p.get("_bends") or []
+    if c.get("joint_loops", True):
+        _route_joint_loops(obj.data, bends)
 
     # Clean the skin hull, then decimate to the low-poly budget
     bm = bmesh.new()
@@ -317,7 +426,13 @@ def main(config=None):
     if tris > c["target_tris"]:
         dec = obj.modifiers.new("Decimate", 'DECIMATE')
         dec.ratio = c["target_tris"] / tris
+        if c.get("protect_joints", True) and bends:
+            dec.vertex_group = _protect_group(obj, p).name
+            dec.invert_vertex_group = True       # weight 1 = keep
+            dec.vertex_group_factor = 3.0        # stronger flattens the trunk into slabs
         bpy.ops.object.modifier_apply(modifier=dec.name)
+    if obj.vertex_groups.get("joint_protect"):
+        obj.vertex_groups.remove(obj.vertex_groups["joint_protect"])
     for poly in obj.data.polygons:
         poly.use_smooth = False                        # faceted look
 

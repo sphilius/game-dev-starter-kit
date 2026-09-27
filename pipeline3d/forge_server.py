@@ -194,6 +194,12 @@ def sanitize_manifest(m, godot_project):
     rig = {"method": r["method"]}
     if r.get("clip_prefix"):
         rig["clip_prefix"] = re.sub(r"[^a-z0-9_]", "", str(r["clip_prefix"]).lower())[:20]
+    bt = r.get("bend_test")
+    if isinstance(bt, bool):
+        rig["bend_test"] = bt
+    elif isinstance(bt, dict):
+        rig["bend_test"] = {k: bt[k] for k in ("strict", "min_retention")
+                            if k in bt and isinstance(bt[k], (bool, int, float))}
     for key in ("config", "options"):
         if r.get(key):
             _scalar_tree(r[key])

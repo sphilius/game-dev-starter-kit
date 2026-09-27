@@ -2,7 +2,8 @@
 quadruped_rig.py - auto-rig a quadruped mesh and generate in-place game clips.
 
 Mixamo and most free auto-riggers are humanoid-only. This builds a 31-bone game skeleton
-(root, pelvis, 3 spine, 2 neck, head, jaw, 4 tail, 5 per front leg, 4 per hind leg),
+(root, pelvis, 3 spine, 2 neck, head, jaw, 4 tail, 5 per front leg, 4 per hind leg), plus 8
+volume helper bones (elbow, carpus, stifle, hock on each side),
 skins the mesh (bone heat, falling back to distance weights), keys four starter clips
 at 30 fps with a stationary root, stores each as its own NLA track, and exports a GLB
 Godot imports as one skeleton with N animations.
@@ -21,6 +22,16 @@ Input expectations: mesh stands on the ground (lowest point = feet), body length
 one horizontal axis. auto_orient rotates it so the head faces -Y (Blender "front").
 Every landmark is a fraction of the bounding box; override any of them in CONFIG
 ["landmarks"] after looking at render_preview.py output.
+
+Volume helpers: glTF and Godot skin with linear blending, which averages the two bones' positions
+at a joint, so a vertex shared 50/50 between upper and lower leg is pulled toward the joint
+centre (to 71 % of its distance at a 90 degree bend: the "rubber hose" pinch). Each helper bone
+(<bone>_vol.L) sits on the joint, is parented to the upper bone and turns half as far as the lower
+bone (a Copy Rotation constraint, local space, influence 0.5); the blended part of each joint
+vertex's weight moves to it, so the joint turns as a rigid half-rotation and keeps its thickness.
+The glTF export samples the constraint into every clip, so helpers are ordinary animated bones
+in Godot or any engine, and they follow any clip: these procedural ones, merge_clips.py
+imports, or your own keys in Blender. bend_test.py measures the result.
 """
 
 import bpy
@@ -45,6 +56,7 @@ CONFIG = {
     "stride_deg": 24.0,           # upper-leg swing amplitude in the walk
     "export_path": None,          # e.g. ~/game/export/wolf.glb
     "landmarks": {},              # overrides, see DEFAULT_LANDMARKS
+    "volume_helpers": True,       # half-rotation helper bones at elbow, carpus, stifle, hock
 }
 
 # (u, z, x): u = 0 at the nose .. 1 at the rump, z = 0 ground .. 1 top, x = lateral fraction of half-width
@@ -80,6 +92,9 @@ PARENTS = {
     "front_toe": "hand", "thigh": "pelvis", "shin": "thigh", "hock": "shin", "hind_toe": "hock",
 }
 LEG_BONES = ["scapula", "upperarm", "forearm", "hand", "front_toe", "thigh", "shin", "hock", "hind_toe"]
+# lower bone of each helped joint (the helper turns half as far as this bone)
+HELPED = ["forearm", "hand", "shin", "hock"]
+HELPER_SUFFIX = "_vol"
 CONNECTED = {"spine_01", "spine_02", "spine_03", "neck_01", "neck_02", "head", "tail_02", "tail_03",
              "tail_04", "upperarm", "forearm", "hand", "front_toe", "shin", "hock", "hind_toe"}
 
@@ -190,7 +205,27 @@ def _build_armature(cfg, lo, hi):
         parent = bones.get(parent_base + side) or bones.get(parent_base)
         b.parent = parent
         b.use_connect = base in CONNECTED and (b.head - parent.tail).length < 1e-4
+    if cfg.get("volume_helpers"):
+        for base in HELPED:
+            for side in (".L", ".R"):
+                child = bones[base + side]
+                h = eb.new(base + HELPER_SUFFIX + side)
+                h.head = child.head.copy()
+                h.tail = child.head + (child.tail - child.head) * 0.35
+                h.roll = child.roll                  # same axes as the lower bone: half its euler = half its turn
+                h.parent = child.parent
+                h.use_connect = False
+                h.use_deform = False                 # not during bone heat; gets the blended weights after
     bpy.ops.object.mode_set(mode='OBJECT')
+    if cfg.get("volume_helpers"):
+        for base in HELPED:
+            for side in (".L", ".R"):
+                con = arm.pose.bones[base + HELPER_SUFFIX + side].constraints.new('COPY_ROTATION')
+                con.name = "half_turn"
+                con.target, con.subtarget = arm, base + side
+                con.owner_space = con.target_space = 'LOCAL'
+                con.mix_mode = 'REPLACE'
+                con.influence = 0.5
     return arm
 
 
@@ -250,6 +285,41 @@ def _prune_far_weights(mesh_obj, arm, ratio=3.0):
             mesh_obj.vertex_groups[n].remove([v.index])
         removed += len(far)
     return removed
+
+
+def _volume_helper_weights(mesh_obj, arm, log):
+    """Move the blended part of each joint vertex to the joint's helper bone, which turns half-way:
+    50/50 vertices become rigid half-turns. The lower side counts the lower bone and everything
+    below it (they all turn with the joint): on meshes with a short segment, bone heat often
+    blends the shin straight into the toe and skips the hock bone."""
+    names = {g.index: g.name for g in mesh_obj.vertex_groups}
+    moved = 0
+    for base in HELPED:
+        for side in (".L", ".R"):
+            helper = base + HELPER_SUFFIX + side
+            if helper not in arm.data.bones:
+                continue
+            bone = arm.data.bones[base + side]
+            upper = bone.parent.name
+            lower = {bone.name} | {c.name for c in bone.children_recursive if HELPER_SUFFIX not in c.name}
+            if mesh_obj.vertex_groups.get(upper) is None:
+                continue
+            gh = mesh_obj.vertex_groups.get(helper) or mesh_obj.vertex_groups.new(name=helper)
+            for v in mesh_obj.data.vertices:
+                w = {names.get(g.group): g.weight for g in v.groups}
+                wl = sum(w.get(n, 0.0) for n in lower)
+                m = min(w.get(upper, 0.0), wl)
+                if m <= 1e-4:
+                    continue
+                mesh_obj.vertex_groups[upper].add([v.index], w[upper] - m, 'REPLACE')
+                for n in lower:
+                    if w.get(n, 0.0) > 0:
+                        mesh_obj.vertex_groups[n].add([v.index], w[n] * (1 - m / wl), 'REPLACE')
+                gh.add([v.index], w.get(helper, 0.0) + 2 * m, 'REPLACE')
+                moved += 1
+            arm.data.bones[helper].use_deform = True
+    if moved:
+        log.append(f"volume helpers: {moved} joint vertices now turn half-way instead of blending")
 
 
 def _limit_and_normalize(mesh_obj, max_inf):
@@ -378,6 +448,7 @@ def _skin(mesh_obj, arm, cfg, log):
             or mesh_obj.modifiers.new("Armature", 'ARMATURE')
         mod.object = arm
         _proximity_weights(mesh_obj, arm)
+    _volume_helper_weights(mesh_obj, arm, log)
     unweighted = _limit_and_normalize(mesh_obj, int(cfg["max_influences"]))
     return method, unweighted
 
@@ -493,7 +564,7 @@ def _make_clips(arm, cfg, height, log):
         act = bpy.data.actions.new(name)
         act.use_fake_user = True
         arm.animation_data.action = act
-        poses = {t: gen(t, n, cfg) for t in range(n + 1)}
+        poses = {t: gen(t, n, cfg) for t in range(n + 1)}   # helpers follow by constraint
         touched = sorted({b for p in poses.values() for b in p})
         for frame, pose in poses.items():
             for bname in touched:

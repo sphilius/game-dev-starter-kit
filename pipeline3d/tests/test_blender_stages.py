@@ -69,7 +69,7 @@ clear()
 r = stage("quadruped_rig")["main"]({"import_path": os.path.join(FX, "quadruped_raw.glb"), "clip_prefix": "wolf_",
                                    "export_path": os.path.join(EXPORT, "wolf.glb")})
 results["quadruped"] = r
-check("quadruped rigged", r["ok"] and r["bones"] == 31, f"bones={r['bones']} skin={r['skinning']}")
+check("quadruped rigged", r["ok"] and r["bones"] == 39, f"bones={r['bones']} (31 + 8 volume helpers) skin={r['skinning']}")
 check("quadruped 4 clips", [c["name"] for c in r["clips"]] == ["wolf_idle", "wolf_walk", "wolf_attack", "wolf_death"])
 check("quadruped faces -Y", r["bounds_m"]["length"] > r["bounds_m"]["width"])
 
@@ -92,6 +92,12 @@ check("weights transferred", r["ok"], r.get("targets"))
 check("collar follows neck/head bones",
       any(g.name.startswith(("neck", "spine_03", "head")) for g in collar.vertex_groups if
           any(vg.group == g.index and vg.weight > 0.3 for v in collar.data.vertices for vg in v.groups)))
+
+# --- 4b. bend test: every leg joint bent 90 deg keeps its thickness (volume helper bones)
+r = stage("bend_test")["main"]({"import_path": os.path.join(EXPORT, "wolf.glb")})
+results["bend_test"] = r
+check("joints keep thickness at 90 deg", r["ok"],
+      {k: ("hinge" if v["hinge"] else v["retention"]) for k, v in r.get("joints", {}).items()})
 
 # --- 5. UDIM -> 0-1
 clear()

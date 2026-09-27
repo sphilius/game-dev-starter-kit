@@ -16,7 +16,8 @@ Stages (each is skipped when its output already exists, so re-running resumes):
                                    with generate.fit_reference the procedural creature is fitted to the
                                    concept image first (fit_reference.py, Gemini vision)
     cleanup   game-ready mesh      cleanup_for_godot.py
-    rig       skeleton + skin      quadruped_rig.py | Mixamo/AccuRIG (manual gate) | tripo/meshy API
+    rig       skeleton + skin      quadruped_rig.py (+ bend_test.py: joints keep thickness at 90 deg)
+                                   | Mixamo/AccuRIG (manual gate) | tripo/meshy API
     animate   named clips          procedural | clips folder (Mixamo, ActorCore, mocap) | tripo/meshy API
     export    final GLB            export_for_godot.py (+ collision, copy into the Godot project)
     godot     import + audit       godot --headless --import, tools/asset_audit.gd
@@ -279,7 +280,9 @@ class Forge:
                    "clip_prefix": r.get("clip_prefix", ""), **r.get("config", {})}
             if anim != "procedural":
                 cfg["clips"] = []
-            return out, _blender("quadruped_rig.py", cfg, self.workdir, "rig")
+            rep = _blender("quadruped_rig.py", cfg, self.workdir, "rig")
+            rep["bend_test"] = self.bend_test(out, r.get("bend_test", True))
+            return out, rep
         if method in ("mixamo", "accurig", "manual"):
             rigged = self.p("incoming", f"{self.name}_rigged.fbx")
             if os.path.exists(rigged):
@@ -304,6 +307,30 @@ class Forge:
             rep = _gen3d(args)
             return rep.get("out", out), rep
         raise ValueError(f"unknown rig method {method}")
+
+    def bend_test(self, rigged, spec):
+        """Bend each leg joint to 90 deg and check the skin keeps its thickness (bend_test.py).
+        Reports a warning; rig.bend_test: {"strict": true} makes a failing joint stop the build."""
+        if spec is False:
+            return "skipped"
+        spec = spec if isinstance(spec, dict) else {}
+        cfg = {"import_path": rigged, "min_retention": spec.get("min_retention", 0.85)}
+        try:
+            rep = _blender("bend_test.py", cfg, self.workdir, "bend_test")
+        except RuntimeError as exc:
+            # _blender treats ok=false as a failure; read the report from the log instead
+            log = open(os.path.join(self.workdir, ".forge", "bend_test.log")).read()
+            found = re.findall(r"^PIPELINE_RESULT (.*)$", log, re.M)
+            rep = json.loads(found[-1]) if found else {"ok": False, "error": str(exc)}
+        summary = {k: rep.get(k) for k in ("ok", "worst_joint", "worst_retention", "failed", "joints", "error")}
+        if not rep.get("ok"):
+            msg = (f"bend test: {', '.join(rep.get('failed') or []) or rep.get('error')} "
+                   f"collapse when bent 90 deg (worst {rep.get('worst_joint')} {rep.get('worst_retention')}, "
+                   f"needs {cfg['min_retention']})")
+            print(f"[forge] WARNING {msg}")
+            if spec.get("strict"):
+                raise RuntimeError(msg)
+        return summary
 
     def animate(self):
         a = self.m.get("animations") or {"method": "none"}
