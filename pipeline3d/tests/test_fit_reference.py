@@ -51,7 +51,7 @@ def keypoints_for(preset, rnd, facing):
         x = x0 + fwd * ppm * (1 if facing == "right" else -1)
         return x / W * 1000, (ground - z * ppm) / H * 1000
 
-    def slc(y, z, r, frac=0.45):
+    def slc(y, z, r, frac=fr.DEPTH_FRAC["body"]):
         x, yc = img(y, z)
         d = r / frac * ppm / H * 1000
         return {"x": x, "top": yc - d / 2, "bottom": yc + d / 2}
@@ -79,7 +79,7 @@ def keypoints_for(preset, rnd, facing):
     return {
         "is_side_view": True, "facing": facing, "stance": p["stance"], "ground_y": ground / H * 1000,
         "torso": [slc(*j) for j in p["body"]],
-        "neck": slc(*head[0]), "skull": slc(*skull), "muzzle": slc(*head[2], frac=0.40),
+        "neck": slc(*head[0]), "skull": slc(*skull), "muzzle": slc(*head[2], frac=fr.DEPTH_FRAC["muzzle"]),
         "nose": pt(head[3][0], head[3][1]),
         "ear_tip": pt(skull[0], skull[1] + skull[2] + p["ears"]),
         "tail": tail[:5], "front_leg": legs["front"], "hind_leg": legs["hind"],
@@ -112,7 +112,9 @@ def main():
     for i, preset in enumerate(["wolf", "boar", "bear", "deer", "cat"]):
         kp, (W, H) = keypoints_for(preset, rnd, ["left", "right"][i % 2])
         rep = fr.fit(kp, preset, W, H)
-        ref = build.main({"preset": preset, "muscle": 0.0, "clear_scene": True})
+        # same trunk width as the fit (landmark x is a fraction of the body's width)
+        ref = build.main({"preset": preset, "muscle": 0.0, "clear_scene": True,
+                          "overrides": {"body_width": fr.PRESET_BASICS[preset]["width"]}})
         glb = os.path.join(OUT, f"{preset}_fitted.glb")
         fitted = build.main({"preset": preset, "muscle": 0.0, "clear_scene": True,
                              "overrides": rep["overrides"], "export_path": glb})

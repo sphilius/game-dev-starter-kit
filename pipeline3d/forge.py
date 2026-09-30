@@ -220,9 +220,17 @@ class Forge:
             # Usually missing credentials: fall back to the manual step instead of failing.
             err = (proc.stderr or proc.stdout).strip().splitlines()
             last = err[-1] if err else "unknown error"
-            hint = "" if "GEMINI_API_KEY" in last else (" Set GEMINI_API_KEY (free key: "
-                                                        "https://aistudio.google.com/apikey) to generate it automatically.")
-            why = f"Nano Banana couldn't run ({last}).{hint}\n\n"
+            if "limit: 0" in last or "free_tier" in last:
+                # the key works, but the free tier has no image-generation quota for this model
+                hint = (" Your key works, but the free tier gives this image model no quota (limit: 0). "
+                        "Turn on billing for the key's project (https://aistudio.google.com/apikey) to "
+                        "generate automatically, or make the image by hand as below.")
+            elif "GEMINI_API_KEY" in last or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"):
+                hint = ""
+            else:
+                hint = (" Set GEMINI_API_KEY (free key: https://aistudio.google.com/apikey) to generate it "
+                        "automatically.")
+            why = f"Nano Banana couldn't run ({last[:300]}).{hint}\n\n"
         raise ManualStep(why + f"Generate a reference image with this prompt (Nano Banana / Gemini, Flux, "
                          f"Midjourney, Bing Image Creator) and save it as {out}, or set concept.image:\n\n"
                          f"{prompt or '(no prompt in manifest)'}")
@@ -248,12 +256,21 @@ class Forge:
                 return hashlib.sha256(fh.read()).hexdigest()
         # reuse a fit only if it came from the same image, keypoints, preset, model and animal
         inputs = {"image": digest(image), "keypoints": digest(keypoints), "preset": preset,
-                  "model": None if keypoints else model, "animal": None if keypoints else animal}
+                  "model": None if keypoints else model, "animal": None if keypoints else animal,
+                  "fitter": fit_reference.FIT_VERSION}
         if os.path.exists(fit_path):
             with open(fit_path) as fh:
                 cached = json.load(fh)
             if cached.get("inputs") == inputs:
                 return cached
+            # same reference, older fitter: refit the joints Gemini already marked (no new call)
+            old = dict(cached.get("inputs") or {}, fitter=inputs["fitter"])
+            if old == inputs and cached.get("keypoints") and not keypoints:
+                rep = fit_reference.fit(cached["keypoints"], preset, *cached["image_size"])
+                rep = dict(cached, **rep, inputs=inputs)
+                with open(fit_path, "w") as fh:
+                    json.dump(rep, fh, indent=1)
+                return rep
         if not keypoints and not (image and os.path.exists(image)):
             raise ManualStep(f"Fitting needs a side-view reference: add a concept section (e.g. "
                              f'{{"tool": "banana", "subject": "horse"}}), set generate.fit_reference.image, or save '

@@ -26,6 +26,7 @@ import json
 import os
 import sys
 from mathutils import Vector
+from mathutils.bvhtree import BVHTree
 
 CONFIG = {
     "preset": "wolf",
@@ -39,6 +40,7 @@ CONFIG = {
     "muscle": None,                # 0..1 muscle mass (None = preset): thigh, gaskin, upper arm, forearm, neck, chest
     "joint_loops": True,           # support rings + routed deformation loops at elbow, carpus, stifle, hock
     "protect_joints": True,        # decimation takes triangles from the body, not from the joints
+    "restore_trunk": True,         # push the decimated trunk back out to its smooth silhouette
     "overrides": {},               # e.g. {"leg_len": 0.5, "tail": [..], "leg_chains": {...}} (see fit_reference.py)
     "palette": None,               # [[r,g,b], [r,g,b], [r,g,b]] body, light, dark (0-1)
 }
@@ -163,7 +165,7 @@ def _graph(p):
     # displacement of the finished hull (_deepen), because Skin branches hung under a busy
     # joint make non-manifold hulls.  (spine joint, depth in radii at muscle = 1, y shift in radii)
     p["_keels"] = [(verts[spine[k]][0].copy(), verts[spine[k]][1], d * m, fy)
-                   for k, d, fy in ((n_body // 2, 0.30, 0.0), (n_body - 1, 0.40, -0.25))] if m > 0 else []
+                   for k, d, fy in ((n_body // 2, 0.30, 0.0), (n_body - 1, 0.40, -0.25))] if m > 0 and p.get("keels", True) else []
     # neck and head from the chest; neck muscle thickens the neck base (an extra joint
     # there folds against the scapula tops, so the base joint grows instead)
     prev = spine[-1]
@@ -185,6 +187,8 @@ def _graph(p):
         pos = pos + Vector((0, dy, dz))
         prev = add(tuple(pos), r, prev, False)          # relative to the (lifted) rump
     p["_spine"] = [verts[i][0].copy() for i in spine]
+    p["_spine_r"] = [verts[i][1] for i in spine]
+    p["_spine_ids"] = list(spine)
     p["_head"] = [verts[i][0].copy() for i in head_ids]
     p["_head_r"] = [verts[i][1] for i in head_ids]
     tail_pts = [verts[spine[0]][0].copy()]
@@ -262,6 +266,66 @@ def _deepen(mesh, keels):
             w = 0.5 * (1 + math.cos(math.pi * (co.y - cy) / (1.6 * r)))
             w *= min(1.0, below) * max(0.0, 1 - (co.x / r) ** 2)
             co.z -= depth * r * w
+
+
+def _restore_trunk(mesh, smooth, p, passes=3):
+    """Put the trunk's silhouette back after decimation. A low-poly barrel is a few long flat
+    faces over a round hull, and each face cuts inside it (a chord); the joint protection sends
+    the decimator to the trunk first, so a 1200-tri horse lost ~18% of its barrel depth. For each
+    trunk face, a ray from the spine through its centre gives how far it sank below the smooth
+    hull; each vertex moves out (away from the spine) by the area-weighted mean of its faces, so
+    the flat faces straddle the old surface instead of cutting under it. Faces past the hull
+    (legs, neck) are left alone, and the move fades out beyond the hull and past the spine ends."""
+    spine = sorted(zip(p.get("_spine") or [], p.get("_spine_r") or []), key=lambda t: t[0].y)
+    if len(spine) < 2:
+        return
+    lo, hi = spine[0][0].y, spine[-1][0].y
+
+    def axis(y):
+        """Spine centre and radius at this y (clamped to the ends), and how far past an end."""
+        yc = min(max(y, lo), hi)
+        for (a, ra), (b, rb) in zip(spine, spine[1:]):
+            if a.y <= yc <= b.y:
+                t = (yc - a.y) / ((b.y - a.y) or 1e-9)
+                o = a.lerp(b, t)
+                return Vector((o.x, y, o.z)), ra + (rb - ra) * t, max(lo - y, y - hi, 0.0)
+        return None
+
+    def reach(o, c):
+        """(distance from the spine to c, to the smooth hull along the same ray) or None."""
+        d = Vector((c.x - o.x, 0, c.z - o.z))
+        dc = d.length
+        if dc < 1e-6:
+            return None
+        hit = smooth.ray_cast(o, d / dc, 4 * dc)
+        return (dc, (hit[0] - o).length) if hit[0] is not None else None
+
+    for _ in range(passes):
+        acc = [[0.0, 0.0] for _ in mesh.vertices]
+        for pl in mesh.polygons:
+            ax = axis(pl.center.y)
+            if ax is None or ax[2] > 0:
+                continue
+            rc = reach(ax[0], pl.center)
+            if rc is None or rc[0] >= rc[1] or rc[0] < 0.5 * rc[1]:
+                continue                               # outside the hull (leg, neck) or odd
+            for i in pl.vertices:
+                acc[i][0] += rc[1] / rc[0] * pl.area
+                acc[i][1] += pl.area
+        for v, (ks, area) in zip(mesh.vertices, acc):
+            if area <= 0:
+                continue
+            o, r, past = axis(v.co.y)
+            rv = reach(o, v.co)
+            if rv is None or rv[0] > 1.1 * rv[1]:
+                continue                               # a leg or neck vertex next to the trunk
+            # out by the faces' sag, never more than 12% past the smooth hull
+            target = min(rv[0] * ks / area, 1.12 * rv[1])
+            if target <= rv[0]:
+                continue
+            s = 1 + (target / rv[0] - 1) * max(0.0, 1 - past / r)
+            v.co.x, v.co.z = o.x + (v.co.x - o.x) * s, o.z + (v.co.z - o.z) * s
+        mesh.update()
 
 
 def _bend_frame(a, j, c, fold):
@@ -384,8 +448,10 @@ def main(config=None):
 
     skin = obj.modifiers.new("Skin", 'SKIN')
     skin.use_smooth_shade = False
-    for sv, (_, r) in zip(mesh.skin_vertices[0].data, verts):
-        sv.radius = (r, r)
+    # body_width: trunk width / depth (Skin radius x is across the body for the spine joints)
+    wide = {i: float(p.get("body_width", 1.0)) for i in p.get("_spine_ids", [])}
+    for i, (sv, (_, r)) in enumerate(zip(mesh.skin_vertices[0].data, verts)):
+        sv.radius = (r * wide.get(i, 1.0), r)
     mesh.skin_vertices[0].data[0].use_root = True
     sub = obj.modifiers.new("Subdiv", 'SUBSURF')
     # One level of smoothing covers low-poly budgets; higher budgets need more source detail
@@ -424,6 +490,8 @@ def main(config=None):
     bm.free()
     tris = sum(len(f.vertices) - 2 for f in obj.data.polygons)
     if tris > c["target_tris"]:
+        smooth = BVHTree.FromPolygons([v.co.copy() for v in obj.data.vertices],
+                                      [tuple(pl.vertices) for pl in obj.data.polygons])
         dec = obj.modifiers.new("Decimate", 'DECIMATE')
         dec.ratio = c["target_tris"] / tris
         if c.get("protect_joints", True) and bends:
@@ -431,6 +499,8 @@ def main(config=None):
             dec.invert_vertex_group = True       # weight 1 = keep
             dec.vertex_group_factor = 3.0        # stronger flattens the trunk into slabs
         bpy.ops.object.modifier_apply(modifier=dec.name)
+        if c.get("restore_trunk", True):
+            _restore_trunk(obj.data, smooth, p)
     if obj.vertex_groups.get("joint_protect"):
         obj.vertex_groups.remove(obj.vertex_groups["joint_protect"])
     for poly in obj.data.polygons:
