@@ -18,3 +18,5 @@ DEC-015 | S00 | Course: 9 sections, 1690 m timed + 60 m runout, par 110 s, 150 s
 DEC-016 | S00 | Playwright config tries channel:'chrome', falls back to executablePath from SHOTS_CHROMIUM | agent sandbox has Chromium only; owner machine has Chrome.
 DEC-017 | S00 | RISKS.md added as an 8th file (not in the CLAUDE.md memory list) | holds the risk list and session roadmap; fold into ARCHITECTURE if owner prefers four.
 DEC-018 | S00 | BMX-CRITIC v1 copied verbatim into QUALITY.md; anchors added beneath it, never inside it | critic text is the owner's; anchors calibrate scores.
+DEC-019 | S00 | Hull ownership lives in a dedicated RT_HULL R8 mask, never RT_SCENE.a | review finding on PR #9: opaque scene fragments write alpha 1, so an alpha flag would mask every Sobel edge.
+DEC-020 | S00 | Contact sheets sample 8 frames at trigger + k·Δ with the sim running (Δ = 4 ticks; finish-orbit also gets Δ = 103 ticks) | review finding on PR #9: a frozen sim gives identical frames, and 8 frames at 1/30 s cannot span a 6 s orbit.

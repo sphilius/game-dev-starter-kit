@@ -49,7 +49,13 @@ Aliasing and pose timing are temporal; stills may legitimately be "unjudgeable f
 
 ## 3. Six reference shots
 
-Capture: `npm run shots -- --shot=<name>` -> `shots/<session>/<name>.png` (1280x720 CSS at DPR 2 = 2560x1440), `<name>.sheet.png` (8 consecutive frames, 1/30 s apart), and `shots/<session>/report.json` (draw calls, palette conformance %, ink coverage %, rider height as % of frame). Seed 1, all four riders on AI autopilot, state reached by simulation (no teleport), then frozen at the trigger tick. Frames from the agent sandbox are software-GL: valid for the critic, NON-TARGET for timing.
+Capture: `npm run shots -- --shot=<name>` writes to `shots/<session>/`:
+- `<name>.png`: the still, rendered at the trigger tick (1280x720 CSS at DPR 2 = 2560x1440).
+- `<name>.sheet.png`: 8 frames sampled at trigger tick + k·Δ for k = 0..7 with Δ = 4 sim ticks (1/30 s at 120 Hz), covering 7/30 s of real motion for edge crawl and pose change. The sim and camera **keep running** after the trigger; only the still is a single instant, and a frozen sim would give 8 identical frames.
+- `finish-orbit` also writes `finish-orbit.orbit.png`: 8 frames with Δ = 103 sim ticks (≈0.858 s), so k = 0..7 spans 721 ticks ≈ 6.0 s, the whole orbit.
+- `report.json`: draw calls, palette conformance %, ink coverage %, rider height as % of frame.
+
+Seed 1, all four riders on AI autopilot, state reached by simulation (no teleport). Frames from the agent sandbox are software-GL: valid for the critic, NON-TARGET for timing.
 
 | Shot | Trigger | Camera | Must see | Auto-fail | Stresses |
 |---|---|---|---|---|---|
@@ -58,7 +64,7 @@ Capture: `npm run shots -- --shot=<name>` -> `shots/<session>/<name>.png` (1280x
 | **berm-apex** | player at s=473.5, lean 30–38° | outside the turn, 7 m lateral, 1.3 m high, look at rider +1 m, vFOV 38° | lean readable, powerslide ribbon arc, roost from rear tyre, berm wall curvature read through bands, crest edge | wall shows noise lines; rider lost against PINE | C1 C2 C5 C6 |
 | **midair-gap** | player 0.85 s after takeoff at s≈1567 | side-on from the far lip, 26 m back, 2 m above lip height, vFOV 40° | both lips and the void in frame, rider tuck pose, full hull outline against sky, no ground shadow while airborne | rider silhouette breaks against SKY; void floor reads as flat fill | C2 C4 C5 C8 |
 | **pack-close** | four riders within 6 m, sweeper s≈700–760 | 9 m behind rear rider, 3 m right, 2.4 m up, vFOV 48° | ID-edge ink between overlapping riders, four distinct liveries, overlapping dust still graphic, **draw calls <= 250** (worst-case stress) | doubled lines at hull/Sobel seam; hull z-fighting; budget exceeded | C2 C4 C6 C7 |
-| **finish-orbit** | line crossed + 1.0 s, s=1690 | orbit on the arch centre, radius 10 m, 2.2 m high, azimuth -30° to +150° over 6 s (contact sheet spans the orbit) | banner text legible (canvas texture), results UI over 3D without clash, valley bands, smooth orbit | UI illegible over bright sky; text shimmer | C3 C7 C8 |
+| **finish-orbit** | line crossed + 1.0 s, s=1690 | orbit on the arch centre, radius 10 m, 2.2 m high, azimuth -30° to +150° over 6 s (`finish-orbit.orbit.png` spans the orbit; `.sheet.png` covers shimmer) | banner text legible (canvas texture), results UI over 3D without clash, valley bands, smooth orbit | UI illegible over bright sky; text shimmer | C3 C7 C8 |
 
 If a shot cannot be reached on seed 1 (for example the pack never closes), that is a defect in AI pacing, not permission to teleport.
 

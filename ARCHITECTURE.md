@@ -164,15 +164,15 @@ Pre-frame (CPU): interpolate snapshot by alpha, solve poses and secondary motion
 |---|---|---|---|
 | 1 | **Prepass** | RT_G: RGBA8 + DepthTexture. rg = oct-encoded normal, b = class+id, a = hull weight | all opaque draws via ToonMaterial's prepass variant (skinning- and instancing-aware): terrain, props, bikes, riders, gate, finish arch, fx puffs. Excludes sky, ribbons, hulls |
 | 2 | **Scene** | RT_SCENE: RGBA8, shares RT_G depth | sky (no depth write) -> opaque toon shading (3 hard bands from the PALETTE formula, optional rim band; depthFunc LessEqual, Equal evaluated in S01) -> fx puffs -> track ribbons (polygon offset) -> contact-shadow decals |
-| 3 | **Hulls** | RT_SCENE, depth-test vs RT_G depth, no depth write | inverted-hull outline for CHARACTER and HERO classes only (riders, bikes, gate, arch). Clip-space inflation so width is constant in pixels; smooth-normal attribute so hard edges leave no gaps. Writes ink colour and `a = 1` as the owner flag |
-| 4 | **Sobel** | RT_INK: R8 | reads RT_G depth (linearised), normal, class+id. Edges: id boundary, relative depth jump, normal crease (>= 60° on TERRAIN, >= 35° elsewhere). **Skips pixels where RT_SCENE.a (dilated 1 px) = 1**: hulls own those silhouettes, so no doubled lines |
+| 3 | **Hulls** | RT_SCENE (colour) + RT_HULL: R8 ownership mask; depth-test vs RT_G depth, no depth write | inverted-hull outline for CHARACTER and HERO classes only (riders, bikes, gate, arch). Clip-space inflation so width is constant in pixels; smooth-normal attribute so hard edges leave no gaps. Writes ink colour to RT_SCENE and `1` to RT_HULL (second MRT attachment if three's MRT accepts the hull material, else a second draw of the same hull meshes into RT_HULL; S01 picks by measured cost). RT_HULL is cleared to 0 each frame. **RT_SCENE.a is never used for ownership**: scene-pass fragments conventionally write alpha 1 (three's opaque path; UNVERIFIED until S01), which would mask every pixel |
+| 4 | **Sobel** | RT_INK: R8 | reads RT_G depth (linearised), normal, class+id. Edges: id boundary, relative depth jump, normal crease (>= 60° on TERRAIN, >= 35° elsewhere). **Skips pixels where RT_HULL (dilated 1 px) = 1**: hulls own those silhouettes, so no doubled lines. S01 test: a terrain-only frame must show Sobel edges (proves the mask is not blanket) and a rider frame must show none on the rider's outer silhouette |
 | 5 | **Composite** | canvas | scene + ink (1 px smoothstep AA) + banded aerial haze (<= 4 steps) + grade + vignette + graphic speed lines + flow-edge glow; sRGB encode here |
 | 6 | **UI** | DOM overlay | HUD above the canvas, untouched by passes 4-5 |
 
 - Resolution: all RTs = canvas x DPR. DprGovernor moves DPR in [1.25, 2.0] by rolling p95 with hysteresis. Sobel kernel is 1 physical pixel scaled by DPR so line weight is constant on screen.
 - Anti-aliasing: no MSAA by default; ink mask is smoothstepped; DPR floor 1.25. S01 spike measures a 4x-sample scene RT and decides.
 - No shadow-map pass (DEC-011).
-- Draw-call accounting: `renderer.info.render.calls` with autoReset off, summed over all passes each frame. Estimated worst scene ~120 (prepass ~35, scene ~45, hulls ~10, fullscreen 3, fx ~25). Cap 250.
+- Draw-call accounting: `renderer.info.render.calls` with autoReset off, summed over all passes each frame. Estimated worst scene ~120 (prepass ~35, scene ~45, hulls ~10, fullscreen 3, fx ~25), ~130 if the RT_HULL mask needs its own hull draws. Cap 250.
 
 ## 7. Budgets (PROPOSED until `?perf=1` JSON from owner machine)
 
@@ -192,3 +192,4 @@ Pre-frame (CPU): interpolate snapshot by alpha, solve poses and secondary motion
 - v0 | S00 | initial module map, types, events, pass order | spec session.
 - v0 | S00 | added core/math.ts, sim/ vs view/ folders, compose.ts/headless.ts roots | DEC-005/006/007.
 - v0 | S00 | ink single-owner rule, terrain crease rule, cel-puff fx | DEC-008/009/010 from BMX-CRITIC.
+- v0.1 | S00 | hull ownership moved from RT_SCENE.a to a dedicated RT_HULL R8 mask | DEC-019: review finding on PR #9; opaque scene fragments write alpha 1, so the alpha flag would mask all Sobel edges.
