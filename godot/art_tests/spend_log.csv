@@ -1,0 +1,2 @@
+date,cell,purpose,service,model,images,resolution,wall_s,est_cost_usd,running_total_usd,notes
+2026-11-11,preflight,key quota check,gemini-api,gemini-3.1-flash-lite-image,1,1K,7.4,0.02,0.02,"est. price; check real charge in Cloud Billing. Budget cap $5.00"

@@ -19,12 +19,12 @@ Preflight run: **Tuesday, November 10, 2026, 05:29 AM -05:00** on the Windows 11
 
 | Variable | Status | Notes |
 |---|---|---|
-| `GEMINI_API_KEY` | **Not set** in the process or user environment | Old `.env` files elsewhere define one (see below), but which key is live and has image quota is Sasha's call. Nano Banana runs are blocked until it is set. |
+| `GEMINI_API_KEY` | OK (set 2026-11-11) | A dedicated game-jam key, stored as a Windows *user* environment variable. Quota check: one 1K image from `gemini-3.1-flash-lite-image` in 7.4 s. Every call is logged in `spend_log.csv` (cap $5). |
 | `TRIPO_API_KEY` | Not set | Tripo cells are skipped. |
 | `MESHY_API_KEY` | Not set | Meshy cells are skipped. |
 | SpriteCook | Skipped by decision | 2-credit free tier; the MCP also needs `/mcp` auth. |
 
-Files that define a Gemini key name (values not read): `~\.env` (2025-06-12),
+Older files that define a Gemini key name (values not read; **not used** by this project): `~\.env` (2025-06-12),
 `~\Projects\.env` (2025-06-01), `~\Projects\Claude\.env` (2025-05-27),
 `~\dev\discordmcp\.env` (2025-05-27), `~\Desktop\director-mode-gemini\.env` (2026-03-01);
 `GOOGLE_API_KEY` in `~\dev\storyforge\.env` (2026-03-16) and `~\Desktop\llm-workbench\.env` (2026-01-02).
