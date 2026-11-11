@@ -1,0 +1,6 @@
+# Godot's import cache and editor state: rebuilt by `godot --import`.
+.godot/
+# Web/desktop exports.
+build/
+# Per-run art-test output (reports are summarised into SCOREBOARD.md, which IS committed).
+art_tests/runs/

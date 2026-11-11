@@ -1,0 +1,31 @@
+; Engine configuration file for the jam-kit test project.
+; Content-free on purpose: it only hosts the kits (addons/), their tests, and the art-pipeline
+; demo scenes. Compatibility renderer everywhere, because web builds are what jams rate most.
+
+config_version=5
+
+[application]
+
+config/name="Jam Kits"
+config/description="Content-free Godot kits (FPS, grid tactics, combat, tests) and art-pipeline tests."
+run/main_scene="res://scenes/kit_gallery.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+
+[layer_names]
+
+3d_physics/layer_1="world"
+3d_physics/layer_2="body"
+3d_physics/layer_3="hurtbox"
+3d_physics/layer_4="interactable"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
