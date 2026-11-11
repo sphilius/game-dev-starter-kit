@@ -19,7 +19,7 @@ Preflight run: **Tuesday, November 10, 2026, 05:29 AM -05:00** on the Windows 11
 
 | Variable | Status | Notes |
 |---|---|---|
-| `GEMINI_API_KEY` | OK (set 2026-11-11) | A dedicated game-jam key, stored as a Windows *user* environment variable. Quota check: one 1K image from `gemini-3.1-flash-lite-image` in 7.4 s. Every call is logged in `spend_log.csv` (cap $5). |
+| `GEMINI_API_KEY` | OK (set 2026-11-11) | A dedicated game-jam key, stored as a Windows *user* environment variable. Quota check: one 1K image from `gemini-3.1-flash-lite-image` in 7.4 s. Every call is logged in `logs/spend_log.csv` (cap $5). |
 | `TRIPO_API_KEY` | Not set | Tripo cells are skipped. |
 | `MESHY_API_KEY` | Not set | Meshy cells are skipped. |
 | SpriteCook | Skipped by decision | 2-credit free tier; the MCP also needs `/mcp` auth. |
