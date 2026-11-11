@@ -443,6 +443,9 @@ def main(config=None):
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.scene.collection.objects.link(obj)
     bpy.context.view_layer.objects.active = obj
+    # Blender 5.x: objects made through bpy.data show up in the view layer only after
+    # an update (before it they read as None), so refresh before (de)selecting.
+    bpy.context.view_layer.update()
     for o in bpy.context.view_layer.objects:
         o.select_set(o == obj)
 

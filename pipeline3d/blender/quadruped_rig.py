@@ -144,6 +144,9 @@ def _orient(obj, cfg, log):
         bpy.context.view_layer.update()
         log.append("rotated 180 deg so the head faces -Y")
     # Bake the transform so the rest pose equals the mesh as-is
+    # Blender 5.x: objects made through bpy.data show up in the view layer only after
+    # an update (before it they read as None), so refresh before (de)selecting.
+    bpy.context.view_layer.update()
     for o in bpy.context.view_layer.objects:
         o.select_set(o == obj)
     bpy.context.view_layer.objects.active = obj
@@ -167,6 +170,9 @@ def _build_armature(cfg, lo, hi):
     arm = bpy.data.objects.new(cfg["armature_name"], arm_data)
     bpy.context.scene.collection.objects.link(arm)
     arm_data.display_type = 'STICK'
+    # Blender 5.x: objects made through bpy.data show up in the view layer only after
+    # an update (before it they read as None), so refresh before (de)selecting.
+    bpy.context.view_layer.update()
     for o in bpy.context.view_layer.objects:
         o.select_set(o == arm)
     bpy.context.view_layer.objects.active = arm
@@ -395,6 +401,9 @@ def _heat_weights(mesh_obj, arm, log):
         o.matrix_world = arm.matrix_world.copy() if o is a2 else mesh_obj.matrix_world.copy()
         o.scale = tuple(v * k for v in o.scale)
         o.location = o.location * k
+    bpy.context.view_layer.update()
+    # Blender 5.x: objects made through bpy.data show up in the view layer only after
+    # an update (before it they read as None), so refresh before (de)selecting.
     bpy.context.view_layer.update()
     for o in bpy.context.view_layer.objects:
         o.select_set(o in (m2, a2))
@@ -652,6 +661,9 @@ def main(config=None):
     if cfg.get("export_path"):
         path = os.path.abspath(os.path.expanduser(cfg["export_path"]))
         os.makedirs(os.path.dirname(path), exist_ok=True)
+        # Blender 5.x: objects made through bpy.data show up in the view layer only after
+        # an update (before it they read as None), so refresh before (de)selecting.
+        bpy.context.view_layer.update()
         for o in bpy.context.view_layer.objects:
             o.select_set(o in (arm, mesh_obj))
         bpy.context.view_layer.objects.active = arm

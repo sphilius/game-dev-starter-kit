@@ -77,6 +77,9 @@ def _bake(high, low, pass_type, name, c):
         bake.use_pass_color = True
     else:
         bake.normal_space = 'TANGENT'
+    # Blender 5.x: objects made through bpy.data show up in the view layer only after
+    # an update (before it they read as None), so refresh before (de)selecting.
+    bpy.context.view_layer.update()
     for o in bpy.context.view_layer.objects:
         o.select_set(o in (high, low))
     bpy.context.view_layer.objects.active = low

@@ -63,6 +63,9 @@ clear()
 r = stage("build_karambit")["main"]({"export_path": os.path.join(EXPORT, "karambit.glb")})
 results["karambit"] = r
 check("karambit watertight with one hole", r["ok"] and r["chi"] == 0, f"chi={r['chi']} tris={r['tris']}")
+# An export with nothing selected still writes a valid but empty GLB (~130 bytes): catch that.
+kb = os.path.getsize(os.path.join(EXPORT, "karambit.glb"))
+check("karambit GLB has geometry", kb > 2000, f"{kb} bytes")
 
 # --- 3. quadruped auto-rig + clips
 clear()

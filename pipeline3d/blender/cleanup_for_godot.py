@@ -81,6 +81,9 @@ def _import(path):
 
 
 def _select_only(objs, active=None):
+    # Blender 5.x: objects made through bpy.data show up in the view layer only after
+    # an update (before it they read as None), so refresh before (de)selecting.
+    bpy.context.view_layer.update()
     for o in bpy.context.view_layer.objects:
         o.select_set(False)
     for o in objs:

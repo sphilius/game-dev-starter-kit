@@ -31,7 +31,7 @@ Older files that define a Gemini key name (values not read; **not used** by this
 
 ## pipeline3d/tests/run_all.sh baseline (Blender 5.1.1 + Godot 4.7.2)
 
-Wall time 30 s, then **FAILED**.
+First run, before the port below: 30 s, then **FAILED**.
 
 | Stage | Result |
 |---|---|
@@ -41,13 +41,25 @@ Wall time 30 s, then **FAILED**.
 | 4/5 Asset audit | 0 errors, 1 warning (static prop without collision). |
 | 5/5 Smoke test | `failures=0` on `character.glb` alone. |
 
-### pipeline3d on Blender 5.1
+### pipeline3d on Blender 5.1: ported 2026-11-11, now ALL PASS (22 s)
 
-Blender 5.1 can yield `None` while iterating `bpy.context.view_layer.objects` after objects were
-deleted earlier in the same session. 9 loops across 5 scripts are exposed: `bake_diffuse.py`,
-`build_karambit.py`, `cleanup_for_godot.py`, `build_lowpoly_creature.py`, `quadruped_rig.py`
-(×4), plus `tests/make_fixtures.py`. Fix: one `live_objects()` helper that skips `None`, plus
-`--python-exit-code 1` in `run_all.sh` so a crash fails the run.
+What broke, and the fix in each case:
+
+1. **New objects read as `None` in `view_layer.objects`.** In 5.x, an object created through
+   `bpy.data.objects.new()` stays out of the view layer's list until `view_layer.update()`.
+   Fix: refresh the view layer before each of the 9 select/deselect loops. Skipping `None`
+   instead was tried first: it hid the crash but left the karambit unselected, so the export was
+   an empty 132-byte GLB. The karambit test now checks the file size too.
+2. **`Action.fcurves` was removed in 5.0** (slotted actions: layers → strips → channel bags).
+   `merge_clips.py` now reads and deletes F-curves through `_fcurves()` / `_remove_fcurve()`,
+   which work on 4.x and 5.x.
+3. **Deer "landmark error 0.0241" was a measurement artifact.** The failing axis was sideways,
+   measured as a fraction of half the body width. The deer is the narrowest preset, and a
+   side-view image carries no sideways information. In metres the joint is 0.2 mm off. The test
+   now gates length and height as fractions (< 0.02) and sideways in metres (< 1 cm), and names
+   the worst joint and axis.
+4. **Crashes were reported as passes.** `run_all.sh` now calls Blender with
+   `--python-exit-code 1`.
 
 ## Source repos
 

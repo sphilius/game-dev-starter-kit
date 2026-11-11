@@ -189,6 +189,9 @@ def main(config=None):
     export_path = os.path.abspath(os.path.expanduser(c["export_path"])) if c.get("export_path") else None
     if export_path:
         os.makedirs(os.path.dirname(export_path), exist_ok=True)
+        # Blender 5.x: objects made through bpy.data show up in the view layer only after
+        # an update (before it they read as None), so refresh before (de)selecting.
+        bpy.context.view_layer.update()
         for o in bpy.context.view_layer.objects:
             o.select_set(o == obj)
         bpy.context.view_layer.objects.active = obj

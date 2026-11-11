@@ -4,6 +4,7 @@
 #
 #   BLENDER=/path/to/blender GODOT=/path/to/godot ./pipeline3d/tests/run_all.sh [out_dir]
 set -euo pipefail
+# --python-exit-code 1 below: without it Blender exits 0 even when the test script crashes.
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 P3D="$(dirname "$HERE")"
@@ -13,10 +14,10 @@ GODOT="${GODOT:-godot}"
 
 echo "== 1/5 Blender stages -> $OUT"
 rm -rf "$OUT"
-"$BLENDER" -b --factory-startup -P "$HERE/test_blender_stages.py" -- "out_dir=$OUT" 2>&1 | grep -E "^\[test\]"
+"$BLENDER" -b --factory-startup --python-exit-code 1 -P "$HERE/test_blender_stages.py" -- "out_dir=$OUT" 2>&1 | grep -E "^\[test\]"
 
 echo "== 2/5 Reference fitting (keypoints -> creature, mock Gemini)"
-"$BLENDER" -b --factory-startup -P "$HERE/test_fit_reference.py" -- "$OUT/fit" > "$OUT/fit.log" 2>&1 || true
+"$BLENDER" -b --factory-startup --python-exit-code 1 -P "$HERE/test_fit_reference.py" -- "$OUT/fit" > "$OUT/fit.log" 2>&1 || true
 grep -E "^\[test\]" "$OUT/fit.log"
 grep -q "FIT TESTS PASSED" "$OUT/fit.log" || { echo "reference fitting failed: $OUT/fit.log"; exit 1; }
 
