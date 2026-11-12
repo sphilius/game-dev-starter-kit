@@ -7,7 +7,7 @@ from each cell's `report.json`. Re-run a cell with `python art_tests/cells/<cell
 ## The short answer
 
 **Never generate animation frame by frame.** Every cell below got a usable hero in under
-11 minutes, most in under 4, for 12 cents or less, by asking for the *whole* character in one
+11 minutes, most in under 4, for about 20 cents or less, by asking for the *whole* character in one
 request (a sheet, a parts sheet or a portrait) or by downloading one that is already rigged.
 Medusa's Price spent about two days on frame-by-frame sheets; the same six genres in both 2D
 and 3D took 52 minutes of clock time here, scene code included (written by the AI agent).
@@ -30,7 +30,7 @@ one, put the AI somewhere a judge can see it (generated textures, portraits, dia
 | Measured | Not measured |
 |---|---|
 | Machine time per step (generation, cleanup, Blender, Godot import, gates) | **Your** time. "Human" figures are estimates: 20 s per look, plus a stated guess per manual step |
-| Paid cost per image (estimated at $0.02; real charge is in Cloud Billing) | Time to write each demo scene by hand (the agent wrote them) |
+| Paid cost per image: estimated at $0.02 per run; Cloud Billing later showed $0.73 for all 21 images (about $0.035 each), so per-cell costs below are about 1.75x low | Time to write each demo scene by hand (the agent wrote them) |
 | Re-rolls and why each happened | A full jam's worth of assets: each cell is ONE hero and ONE environment piece |
 | Gate results on the final files | Tripo, Meshy, SpriteCook, Mixamo, AccuRIG: no keys or manual steps were used |
 | | Web build size and frame rate with the cell art included |

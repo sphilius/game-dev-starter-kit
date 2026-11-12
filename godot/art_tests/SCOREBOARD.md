@@ -27,7 +27,7 @@ Click a cell name to see its screenshot.
 | [platformer_3d](cells/platformer_3d/screenshot.png) | downloaded | - | $0.00 | 0:39 | 5:20 | **5:59** | 1 | 0 | 19 pass, 33 n/a |
 
 **All 12 cells:** machine 6:18, human (est.) 48:20, 4 re-rolls, $0.40 of generation.
-**Spend ledger** (`logs/spend_log.csv`): $0.42 for 21 images, against a $5.00 cap.
+**Spend ledger** (`logs/spend_log.csv`): $0.73 for 21 images, against a $5.00 cap.
 
 ## What each cell used
 
