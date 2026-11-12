@@ -268,6 +268,53 @@ func test_hitscan_damages_target_and_uses_ammo() -> void:
 	check(not gun.try_fire(), "fire rate blocks an instant second shot")
 
 
+## A weapon saved inside a controller scene runs _ready() before the controller has built its
+## camera. It must still find the camera and fire on the first shot.
+func test_weapon_ready_before_controller_finds_camera() -> void:
+	_floor()
+	var p := FPSController.new()
+	p.position = Vector3(0.0, 0.05, 0.0)
+	var gun := FPSWeapon.new()
+	gun.data = _pistol()
+	gun.handle_input = false
+	p.add_child(gun)                 # child first: its _ready() runs before the controller's
+	add_node(p)
+	check(gun.aim == null, "aim is not known yet at _ready (the case being tested)")
+	await _settle_physics()
+	check(gun.try_fire(), "first shot still fires")
+	check(gun.aim == p.camera, "aim resolved to the controller's camera")
+
+
+## The click that captures the mouse must not fire, even while it is still held down.
+func test_capture_click_does_not_fire() -> void:
+	var p := await _player()
+	var gun := _gun(p, _pistol())
+	gun.handle_input = true
+	p.mouse_capture_enabled = false  # headless Godot cannot really capture; skip that guard
+	p.capture_click_held = true      # what _unhandled_input sets on the capturing click
+	Input.action_press(FPSInput.FIRE)
+	await physics_frames(3)
+	check_eq(gun.ammo_in_magazine, 2, "held capture click fired nothing")
+	Input.action_release(FPSInput.FIRE)
+	await physics_frames(2)
+	check(not p.capture_click_held, "released: the flag clears")
+	Input.action_press(FPSInput.FIRE)
+	await physics_frames(2)
+	Input.action_release(FPSInput.FIRE)
+	check_eq(gun.ammo_in_magazine, 1, "the next real click fires")
+
+
+## The controller flags the capturing click itself.
+func test_capturing_click_sets_flag() -> void:
+	var p := await _player()
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	p._unhandled_input(click)
+	check(p.capture_click_held, "capture click is remembered until released")
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
 ## Each shot pitches the view up by recoil_pitch_degrees (through add_look_input, so it is clamped).
 func test_recoil_kicks_view_up() -> void:
 	var p := await _player()

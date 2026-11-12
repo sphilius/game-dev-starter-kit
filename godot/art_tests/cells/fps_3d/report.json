@@ -2,8 +2,8 @@
   "cell": "fps_3d",
   "pipeline": "CC0 kit level (Kenney) + pipeline3d procedural rigged enemy + fog",
   "date": "2026-11-12",
-  "wall_seconds": 31.01,
-  "machine_seconds": 43.98,
+  "wall_seconds": 31.93,
+  "machine_seconds": 44.9,
   "human_seconds": 340.0,
   "approvals": 2,
   "rerolls": 0,
@@ -74,31 +74,31 @@
     {
       "name": "gate boar.glb",
       "human": false,
-      "seconds": 7.63,
+      "seconds": 8.2,
       "ok": true
     },
     {
       "name": "gate wall-high.glb",
       "human": false,
-      "seconds": 7.96,
+      "seconds": 7.93,
       "ok": true
     },
     {
       "name": "gate platform-large-grass.glb",
       "human": false,
-      "seconds": 7.66,
+      "seconds": 7.79,
       "ok": true
     },
     {
       "name": "godot import",
       "human": false,
-      "seconds": 4.66,
+      "seconds": 4.65,
       "ok": true
     },
     {
       "name": "screenshot",
       "human": false,
-      "seconds": 3.07,
+      "seconds": 3.33,
       "ok": true
     }
   ],
@@ -247,7 +247,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.63
+      "gate_seconds": 8.2
     },
     {
       "asset": "wall-high.glb",
@@ -359,12 +359,12 @@
         {
           "name": "web_size",
           "passed": true,
-          "value": 6.5,
+          "value": 8.6,
           "limit": 300,
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.96
+      "gate_seconds": 7.93
     },
     {
       "asset": "platform-large-grass.glb",
@@ -476,12 +476,12 @@
         {
           "name": "web_size",
           "passed": true,
-          "value": 6.0,
+          "value": 8.2,
           "limit": 300,
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.66
+      "gate_seconds": 7.79
     }
   ]
 }

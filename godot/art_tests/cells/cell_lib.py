@@ -28,9 +28,11 @@ import gate2d  # noqa: E402
 import gate3d  # noqa: E402
 from runlog import RunLog  # noqa: E402,F401  (re-exported so build.py needs one import)
 
-# Estimated dollars per 1K image. Google bills by output tokens, so these are estimates;
-# the real charge is in Cloud Billing. Kept high on purpose so the $5 cap errs safe.
-PRICE_USD = {"nano-banana-2-lite": 0.02, "nano-banana": 0.04, "nano-banana-2": 0.07, "nano-banana-pro": 0.14}
+# Estimated dollars per 1K image. Google bills by output tokens, so these are estimates.
+# Calibrated on 2026-11-12: Cloud Billing charged $0.73 for the 21 lite images that had been
+# estimated at $0.02 each, i.e. about $0.035 per image. The other models were scaled by the
+# same factor (x1.75); they have not been checked against a bill yet.
+PRICE_USD = {"nano-banana-2-lite": 0.035, "nano-banana": 0.07, "nano-banana-2": 0.12, "nano-banana-pro": 0.25}
 # Seconds a person needs to look at one image and say yes or no. An estimate, used for
 # every approval so cells compare fairly; your own number may differ.
 GLANCE_SECONDS = 20.0

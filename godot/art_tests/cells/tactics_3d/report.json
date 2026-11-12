@@ -2,8 +2,8 @@
   "cell": "tactics_3d",
   "pipeline": "static CC0 kit models as minis (Kenney) + CC0 board texture",
   "date": "2026-11-12",
-  "wall_seconds": 23.19,
-  "machine_seconds": 23.16,
+  "wall_seconds": 24.02,
+  "machine_seconds": 24.0,
   "human_seconds": 320.0,
   "approvals": 1,
   "rerolls": 0,
@@ -44,7 +44,7 @@
     {
       "name": "shrink board texture",
       "human": false,
-      "seconds": 0.09,
+      "seconds": 0.11,
       "ok": true
     },
     {
@@ -62,31 +62,31 @@
     {
       "name": "gate character.glb",
       "human": false,
-      "seconds": 7.68,
+      "seconds": 7.37,
       "ok": true
     },
     {
       "name": "gate enemy-flying.glb",
       "human": false,
-      "seconds": 7.31,
+      "seconds": 7.41,
       "ok": true
     },
     {
       "name": "gate board",
       "human": false,
-      "seconds": 0.26,
+      "seconds": 0.28,
       "ok": true
     },
     {
       "name": "godot import",
       "human": false,
-      "seconds": 4.28,
+      "seconds": 5.14,
       "ok": true
     },
     {
       "name": "screenshot",
       "human": false,
-      "seconds": 3.54,
+      "seconds": 3.69,
       "ok": true
     }
   ],
@@ -221,12 +221,12 @@
         {
           "name": "web_size",
           "passed": true,
-          "value": 23.3,
+          "value": 25.7,
           "limit": 300,
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.68
+      "gate_seconds": 7.37
     },
     {
       "asset": "enemy-flying.glb",
@@ -341,12 +341,12 @@
         {
           "name": "web_size",
           "passed": true,
-          "value": 18.0,
+          "value": 20.1,
           "limit": 300,
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.31
+      "gate_seconds": 7.41
     },
     {
       "asset": "board.jpg",
@@ -414,7 +414,7 @@
           "detail": "skipped: --godot off"
         }
       ],
-      "gate_seconds": 0.26
+      "gate_seconds": 0.28
     }
   ]
 }

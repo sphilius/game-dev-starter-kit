@@ -195,12 +195,14 @@ def godot_gates(glb: pathlib.Path, godot: str | None, loops: list[str], budget_k
         # file the model points to, keeping its relative path; a missing one is the model's
         # problem and will show up below as an import error, which is exactly what we want.
         document = glb_facts.read_gltf_json(glb)
+        side_names = []                                # file names of the copied dependencies
         for item in document.get("images", []) + document.get("buffers", []):
             uri = item.get("uri", "")
             side_file = glb.parent / uri
             if uri and not uri.startswith("data:") and side_file.is_file():
                 (assets / uri).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy(side_file, assets / uri)
+                side_names.append(pathlib.Path(uri).name)
         audit_path = pathlib.Path(folder) / "audit.json"
         try:
             imported = subprocess.run([godot, "--headless", "--path", str(project), "--import"],
@@ -218,7 +220,12 @@ def godot_gates(glb: pathlib.Path, godot: str | None, loops: list[str], budget_k
         entry = next((a for a in audit["assets"] if a["path"].endswith(glb.name)), None)
         # Everything Godot generated for this model: the scene plus any textures it extracted.
         cache = project / ".godot" / "imported"
-        payload = sum(f.stat().st_size for f in cache.glob(f"{glb.stem}*") if f.suffix != ".md5") if cache.is_dir() else 0
+        # Godot names cache files "<source file name>-<hash>.<ext>", so an external texture
+        # ("colormap.png-1a2b.ctex") is found by ITS name, not the model's: count both, or a
+        # model with a huge external texture would pass the size gate.
+        patterns = [f"{glb.stem}*"] + [f"{name}-*" for name in side_names]
+        cached = {f for pattern in patterns for f in cache.glob(pattern)} if cache.is_dir() else set()
+        payload = sum(f.stat().st_size for f in cached if f.suffix != ".md5")
     if entry is None:
         return [check(name, False, "not audited", None, "the model did not appear in the audit") for name in names]
     problems = errors + entry["errors"]

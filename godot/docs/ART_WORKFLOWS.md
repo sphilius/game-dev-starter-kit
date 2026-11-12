@@ -7,7 +7,7 @@ from each cell's `report.json`. Re-run a cell with `python art_tests/cells/<cell
 ## The short answer
 
 **Never generate animation frame by frame.** Every cell below got a usable hero in under
-11 minutes, most in under 4, for 12 cents or less, by asking for the *whole* character in one
+11 minutes, most in under 4, for about 20 cents or less, by asking for the *whole* character in one
 request (a sheet, a parts sheet or a portrait) or by downloading one that is already rigged.
 Medusa's Price spent about two days on frame-by-frame sheets; the same six genres in both 2D
 and 3D took 52 minutes of clock time here, scene code included (written by the AI agent).
@@ -30,7 +30,7 @@ one, put the AI somewhere a judge can see it (generated textures, portraits, dia
 | Measured | Not measured |
 |---|---|
 | Machine time per step (generation, cleanup, Blender, Godot import, gates) | **Your** time. "Human" figures are estimates: 20 s per look, plus a stated guess per manual step |
-| Paid cost per image (estimated at $0.02; real charge is in Cloud Billing) | Time to write each demo scene by hand (the agent wrote them) |
+| Paid cost per image: estimated at $0.02 per run; Cloud Billing later showed $0.73 for all 21 images (about $0.035 each), so per-cell costs below are about 1.75x low | Time to write each demo scene by hand (the agent wrote them) |
 | Re-rolls and why each happened | A full jam's worth of assets: each cell is ONE hero and ONE environment piece |
 | Gate results on the final files | Tripo, Meshy, SpriteCook, Mixamo, AccuRIG: no keys or manual steps were used |
 | | Web build size and frame rate with the cell art included |
@@ -44,7 +44,7 @@ one, put the AI somewhere a judge can see it (generated textures, portraits, dia
 | Rank | Pipeline | Total | Cost | Looks | Re-rolls | Verdict |
 |---|---|---|---|---|---|---|
 | 1 | 2D: one 4-pose billboard sheet + one wall texture | 1:52 | $0.06 | 2 | 1 | Use. Re-roll was an *edit* of take 1 (kept poses, brightened colours) |
-| 2 | 3D: Kenney kit level + pipeline3d boar + fog | 6:23 | $0.00 | 2 | 0 | Works, but the kit's pastel palette fights a horror mood |
+| 2 | 3D: Kenney kit level + pipeline3d boar + fog | 6:24 | $0.00 | 2 | 0 | Works, but the kit's pastel palette fights a horror mood |
 | - | 3D: AI mesh (Tripo/Meshy) + auto-rig | not run | | | | No keys |
 
 ### Action RPG
@@ -61,7 +61,7 @@ one, put the AI somewhere a judge can see it (generated textures, portraits, dia
 | Rank | Pipeline | Total | Cost | Looks | Re-rolls | Verdict |
 |---|---|---|---|---|---|---|
 | 1 | 2D: portrait, token cropped from it by code, one floor image | 1:34 | $0.08 | 2 | 1 | Use. Re-roll removed a franchise-like crest |
-| 2 | 3D: static kit models as minis + floor texture | 5:43 | $0.00 | 1 | 0 | Use when you want a 3D board |
+| 2 | 3D: static kit models as minis + floor texture | 5:44 | $0.00 | 1 | 0 | Use when you want a 3D board |
 
 ### Fighter
 
@@ -84,7 +84,7 @@ one, put the AI somewhere a judge can see it (generated textures, portraits, dia
 | Rank | Pipeline | Total | Cost | Looks | Re-rolls | Verdict |
 |---|---|---|---|---|---|---|
 | 1 | 2D: four flat parts from one sheet, run cycle from a sine wave | 3:01 | $0.04 | 2 | 0 | Use. No frames drawn, first take worked |
-| 2 | 3D: Kenney platformer kit (hero with clips + platforms) | 5:57 | $0.00 | 1 | 0 | Use. Zero risk, but it looks like every other Kenney jam game |
+| 2 | 3D: Kenney platformer kit (hero with clips + platforms) | 5:59 | $0.00 | 1 | 0 | Use. Zero risk, but it looks like every other Kenney jam game |
 
 ## The rules these runs produced
 

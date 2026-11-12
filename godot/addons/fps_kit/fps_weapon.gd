@@ -38,14 +38,15 @@ var _next_shot_msec := 0
 var _rng := RandomNumberGenerator.new()
 
 
-## _ready(): fill the magazine and find the camera if `aim` was left empty.
+## _ready(): fill the magazine and find the controller.
+## The camera is NOT looked up here: when this weapon is saved inside an FPSController scene,
+## Godot runs the child's _ready() before the parent's, so the controller has not built its
+## camera yet. try_fire() finds it on the first shot instead (see _resolve_aim).
 func _ready() -> void:
 	if random_seed != 0:
 		_rng.seed = random_seed
 	if controller == null:
 		controller = _find_controller()
-	if aim == null and controller:
-		aim = controller.camera
 	if data:
 		ammo_in_magazine = data.magazine_size
 		reserve_ammo = data.reserve_ammo
@@ -57,6 +58,12 @@ func _physics_process(_delta: float) -> void:
 		return
 	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and controller and controller.mouse_capture_enabled:
 		return                          # the click that captures the mouse must not shoot
+	# The capturing click is still held on the next tick, and Input still reports it as
+	# "fire pressed". Ignore fire until that button is let go once.
+	if controller and controller.capture_click_held:
+		if Input.is_action_pressed(FPSInput.FIRE):
+			return
+		controller.capture_click_held = false
 	var trigger := Input.is_action_pressed(FPSInput.FIRE) if data.automatic \
 			else Input.is_action_just_pressed(FPSInput.FIRE)
 	if trigger:
@@ -68,6 +75,9 @@ func _physics_process(_delta: float) -> void:
 ## Fires one shot if the gun is ready. Returns true when a shot went out.
 func try_fire() -> bool:
 	if data == null or is_reloading or Time.get_ticks_msec() < _next_shot_msec:
+		return false
+	if not _resolve_aim():
+		push_warning("FPSWeapon: no aim node; set `aim` or put the weapon under an FPSController")
 		return false
 	if ammo_in_magazine <= 0:
 		dry_fired.emit()
@@ -86,6 +96,13 @@ func try_fire() -> bool:
 	fired.emit()
 	ammo_changed.emit(ammo_in_magazine, reserve_ammo)
 	return true
+
+
+## Uses the controller's camera as `aim` when none was set. True when there is an aim node.
+func _resolve_aim() -> bool:
+	if aim == null and controller:
+		aim = controller.camera
+	return aim != null
 
 
 ## Refills the magazine from reserve after reload_time. `await` waits for the timer without

@@ -19,15 +19,15 @@ Click a cell name to see its screenshot.
 | [fighter_2d](cells/fighter_2d/screenshot.png) | generated | 2 | $0.04 | 0:21 | 5:40 | **6:01** | 2 | 0 | 27 pass, 15 n/a |
 | [metroidvania_2d](cells/metroidvania_2d/screenshot.png) | generated | 3 | $0.06 | 0:26 | 2:40 | **3:06** | 2 | 0 | 13 pass, 2 n/a |
 | [platformer_2d](cells/platformer_2d/screenshot.png) | generated | 2 | $0.04 | 0:21 | 2:40 | **3:01** | 2 | 0 | 19 pass, 11 n/a |
-| [fps_3d](cells/fps_3d/screenshot.png) | downloaded + built | - | $0.00 | 0:43 | 5:40 | **6:23** | 2 | 0 | 20 pass, 19 n/a |
+| [fps_3d](cells/fps_3d/screenshot.png) | downloaded + built | - | $0.00 | 0:44 | 5:40 | **6:24** | 2 | 0 | 20 pass, 19 n/a |
 | [action_rpg_3d](cells/action_rpg_3d/screenshot.png) | downloaded | - | $0.00 | 0:34 | 10:20 | **10:54** | 1 | 0 | 21 pass, 18 n/a |
-| [tactics_3d](cells/tactics_3d/screenshot.png) | downloaded | - | $0.00 | 0:23 | 5:20 | **5:43** | 1 | 0 | 14 pass, 18 n/a |
+| [tactics_3d](cells/tactics_3d/screenshot.png) | downloaded | - | $0.00 | 0:24 | 5:20 | **5:44** | 1 | 0 | 14 pass, 18 n/a |
 | [fighter_3d](cells/fighter_3d/screenshot.png) | downloaded | - | $0.00 | 0:17 | 0:20 | **0:37** | 1 | 0 | 16 pass, 3 n/a |
 | [metroidvania_3d](cells/metroidvania_3d/screenshot.png) | downloaded | - | $0.00 | 0:15 | 7:20 | **7:35** | 1 | 0 | 14 pass, 5 n/a |
-| [platformer_3d](cells/platformer_3d/screenshot.png) | downloaded | - | $0.00 | 0:37 | 5:20 | **5:57** | 1 | 0 | 19 pass, 33 n/a |
+| [platformer_3d](cells/platformer_3d/screenshot.png) | downloaded | - | $0.00 | 0:39 | 5:20 | **5:59** | 1 | 0 | 19 pass, 33 n/a |
 
-**All 12 cells:** machine 6:14, human (est.) 48:20, 4 re-rolls, $0.40 of generation.
-**Spend ledger** (`logs/spend_log.csv`): $0.42 for 21 images, against a $5.00 cap.
+**All 12 cells:** machine 6:18, human (est.) 48:20, 4 re-rolls, $0.40 of generation.
+**Spend ledger** (`logs/spend_log.csv`): $0.73 for 21 images, against a $5.00 cap.
 
 ## What each cell used
 

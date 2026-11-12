@@ -65,6 +65,9 @@ signal looked(delta: Vector2)
 
 var head: Node3D
 var camera: Camera3D
+## True from the click that captured the mouse until that button is released. FPSWeapon
+## reads it so the capturing click does not also fire a shot.
+var capture_click_held := false
 var collision: CollisionShape3D
 var is_crouching := false
 var is_sprinting := false
@@ -115,7 +118,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and mouse_capture_enabled \
 			and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED     # a click is the user gesture browsers need
-		get_viewport().set_input_as_handled()            # so this click does not also fire
+		# Marking it handled stops other _unhandled_input code, but NOT Input.is_action_pressed(),
+		# which weapons poll. capture_click_held covers that (see FPSWeapon._physics_process).
+		get_viewport().set_input_as_handled()
+		capture_click_held = true
 	elif event.is_action_pressed(&"ui_cancel") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	elif event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
