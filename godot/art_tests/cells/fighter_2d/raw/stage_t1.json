@@ -1,0 +1,20 @@
+{
+  "prompt": "Background for a 2D fighting game stage, side view: a rooftop boxing ring area at dusk with a glowing city skyline behind, string lights overhead, clean HD cartoon style with flat cel shading, muted colours so fighters stand out. The ground is a flat empty floor filling the bottom fifth of the picture. No characters, no people, no text, no logos.",
+  "model": "nano-banana-2-lite",
+  "aspect": "16:9",
+  "wall_s": 6.2,
+  "refs": [],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "fighter_2d",
+    "purpose": "stage",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 6.2,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.32,
+    "notes": ""
+  }
+}

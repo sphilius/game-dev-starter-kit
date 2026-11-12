@@ -1,0 +1,620 @@
+{
+  "cell": "fighter_2d",
+  "pipeline": "nano-banana parts sheet -> Skeleton2D puppet",
+  "date": "2026-11-11",
+  "wall_seconds": 8.92,
+  "machine_seconds": 21.92,
+  "human_seconds": 340.0,
+  "approvals": 2,
+  "rerolls": 0,
+  "cost_usd": 0.04,
+  "gates_passed": true,
+  "gates_failed": [],
+  "steps": [
+    {
+      "name": "generate boxer_parts take 1 (cached)",
+      "human": false,
+      "seconds": 6.8,
+      "ok": true
+    },
+    {
+      "name": "generate stage take 1 (cached)",
+      "human": false,
+      "seconds": 6.2,
+      "ok": true
+    },
+    {
+      "name": "slice parts",
+      "human": false,
+      "seconds": 0.12,
+      "ok": true
+    },
+    {
+      "name": "review: parts sheet: six parts, right order, limbs vertical",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "tune six part scales by eye",
+      "human": true,
+      "seconds": 300.0,
+      "ok": true
+    },
+    {
+      "name": "cleanup stage",
+      "human": false,
+      "seconds": 0.39,
+      "ok": true
+    },
+    {
+      "name": "review: stage: empty floor, nothing that looks like a character",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "gates",
+      "human": false,
+      "seconds": 1.0,
+      "ok": true
+    },
+    {
+      "name": "godot import",
+      "human": false,
+      "seconds": 4.19,
+      "ok": true
+    },
+    {
+      "name": "screenshot",
+      "human": false,
+      "seconds": 3.22,
+      "ok": true
+    }
+  ],
+  "approval_notes": [
+    "parts sheet: six parts, right order, limbs vertical",
+    "stage: empty floor, nothing that looks like a character"
+  ],
+  "reroll_reasons": [],
+  "failure_modes": [
+    "parts on one sheet are not drawn at one scale: arms came out long, torso small"
+  ],
+  "notes": [],
+  "spends": [
+    {
+      "date": "2026-11-11",
+      "cell": "fighter_2d",
+      "purpose": "boxer_parts",
+      "service": "gemini-api",
+      "model": "nano-banana-2-lite",
+      "images": 1,
+      "resolution": "1K",
+      "wall_s": 6.8,
+      "est_cost_usd": 0.02,
+      "running_total_usd": 0.3,
+      "notes": ""
+    },
+    {
+      "date": "2026-11-11",
+      "cell": "fighter_2d",
+      "purpose": "stage",
+      "service": "gemini-api",
+      "model": "nano-banana-2-lite",
+      "images": 1,
+      "resolution": "1K",
+      "wall_s": 6.2,
+      "est_cost_usd": 0.02,
+      "running_total_usd": 0.32,
+      "notes": ""
+    }
+  ],
+  "gates": [
+    {
+      "asset": "head.png",
+      "kind": "portrait",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 755 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 1431,
+          "limit": null,
+          "detail": "no palette given; 1431 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              59,
+              65
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": true,
+          "value": {
+            "solid_pixels": 1973,
+            "contrast": 2.0
+          },
+          "limit": {
+            "solid_pixels": 60,
+            "contrast": 0.0
+          },
+          "detail": "figure 65 px tall shown at 65 px on #4a4660"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 7.0,
+            "vram_mb": 0.01
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.0
+    },
+    {
+      "asset": "torso.png",
+      "kind": "portrait",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 700 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 1988,
+          "limit": null,
+          "detail": "no palette given; 1988 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              50,
+              87
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": true,
+          "value": {
+            "solid_pixels": 2825,
+            "contrast": 2.77
+          },
+          "limit": {
+            "solid_pixels": 60,
+            "contrast": 0.0
+          },
+          "detail": "figure 87 px tall shown at 87 px on #4a4660"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 8.8,
+            "vram_mb": 0.02
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.01
+    },
+    {
+      "asset": "upper_arm.png",
+      "kind": "portrait",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 518 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 849,
+          "limit": null,
+          "detail": "no palette given; 849 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              21,
+              87
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": true,
+          "value": {
+            "solid_pixels": 1361,
+            "contrast": 5.05
+          },
+          "limit": {
+            "solid_pixels": 60,
+            "contrast": 0.0
+          },
+          "detail": "figure 87 px tall shown at 87 px on #4a4660"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 4.0,
+            "vram_mb": 0.01
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.0
+    },
+    {
+      "asset": "forearm.png",
+      "kind": "portrait",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 713 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 1290,
+          "limit": null,
+          "detail": "no palette given; 1290 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              29,
+              110
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": true,
+          "value": {
+            "solid_pixels": 1966,
+            "contrast": 2.58
+          },
+          "limit": {
+            "solid_pixels": 60,
+            "contrast": 0.0
+          },
+          "detail": "figure 110 px tall shown at 110 px on #4a4660"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 5.8,
+            "vram_mb": 0.01
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.0
+    },
+    {
+      "asset": "thigh.png",
+      "kind": "portrait",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 649 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 843,
+          "limit": null,
+          "detail": "no palette given; 843 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              37,
+              90
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": true,
+          "value": {
+            "solid_pixels": 2330,
+            "contrast": 1.85
+          },
+          "limit": {
+            "solid_pixels": 60,
+            "contrast": 0.0
+          },
+          "detail": "figure 90 px tall shown at 90 px on #4a4660"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 5.0,
+            "vram_mb": 0.01
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.0
+    },
+    {
+      "asset": "shin.png",
+      "kind": "portrait",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 903 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 1438,
+          "limit": null,
+          "detail": "no palette given; 1438 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              42,
+              125
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": true,
+          "value": {
+            "solid_pixels": 2546,
+            "contrast": 5.04
+          },
+          "limit": {
+            "solid_pixels": 60,
+            "contrast": 0.0
+          },
+          "detail": "figure 125 px tall shown at 125 px on #4a4660"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 7.3,
+            "vram_mb": 0.02
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.0
+    },
+    {
+      "asset": "stage_00.png",
+      "kind": "background",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "readability",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 3996 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 148716,
+          "limit": null,
+          "detail": "no palette given; 148716 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              1280,
+              720
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": null,
+          "value": null,
+          "limit": null,
+          "detail": "skipped: backgrounds are what art is read against"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 1347.7,
+            "vram_mb": 3.52
+          },
+          "limit": {
+            "png_kb": 1500,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.98
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "prompt": "Cut-out animation puppet parts sheet for a 2D fighting game character, clean HD cartoon style with bold outlines and flat cel shading. The character is a muscular female boxer with a short dark ponytail, teal sports top, black shorts, red boxing gloves and white boots, drawn in side view facing right. Show exactly six separate body parts in ONE horizontal row with wide gaps between them, never touching or overlapping, in this exact order from left to right: 1) the head with neck, 2) the torso from shoulders to hips with no arms and no legs, 3) one upper arm, 4) one forearm with the boxing glove, 5) one thigh, 6) one lower leg with the boot. Every arm and leg part is drawn straight and vertical, hanging down, with rounded ends so the parts can overlap at the joints. All parts are drawn at the same scale, as if the assembled character were taken apart. Background is one flat solid pure magenta colour (#FF00FF). No text, no labels, no numbers, no guide lines.",
+  "model": "nano-banana-2-lite",
+  "aspect": "16:9",
+  "wall_s": 6.8,
+  "refs": [],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "fighter_2d",
+    "purpose": "boxer_parts",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 6.8,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.3,
+    "notes": ""
+  }
+}

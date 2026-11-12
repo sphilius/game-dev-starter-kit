@@ -13,3 +13,5 @@ date,cell,purpose,service,model,images,resolution,wall_s,est_cost_usd,running_to
 2026-11-11,tactics_2d,orc,gemini-api,nano-banana-2-lite,1,1K,6.0,0.02,0.24,
 2026-11-11,tactics_2d,floor,gemini-api,nano-banana-2-lite,1,1K,6.4,0.02,0.26,
 2026-11-11,tactics_2d,knight,gemini-api,nano-banana-2-lite,1,1K,7.7,0.02,0.28,
+2026-11-11,fighter_2d,boxer_parts,gemini-api,nano-banana-2-lite,1,1K,6.8,0.02,0.3,
+2026-11-11,fighter_2d,stage,gemini-api,nano-banana-2-lite,1,1K,6.2,0.02,0.32,
