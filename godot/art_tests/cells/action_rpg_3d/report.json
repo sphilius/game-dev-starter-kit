@@ -1,9 +1,9 @@
 {
   "cell": "action_rpg_3d",
   "pipeline": "CC rigged humanoid + clip library (Quaternius), no manual step",
-  "date": "2026-11-11",
-  "wall_seconds": 32.89,
-  "machine_seconds": 32.84,
+  "date": "2026-11-12",
+  "wall_seconds": 32.61,
+  "machine_seconds": 32.58,
   "human_seconds": 620.0,
   "approvals": 1,
   "rerolls": 0,
@@ -44,31 +44,31 @@
     {
       "name": "gate animated_base_character.glb",
       "human": false,
-      "seconds": 8.78,
+      "seconds": 9.29,
       "ok": true
     },
     {
       "name": "gate rock_medium.glb",
       "human": false,
-      "seconds": 8.35,
+      "seconds": 7.82,
       "ok": true
     },
     {
       "name": "gate plant_big.glb",
       "human": false,
-      "seconds": 8.19,
+      "seconds": 7.78,
       "ok": true
     },
     {
       "name": "godot import",
       "human": false,
-      "seconds": 4.38,
+      "seconds": 4.57,
       "ok": true
     },
     {
       "name": "screenshot",
       "human": false,
-      "seconds": 3.14,
+      "seconds": 3.12,
       "ok": true
     }
   ],
@@ -258,7 +258,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 8.78
+      "gate_seconds": 9.29
     },
     {
       "asset": "rock_medium.glb",
@@ -375,7 +375,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 8.35
+      "gate_seconds": 7.82
     },
     {
       "asset": "plant_big.glb",
@@ -492,7 +492,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 8.19
+      "gate_seconds": 7.78
     }
   ]
 }

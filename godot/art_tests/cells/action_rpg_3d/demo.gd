@@ -27,9 +27,9 @@ func _ready() -> void:
 		prop.scale = Vector3.ONE * spot[2]
 		add_child(prop)
 
-	hero = _character(Vector3(-0.6, 0, 0), 90.0)             # facing +X, toward the target
-	target = _character(Vector3(0.75, 0, 0), -90.0)
-	var bystander := _character(Vector3(2.6, 0, -2.4), -130.0)
+	hero = _character(Vector3(-0.6, 0, 0), -90.0)            # this model's front is -Z: -90 faces +X, the target
+	target = _character(Vector3(0.75, 0, 0), 90.0)
+	var bystander := _character(Vector3(2.6, 0, -2.4), 50.0)
 	# The base character is a bare mannequin: a tint per team is its whole costume budget.
 	CellArt.tint(hero, Color(0.3, 0.85, 3.0))
 	CellArt.tint(target, Color(1.25, 0.5, 0.45))

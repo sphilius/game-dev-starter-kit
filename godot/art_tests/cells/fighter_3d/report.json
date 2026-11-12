@@ -1,0 +1,318 @@
+{
+  "cell": "fighter_3d",
+  "pipeline": "one CC rigged humanoid used for both fighters + CC0 floor texture",
+  "date": "2026-11-12",
+  "wall_seconds": 16.94,
+  "machine_seconds": 16.91,
+  "human_seconds": 20.0,
+  "approvals": 1,
+  "rerolls": 0,
+  "cost_usd": 0,
+  "gates_passed": true,
+  "gates_failed": [],
+  "steps": [
+    {
+      "name": "fetch animated_base_character.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch wood_floor_deck_diff_1k.jpg (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "shrink floor texture",
+      "human": false,
+      "seconds": 0.1,
+      "ok": true
+    },
+    {
+      "name": "review: floor texture: reads as a deck, no strong pattern under the fighters",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "gate animated_base_character.glb",
+      "human": false,
+      "seconds": 9.09,
+      "ok": true
+    },
+    {
+      "name": "gate floor",
+      "human": false,
+      "seconds": 0.26,
+      "ok": true
+    },
+    {
+      "name": "godot import",
+      "human": false,
+      "seconds": 4.28,
+      "ok": true
+    },
+    {
+      "name": "screenshot",
+      "human": false,
+      "seconds": 3.18,
+      "ok": true
+    }
+  ],
+  "approval_notes": [
+    "floor texture: reads as a deck, no strong pattern under the fighters"
+  ],
+  "reroll_reasons": [],
+  "failure_modes": [],
+  "notes": [
+    "floor texture: 904 KB downloaded, 60 KB shipped"
+  ],
+  "spends": [],
+  "gates": [
+    {
+      "asset": "animated_base_character.glb",
+      "kind": "character",
+      "passed": true,
+      "failed": [],
+      "skipped": [],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 13744,
+          "limit": 15000,
+          "detail": "1 mesh(es), 2 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": true,
+          "value": 1.8287,
+          "limit": "1.8 +-10 %",
+          "detail": "size x,y,z = [1.9445, 1.8287, 0.3696] m"
+        },
+        {
+          "name": "y_up",
+          "passed": true,
+          "value": [
+            1.9445,
+            1.8287,
+            0.3696
+          ],
+          "limit": "Y is the longest axis",
+          "detail": "a character lying on its side was exported Z-up"
+        },
+        {
+          "name": "origin",
+          "passed": true,
+          "value": {
+            "lowest_y": -0.013,
+            "centre_offset": 0.056
+          },
+          "limit": {
+            "lowest_y": "0 +-2 cm",
+            "centre_offset": 0.1
+          },
+          "detail": "origin should sit on the ground, under the middle of the model"
+        },
+        {
+          "name": "bones",
+          "passed": true,
+          "value": 53,
+          "limit": 64,
+          "detail": ""
+        },
+        {
+          "name": "influences",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "bone weights per vertex"
+        },
+        {
+          "name": "clip_names",
+          "passed": true,
+          "value": [
+            "Rig|Crouch_Fwd_Loop",
+            "Rig|Crouch_Idle_Loop",
+            "Rig|Dance_Loop",
+            "Rig|Death01",
+            "Rig|Driving_Loop",
+            "Rig|Fixing_Kneeling",
+            "Rig|Hit_Chest",
+            "Rig|Hit_Head",
+            "Rig|Idle_Loop",
+            "Rig|Idle_Talking_Loop",
+            "Rig|Idle_Torch_Loop",
+            "Rig|Interact",
+            "Rig|Jog_Fwd_Loop",
+            "Rig|Jump_Land",
+            "Rig|Jump_Loop",
+            "Rig|Jump_Start",
+            "Rig|PickUp_Table",
+            "Rig|Pistol_Aim_Down",
+            "Rig|Pistol_Aim_Neutral",
+            "Rig|Pistol_Aim_Up",
+            "Rig|Pistol_Idle_Loop",
+            "Rig|Pistol_Reload",
+            "Rig|Pistol_Shoot",
+            "Rig|Punch_Cross",
+            "Rig|Punch_Enter",
+            "Rig|Punch_Jab",
+            "Rig|Push_Loop",
+            "Rig|Roll",
+            "Rig|Roll_RM",
+            "Rig|Sitting_Enter",
+            "Rig|Sitting_Exit",
+            "Rig|Sitting_Idle_Loop",
+            "Rig|Sitting_Talking_Loop",
+            "Rig|Spell_Simple_Enter",
+            "Rig|Spell_Simple_Exit",
+            "Rig|Spell_Simple_Idle_Loop",
+            "Rig|Spell_Simple_Shoot",
+            "Rig|Sprint_Loop",
+            "Rig|Swim_Fwd_Loop",
+            "Rig|Swim_Idle_Loop",
+            "Rig|Sword_Attack",
+            "Rig|Sword_Attack_RM",
+            "Rig|Sword_Idle",
+            "Rig|Walk_Formal_Loop",
+            "Rig|Walk_Loop"
+          ],
+          "limit": [
+            "Rig|Idle_Loop",
+            "Rig|Punch_Jab",
+            "Rig|Punch_Cross",
+            "Rig|Hit_Chest",
+            "Rig|Death01"
+          ],
+          "detail": "Rig|Idle_Loop 2.5 s, Rig|Punch_Jab 0.833 s, Rig|Punch_Cross 1.0 s, Rig|Hit_Chest 0.333 s, Rig|Death01 2.375 s"
+        },
+        {
+          "name": "non_manifold",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "0 loose vertices"
+        },
+        {
+          "name": "bend",
+          "passed": true,
+          "value": 0.545,
+          "limit": 0.5,
+          "detail": "worst joint DEF-spine.001>DEF-spine.002 of 47 tested"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\animated_base_character"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "clean import"
+        },
+        {
+          "name": "clip_loops",
+          "passed": true,
+          "value": {
+            "should loop but do not": [],
+            "loop but should not": []
+          },
+          "limit": {
+            "loop": [
+              "Rig|Idle"
+            ],
+            "one-shot": [
+              "Rig|Death01",
+              "Rig|Hit_Chest",
+              "Rig|Punch_Cross",
+              "Rig|Punch_Jab"
+            ]
+          },
+          "detail": "20 of 45 clips loop after import"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 1064.7,
+          "limit": 2048.0,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 9.09
+    },
+    {
+      "asset": "floor.jpg",
+      "kind": "background",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "readability",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 2044 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 22294,
+          "limit": null,
+          "detail": "no palette given; 22294 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              512,
+              512
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": null,
+          "value": null,
+          "limit": null,
+          "detail": "skipped: backgrounds are what art is read against"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 405.0,
+            "vram_mb": 1.0
+          },
+          "limit": {
+            "png_kb": 600,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.26
+    }
+  ]
+}
