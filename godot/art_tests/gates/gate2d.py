@@ -7,7 +7,7 @@ to do. Run it on the frames art_cleanup.py wrote (one PNG per frame, all the sam
     python gate2d.py processed/hero --palette vase --target-height 64 --bg 2b2d3a
     python gate2d.py processed/hero --palette none --kind portrait --report hero_gate.json
 
-The eight gates (limits are the defaults; every one has an option):
+The nine gates (limits are the defaults; every one has an option):
   alpha_fringe        share of edge pixels still tinted with the key colour     <= 2 %
   palette             share of solid pixels more than --palette-tolerance from
                       the nearest palette colour                                <= 1 %
@@ -16,6 +16,8 @@ The eight gates (limits are the defaults; every one has an option):
                       height) between frames, so the character does not bob     animations only
   silhouette_iou      overlap between consecutive frames' shapes (0 = unrelated,
                       1 = identical) stays >= 0.30, so no frame "pops"          animations only
+  facing              no frame faces the other way than the frame before it
+                      (catches AI sheets that flip the character)               --side-view only
   readability         shrunk to its on-screen height (--target-height), the figure
                       still has >= 120 solid pixels and >= 2.0 contrast against
                       the game's background colour (--bg)
@@ -155,6 +157,34 @@ def gate_silhouette_iou(frames: list[np.ndarray], minimum: float, loop: bool) ->
     return check("silhouette_iou", worst >= minimum, round(worst, 3), minimum, detail)
 
 
+def gate_facing(frames: list[np.ndarray], side_view: bool, margin: float, loop: bool) -> dict:
+    """In a side-view animation every frame must face the same way.
+
+    AI sheets often flip the character between frames (walks left, then right, then left).
+    The test: compare each frame with the next one twice, once as it is and once mirrored
+    left-to-right. If the MIRRORED next frame fits clearly better (by `margin`), that frame
+    faces the other way. Only meaningful for side views: a character seen from the front or
+    back is symmetric, so this gate is skipped unless side_view is set.
+    """
+    masks = [f[..., 3] >= SOLID_ALPHA for f in frames]
+    if not side_view or len(masks) < 2 or len({m.shape for m in masks}) != 1:
+        return check("facing", None, None, margin, "side-view animations only (--side-view)")
+
+    def iou(a: np.ndarray, b: np.ndarray) -> float:
+        """Intersection over union of two solid-pixel masks."""
+        union = (a | b).sum()
+        return float((a & b).sum() / union) if union else 1.0
+
+    pairs = list(zip(range(len(masks) - 1), range(1, len(masks))))
+    if loop:
+        pairs.append((len(masks) - 1, 0))
+    # m[:, ::-1] reverses the columns of the mask: a left-right mirror image.
+    flips = [(a, b) for a, b in pairs if iou(masks[a], masks[b][:, ::-1]) - iou(masks[a], masks[b]) > margin]
+    return check("facing", not flips, len(flips), 0,
+                 "frames facing the other way than the one before: " + (", ".join(f"{a}->{b}" for a, b in flips) or "none"))
+
+
+# Shared by the readability gate: how bright a colour looks to the eye.
 def luminance(rgb: np.ndarray) -> np.ndarray:
     """Relative luminance (0 = black, 1 = white) by the WCAG accessibility formula."""
     c = rgb.astype(np.float64) / 255.0
@@ -244,7 +274,7 @@ def run_gate(source: pathlib.Path, *, kind: str = "sprite", palette: str = "none
              max_dim: int = 2048, palette_tolerance: float = 10.0, palette_limit: float = 0.01,
              fringe_limit: float = 0.02, baseline_px: float = 2.0, iou_min: float = 0.30, loop: bool = False,
              airborne: tuple[int, ...] = (), min_pixels: int = 120, min_contrast: float = 2.0,
-             godot: str | None = None) -> dict:
+             side_view: bool = False, facing_margin: float = 0.2, godot: str | None = None) -> dict:
     """Runs every gate that applies to `kind` and returns the report dictionary.
 
     The "*" in the signature makes every option keyword-only: callers must write
@@ -263,6 +293,7 @@ def run_gate(source: pathlib.Path, *, kind: str = "sprite", palette: str = "none
     if animated:
         checks.append(gate_feet_baseline(frames, set(airborne), baseline_px))
         checks.append(gate_silhouette_iou(frames, iou_min, loop))
+        checks.append(gate_facing(frames, side_view, facing_margin, loop))
     if kind == "background":
         # A wall or backdrop IS what figures are read against, so the gate has nothing to compare.
         checks.append(check("readability", None, None, None, "skipped: backgrounds are what art is read against"))
@@ -292,6 +323,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-dim", type=int, default=2048, help="max width or height of a frame")
     parser.add_argument("--iou-min", type=float, default=0.30, help="lowest allowed overlap between frames")
     parser.add_argument("--loop", action="store_true", help="also compare the last frame with the first")
+    parser.add_argument("--side-view", action="store_true",
+                        help="side-view animation: also check that no frame is flipped left-right")
     parser.add_argument("--airborne", default="", help="frame numbers exempt from the feet gate, e.g. 6,7")
     parser.add_argument("--godot", default=None, help="Godot console exe for the import gate (or set GODOT); 'off' skips it")
     parser.add_argument("--report", type=pathlib.Path, default=None, help="write the JSON report here")
@@ -304,7 +337,7 @@ def main(argv: list[str] | None = None) -> dict:
     airborne = tuple(int(n) for n in args.airborne.split(",") if n.strip())
     report = run_gate(args.source, kind=args.kind, palette=args.palette, key_color=args.key_color,
                       target_height=args.target_height, bg=args.bg, budget_kb=args.budget_kb,
-                      max_dim=args.max_dim, iou_min=args.iou_min, loop=args.loop, airborne=airborne,
+                      max_dim=args.max_dim, iou_min=args.iou_min, loop=args.loop, airborne=airborne, side_view=args.side_view,
                       godot=args.godot)
     for c in report["checks"]:
         verdict = "skip" if c["passed"] is None else ("PASS" if c["passed"] else "FAIL")

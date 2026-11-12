@@ -7,7 +7,7 @@ has a test that breaks one thing and confirms that gate (and only that gate) fai
 | File | What it does |
 |---|---|
 | `art_cleanup.py` | Raw AI image → keyed, palette-snapped, sliced, feet-aligned frames (from Medusa's Price, plus `--palette` and `--key-color`) |
-| `gate2d.py` | 8 gates for sprites, tilesets, portraits, backgrounds |
+| `gate2d.py` | 9 gates for sprites, tilesets, portraits, backgrounds |
 | `glb_facts.py` | Reads triangles, size, bones, clips out of a `.glb` in milliseconds (no Blender) |
 | `gate3d.py` | 13 gates for models, in three layers: file → Blender → Godot |
 | `blender_gate.py` | The Blender layer (non-manifold edges, bend test, turnaround renders) |

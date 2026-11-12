@@ -1,0 +1,20 @@
+{
+  "prompt": "Seamless tileable square ground texture for a top-down 16-bit RPG: short green grass seen from directly above with a few tiny flowers and pebbles scattered evenly, pixel art, evenly lit, no shadows, nothing larger than a pebble, the left edge matches the right edge and the top edge matches the bottom edge. No text.",
+  "model": "nano-banana-2-lite",
+  "aspect": "1:1",
+  "wall_s": 7.9,
+  "refs": [],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "action_rpg_2d",
+    "purpose": "grass",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 7.9,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.12,
+    "notes": ""
+  }
+}

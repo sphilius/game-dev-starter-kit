@@ -71,7 +71,7 @@ def test_clean_frames_pass(clean: pathlib.Path) -> None:
     check(report["frames"] == 6, f"expected 6 frames, gate saw {report['frames']}")
     names = [c["name"] for c in report["checks"]]
     check(names == ["alpha_fringe", "palette", "frame_size", "feet_baseline", "silhouette_iou",
-                    "readability", "texture_budget", "godot_import"], f"gate list changed: {names}")
+                    "facing", "readability", "texture_budget", "godot_import"], f"gate list changed: {names}")
 
 
 def test_fringe_is_caught(clean: pathlib.Path) -> None:
@@ -151,6 +151,27 @@ def test_popping_frame_is_caught(clean: pathlib.Path) -> None:
     check("silhouette_iou" in failed(report), f"popping frame not caught: {failed(report)}")
 
 
+def test_flipped_frame_is_caught(clean: pathlib.Path) -> None:
+    """A frame mirrored left-right fails the facing gate, but only when side_view is asked for."""
+    folder = variant(clean, "flip")
+
+    def add_arm(rgba: np.ndarray) -> np.ndarray:
+        """Draws a bar sticking out to the right, so the figure clearly faces one way."""
+        height, width = rgba.shape[:2]
+        rgba[height // 4: height * 3 // 4, width * 2 // 3:, :] = (0x1A, 0x14, 0x10, 255)
+        return rgba
+
+    for index in range(6):
+        edit_frame(folder, index, add_arm)
+    one_way = gate2d.run_gate(folder, side_view=True, **OPTIONS)
+    check("facing" not in failed(one_way), f"frames all facing right should pass: {one_way['checks']}")
+    edit_frame(folder, 2, lambda rgba: rgba[:, ::-1, :].copy())      # [:, ::-1] = columns reversed
+    report = gate2d.run_gate(folder, side_view=True, **OPTIONS)
+    check("facing" in failed(report), f"mirrored frame not caught: {failed(report)}")
+    skipped = gate2d.run_gate(folder, **OPTIONS)
+    check("facing" in skipped["skipped"], "without side_view the facing gate must be skipped")
+
+
 def test_unreadable_art_is_caught(clean: pathlib.Path) -> None:
     """Too small on screen, or the same colour as the background, fails readability."""
     tiny = gate2d.run_gate(clean, palette="vase", target_height=10, bg="e2a27a", godot="off")
@@ -208,6 +229,7 @@ if __name__ == "__main__":
         test_mixed_frame_sizes_are_caught(clean)
         test_baseline_drift_is_caught(clean)
         test_popping_frame_is_caught(clean)
+        test_flipped_frame_is_caught(clean)
         test_unreadable_art_is_caught(clean)
         test_budget_is_enforced(clean)
         test_kind_switches_animation_gates(clean)
