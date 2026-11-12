@@ -72,11 +72,14 @@ def load_frames(source: pathlib.Path) -> tuple[list[pathlib.Path], list[np.ndarr
     return paths, [np.array(Image.open(p).convert("RGBA")) for p in paths]
 
 
-def gate_alpha_fringe(frames: list[np.ndarray], key: tuple[int, int, int], limit: float) -> dict:
+def gate_alpha_fringe(frames: list[np.ndarray], key: tuple[int, int, int], limit: float,
+                      palette: np.ndarray | None = None, tolerance: float = 10.0) -> dict:
     """Edge pixels that still carry the key colour show as a coloured halo in the game.
 
     An edge pixel is a visible pixel with a fully transparent neighbour (up, down, left or
     right), or any half-transparent pixel. It is "fringe" when its key-ness is 40 or more.
+    With a palette, an edge pixel that IS a palette colour is never fringe: a palette that
+    contains purple or pink would otherwise be mistaken for leftover magenta.
     """
     edge_total = 0
     fringe_total = 0
@@ -88,9 +91,16 @@ def gate_alpha_fringe(frames: list[np.ndarray], key: tuple[int, int, int], limit
         padded = np.pad(clear, 1, constant_values=True)
         near_clear = padded[:-2, 1:-1] | padded[2:, 1:-1] | padded[1:-1, :-2] | padded[1:-1, 2:]
         edge = visible & (near_clear | (alpha < 255))
-        ness = art_cleanup.key_ness(rgba[..., :3].astype(np.int32), key)
+        rgb = rgba[..., :3].astype(np.int32)
+        tinted = edge & (art_cleanup.key_ness(rgb, key) >= 40)
+        if palette is not None and tinted.any():
+            # Distance from each suspect pixel to its nearest palette colour (broadcasting,
+            # as in gate_palette); on-palette pixels are intended art, not fringe.
+            suspects = rgb[tinted]
+            nearest = np.sqrt(((suspects[:, None, :] - palette[None, :, :]) ** 2).sum(axis=-1)).min(axis=1)
+            tinted[tinted] = nearest > tolerance
         edge_total += int(edge.sum())
-        fringe_total += int((edge & (ness >= 40)).sum())
+        fringe_total += int(tinted.sum())
     share = fringe_total / edge_total if edge_total else 0.0
     return check("alpha_fringe", share <= limit, round(share, 4), limit,
                  f"{fringe_total} of {edge_total} edge pixels tinted with the key colour")
@@ -286,7 +296,8 @@ def run_gate(source: pathlib.Path, *, kind: str = "sprite", palette: str = "none
         raise ValueError(f"no PNG frames found in {source}")
     animated = kind in ANIMATION_KINDS
     checks = [
-        gate_alpha_fringe(frames, art_cleanup.load_key_colour(key_color), fringe_limit),
+        gate_alpha_fringe(frames, art_cleanup.load_key_colour(key_color), fringe_limit,
+                          art_cleanup.load_palette(palette), palette_tolerance),
         gate_palette(frames, art_cleanup.load_palette(palette), palette_tolerance, palette_limit),
         gate_frame_size(frames, max_dim),
     ]

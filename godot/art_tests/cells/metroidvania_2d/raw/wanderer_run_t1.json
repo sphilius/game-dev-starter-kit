@@ -1,0 +1,20 @@
+{
+  "prompt": "Pixel art sprite sheet for a metroidvania hero, side view facing RIGHT in every frame: a small hooded wanderer in a pale grey-blue cloak with a long orange scarf, white face, short sword at the hip. Exactly six frames of a run cycle in ONE horizontal row, evenly spaced with wide gaps, not touching, all the same size, feet on the same ground line: contact, down, passing, contact with the other leg, down, passing. The scarf trails behind. Chunky low-resolution pixel art with a dark navy outline, flat colours, no gradients, no anti-aliasing. Use only these colours: near-black navy, deep purple, crimson, orange, pale yellow, lime green, green, teal, dark blue, blue, sky blue, cyan, white, pale grey-blue, slate, dark slate. Background is one flat solid pure magenta colour (#FF00FF), no ground, no shadow, no text.",
+  "model": "nano-banana-2-lite",
+  "aspect": "21:9",
+  "wall_s": 6.3,
+  "refs": [],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "metroidvania_2d",
+    "purpose": "wanderer_run",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 6.3,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.34,
+    "notes": ""
+  }
+}

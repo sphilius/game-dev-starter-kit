@@ -97,6 +97,23 @@ def test_fringe_is_caught(clean: pathlib.Path) -> None:
     check("alpha_fringe" in failed(report), f"magenta halo not caught: {failed(report)}")
 
 
+def test_palette_purple_is_not_fringe(clean: pathlib.Path) -> None:
+    """A purple that belongs to the palette is art, not leftover magenta; off-palette purple is fringe."""
+    folder = variant(clean, "purple")
+
+    def paint_purple(rgba: np.ndarray) -> np.ndarray:
+        """Recolours every visible pixel to a purple with strong magenta key-ness."""
+        rgba[rgba[..., 3] > 0, :3] = (0x5D, 0x27, 0x5D)
+        return rgba
+
+    for index in range(6):
+        edit_frame(folder, index, paint_purple)
+    with_purple = gate2d.run_gate(folder, palette="5d275d,1a1c2c", godot="off")
+    check("alpha_fringe" not in failed(with_purple), f"palette purple was called fringe: {with_purple['checks'][0]}")
+    without = gate2d.run_gate(folder, palette="none", godot="off")
+    check("alpha_fringe" in failed(without), "the same purple with no palette should count as fringe")
+
+
 def test_off_palette_is_caught(clean: pathlib.Path) -> None:
     """Colour drift (here: everything shifted toward blue) fails the palette gate."""
     folder = variant(clean, "drift")
@@ -225,6 +242,7 @@ if __name__ == "__main__":
         clean = clean_frames(pathlib.Path(folder))
         test_clean_frames_pass(clean)
         test_fringe_is_caught(clean)
+        test_palette_purple_is_not_fringe(clean)
         test_off_palette_is_caught(clean)
         test_mixed_frame_sizes_are_caught(clean)
         test_baseline_drift_is_caught(clean)
