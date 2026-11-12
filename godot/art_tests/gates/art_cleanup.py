@@ -5,6 +5,7 @@ the palette and the key colour are now options instead of being hardcoded.
 
   1. Key out the flat background colour (--key-color, default magenta) -> transparent.
   2. Snap every visible pixel to a palette (--palette; kills AI colour drift and fuzz).
+     With --palette none the outline is "despilled" instead: the key-colour halo is removed.
   3. Slice a sprite sheet into frames: every separate blob of pixels is one pose,
      read left to right, top to bottom.
   4. Scale the frames and line them up on equal-sized cells, feet on the bottom
@@ -133,6 +134,33 @@ def key_out(rgba: np.ndarray, key: tuple[int, int, int], threshold: int) -> np.n
     """
     out = rgba.copy()
     out[key_ness(out[..., :3].astype(np.int32), key) >= threshold, 3] = 0
+    return out
+
+
+def despill(rgba: np.ndarray, key: tuple[int, int, int], band: int = 2) -> np.ndarray:
+    """Removes the key-colour tint from the outline of a keyed shape (the pink or green halo).
+
+    AI images blend the outline with the background, so the outermost pixels of a figure are
+    part art, part magenta. Palette snapping hides that (it recolours them); full-colour art
+    needs this instead. Only visible pixels within `band` pixels of transparency are touched:
+    the channels the key has ON are lowered until the pixel's key-ness is 0, which turns pink
+    into a neutral dark edge. Works for pure keys (magenta, green, blue, cyan); other key
+    colours are returned unchanged. A new array is returned.
+    """
+    on = [i for i in range(3) if key[i] >= 250]
+    off = [i for i in range(3) if key[i] <= 5]
+    if not on or not off or len(on) + len(off) != 3:
+        return rgba
+    clear = rgba[..., 3] == 0
+    # binary_dilation grows the transparent area by `band` pixels; minus itself = the outline band.
+    outline = ndimage.binary_dilation(clear, iterations=band, border_value=1) & ~clear
+    rgb = rgba[..., :3].astype(np.int32)
+    ness = key_ness(rgb, key)
+    spill = outline & (ness > 0)
+    for channel in on:
+        rgb[..., channel][spill] -= ness[spill]
+    out = rgba.copy()
+    out[..., :3] = np.clip(rgb, 0, 255).astype(np.uint8)
     return out
 
 
@@ -271,6 +299,8 @@ def process_sheet(rgba: np.ndarray, args: argparse.Namespace) -> dict:
     # "[... for f in frames]" is a list comprehension: a new list with each frame snapped.
     if not args.no_snap:
         frames = [snap_to_palette(f, args.palette_rgb) for f in frames]
+    elif not args.no_despill:
+        frames = [despill(f, args.key_rgb) for f in frames]
     if args.hard_alpha:
         for f in frames:
             f[..., 3] = np.where(f[..., 3] >= 128, 255, 0)
@@ -310,6 +340,8 @@ def process_single(rgba: np.ndarray, args: argparse.Namespace) -> dict:
     img = np.array(resize_rgba(Image.fromarray(rgba), size))
     if not args.no_snap:
         img = snap_to_palette(img, args.palette_rgb)
+    elif not args.no_despill:
+        img = despill(img, args.key_rgb)
     return {"cells": [Image.fromarray(img)], "scale": size[1] / h, "cell_size": size,
             "feet": None, "source_boxes": [(0, 0, w, h)]}
 
@@ -358,6 +390,8 @@ def build_parser() -> argparse.ArgumentParser:
                         help="vase | none | hex list 'aabbcc,ddeeff' | .hex or .gpl file (default vase)")
     parser.add_argument("--key-color", default="magenta",
                         help="background colour to remove: magenta | green | blue | cyan | hex (default magenta)")
+    parser.add_argument("--no-despill", action="store_true",
+                        help="keep the key-colour tint on outlines (full-colour art is despilled by default)")
     parser.add_argument("--hard-alpha", action="store_true", help="edges fully on or off, no soft edge")
     parser.add_argument("--key-threshold", type=int, default=60,
                         help="magenta-ness at which a pixel turns clear (lower = removes more)")
@@ -386,7 +420,8 @@ def main(argv: list[str] | None = None) -> dict:
     args.no_snap = args.palette_rgb is None
 
     rgba = np.array(Image.open(args.input).convert("RGBA"))
-    rgba = key_out(rgba, load_key_colour(args.key_color), args.key_threshold)
+    args.key_rgb = load_key_colour(args.key_color)
+    rgba = key_out(rgba, args.key_rgb, args.key_threshold)
     # The snap before slicing makes the frame search see clean shapes; sheets snap again after resizing.
     if not args.no_snap:
         rgba = snap_to_palette(rgba, args.palette_rgb)

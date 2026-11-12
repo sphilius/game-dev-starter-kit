@@ -1,2 +1,5 @@
 date,cell,purpose,service,model,images,resolution,wall_s,est_cost_usd,running_total_usd,notes
 2026-11-11,preflight,key quota check,gemini-api,gemini-3.1-flash-lite-image,1,1K,7.4,0.02,0.02,"est. price; check real charge in Cloud Billing. Budget cap $5.00"
+2026-11-11,fps_2d,cultist,gemini-api,nano-banana-2-lite,1,1K,31.1,0.02,0.04,
+2026-11-11,fps_2d,wall,gemini-api,nano-banana-2-lite,1,1K,6.6,0.02,0.06,
+2026-11-11,fps_2d,cultist,gemini-api,nano-banana-2-lite,1,1K,7.6,0.02,0.08,

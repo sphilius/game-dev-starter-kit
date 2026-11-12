@@ -157,6 +157,28 @@ def test_green_key_and_custom_palette(tmp: pathlib.Path) -> None:
         check(colours <= wanted, f"green frame {i} has colours outside the custom palette: {colours - wanted}")
 
 
+def test_despill(tmp: pathlib.Path) -> None:
+    """Full-colour art (--palette none) loses its pink outline; --no-despill keeps it."""
+    # A grey square with a 2 px ring of half-magenta around it, like an AI-blended outline.
+    img = np.zeros((80, 80, 3), dtype=np.uint8)
+    img[...] = (255, 0, 255)
+    img[18:62, 18:62] = (190, 70, 190)          # the halo: grey mixed with magenta
+    img[20:60, 20:60] = (120, 120, 120)         # the figure
+    raw = tmp / "halo.png"
+    Image.fromarray(img).save(raw)
+    key = (255, 0, 255)
+
+    def worst_tint(folder: str, *flags: str) -> int:
+        """Runs the tool and returns the strongest key-ness left on any visible pixel."""
+        art_cleanup.main([str(raw), "--name", "halo", "--out", str(tmp / folder), "--single",
+                          "--palette", "none", "--key-threshold", "200", *flags])
+        out = np.array(Image.open(tmp / folder / "halo_00.png").convert("RGBA")).astype(np.int32)
+        return int(art_cleanup.key_ness(out[..., :3], key)[out[..., 3] > 0].max())
+
+    check(worst_tint("kept", "--no-despill") >= 100, "without despill the halo should still be pink")
+    check(worst_tint("clean") <= 0, "despill should leave no key tint on the outline")
+
+
 def test_palette_files(tmp: pathlib.Path) -> None:
     """Palettes load from a Lospec .hex file and a GIMP .gpl file; "none" turns snapping off."""
     hex_file = tmp / "p.hex"
@@ -177,4 +199,5 @@ if __name__ == "__main__":
         test_portrait(pathlib.Path(folder))
         test_green_key_and_custom_palette(pathlib.Path(folder))
         test_palette_files(pathlib.Path(folder))
+        test_despill(pathlib.Path(folder))
     print("PASS")

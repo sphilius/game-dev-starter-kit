@@ -1,0 +1,20 @@
+{
+  "prompt": "Sprite sheet for a retro first-person shooter enemy, in the style of 1990s pixel-art shooters. One character: a gaunt hooded cultist in a tattered dark red robe with a pale bone mask and long clawed hands. Exactly four full-body poses in a single horizontal row, evenly spaced, not touching each other, all the same size, all facing the viewer, feet on the same line: 1) standing idle, 2) mid-step walking toward the viewer, 3) lunging with both claws raised, 4) recoiling in pain. Chunky readable pixel art, strong dark outline, limited palette, lit from above. Background is one flat solid pure magenta colour (#FF00FF), no floor, no shadows on the ground, no text, no labels, no border.",
+  "model": "nano-banana-2-lite",
+  "aspect": "16:9",
+  "wall_s": 31.1,
+  "refs": [],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "fps_2d",
+    "purpose": "cultist",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 31.1,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.04,
+    "notes": ""
+  }
+}

@@ -263,7 +263,11 @@ def run_gate(source: pathlib.Path, *, kind: str = "sprite", palette: str = "none
     if animated:
         checks.append(gate_feet_baseline(frames, set(airborne), baseline_px))
         checks.append(gate_silhouette_iou(frames, iou_min, loop))
-    checks.append(gate_readability(frames, target_height, art_cleanup.parse_hex(bg), min_pixels, min_contrast))
+    if kind == "background":
+        # A wall or backdrop IS what figures are read against, so the gate has nothing to compare.
+        checks.append(check("readability", None, None, None, "skipped: backgrounds are what art is read against"))
+    else:
+        checks.append(gate_readability(frames, target_height, art_cleanup.parse_hex(bg), min_pixels, min_contrast))
     checks.append(gate_texture_budget(paths, frames, budget_kb, vram_mb))
     checks.append(gate_godot_import(paths, godot))
     failed = [c["name"] for c in checks if c["passed"] is False]

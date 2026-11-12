@@ -1,0 +1,274 @@
+{
+  "cell": "fps_2d",
+  "pipeline": "nano-banana billboard sheet + tiling wall",
+  "date": "2026-11-11",
+  "wall_seconds": 7.48,
+  "machine_seconds": 52.78,
+  "human_seconds": 60.0,
+  "approvals": 2,
+  "rerolls": 1,
+  "cost_usd": 0.06,
+  "gates_passed": true,
+  "gates_failed": [],
+  "steps": [
+    {
+      "name": "generate cultist take 1 (cached)",
+      "human": false,
+      "seconds": 31.1,
+      "ok": true
+    },
+    {
+      "name": "review: rejected take 1",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "generate cultist take 2 (cached)",
+      "human": false,
+      "seconds": 7.6,
+      "ok": true
+    },
+    {
+      "name": "generate wall take 1 (cached)",
+      "human": false,
+      "seconds": 6.6,
+      "ok": true
+    },
+    {
+      "name": "cleanup cultist",
+      "human": false,
+      "seconds": 0.15,
+      "ok": true
+    },
+    {
+      "name": "review: enemy sheet: four separate poses, same character",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "cleanup wall",
+      "human": false,
+      "seconds": 0.05,
+      "ok": true
+    },
+    {
+      "name": "review: wall texture: tiles without an obvious seam",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "gates",
+      "human": false,
+      "seconds": 7.28,
+      "ok": true
+    }
+  ],
+  "approval_notes": [
+    "enemy sheet: four separate poses, same character",
+    "wall texture: tiles without an obvious seam"
+  ],
+  "reroll_reasons": [
+    "readability 1.19 on fog: the AI chose a dark palette for a dark level"
+  ],
+  "failure_modes": [],
+  "notes": [],
+  "spends": [
+    {
+      "date": "2026-11-11",
+      "cell": "fps_2d",
+      "purpose": "cultist",
+      "service": "gemini-api",
+      "model": "nano-banana-2-lite",
+      "images": 1,
+      "resolution": "1K",
+      "wall_s": 31.1,
+      "est_cost_usd": 0.02,
+      "running_total_usd": 0.04,
+      "notes": ""
+    },
+    {
+      "date": "2026-11-11",
+      "cell": "fps_2d",
+      "purpose": "cultist",
+      "service": "gemini-api",
+      "model": "nano-banana-2-lite",
+      "images": 1,
+      "resolution": "1K",
+      "wall_s": 7.6,
+      "est_cost_usd": 0.02,
+      "running_total_usd": 0.08,
+      "notes": ""
+    },
+    {
+      "date": "2026-11-11",
+      "cell": "fps_2d",
+      "purpose": "wall",
+      "service": "gemini-api",
+      "model": "nano-banana-2-lite",
+      "images": 1,
+      "resolution": "1K",
+      "wall_s": 6.6,
+      "est_cost_usd": 0.02,
+      "running_total_usd": 0.06,
+      "notes": ""
+    }
+  ],
+  "gates": [
+    {
+      "asset": "cultist",
+      "kind": "sprite",
+      "frames": 4,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0007,
+          "limit": 0.02,
+          "detail": "7 of 9551 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 28146,
+          "limit": null,
+          "detail": "no palette given; 28146 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              128,
+              196
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "4 frame(s)"
+        },
+        {
+          "name": "feet_baseline",
+          "passed": true,
+          "value": 0,
+          "limit": 3.9,
+          "detail": "lowest solid rows: [193, 193, 193, 193]"
+        },
+        {
+          "name": "silhouette_iou",
+          "passed": true,
+          "value": 0.5,
+          "limit": 0.15,
+          "detail": "min 0.50 at frames (2, 3), mean 0.58"
+        },
+        {
+          "name": "readability",
+          "passed": true,
+          "value": {
+            "solid_pixels": 2304,
+            "contrast": 2.01
+          },
+          "limit": {
+            "solid_pixels": 120,
+            "contrast": 2.0
+          },
+          "detail": "figure 192 px tall shown at 96 px on #1c1f26"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 119.7,
+            "vram_mb": 0.38
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "4 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "clean import"
+        }
+      ],
+      "gate_seconds": 3.62
+    },
+    {
+      "asset": "wall_00.png",
+      "kind": "background",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "readability"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 508 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 3688,
+          "limit": null,
+          "detail": "no palette given; 3688 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              128,
+              128
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": null,
+          "value": null,
+          "limit": null,
+          "detail": "skipped: backgrounds are what art is read against"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 33.3,
+            "vram_mb": 0.06
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "clean import"
+        }
+      ],
+      "gate_seconds": 3.66
+    }
+  ]
+}
