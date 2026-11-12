@@ -114,8 +114,13 @@ def file_gates(facts: dict, kind: str, height: float | None, max_tris: int, max_
 # --- Layer 2: Blender ---------------------------------------------------------------------
 
 def blender_gates(glb: pathlib.Path, blender: str | None, kind: str, max_non_manifold: int | None,
-                  min_retention: float, render_dir: pathlib.Path | None, rigged: bool) -> list[dict]:
-    """Runs blender_gate.py in a background Blender and turns its JSON into gate results."""
+                  min_retention: float, render_dir: pathlib.Path | None, rigged: bool,
+                  facts: dict | None = None) -> list[dict]:
+    """Runs blender_gate.py in a background Blender and turns its JSON into gate results.
+
+    For a rigged model it also corrects `facts` in place: the size and bounds read from the
+    file are replaced by the ones Blender measured with the skeleton applied.
+    """
     names = ["non_manifold", "bend", "turnaround"]
     if blender is None:
         return [check(name, None, None, None, "skipped: pass --blender or set BLENDER") for name in names]
@@ -134,6 +139,12 @@ def blender_gates(glb: pathlib.Path, blender: str | None, kind: str, max_non_man
             tail = (run.stdout + run.stderr).strip().splitlines()[-3:]
             return [check(name, False, "crash", None, " | ".join(tail)) for name in names]
         result = json.loads(result_path.read_text(encoding="utf-8"))
+    measured = result.get("bounds") or {}
+    if rigged and facts is not None and measured:
+        facts["bounds_min"], facts["bounds_max"] = measured["min"], measured["max"]
+        # zip pairs up the two lists: (min x, max x), (min y, max y), (min z, max z).
+        facts["size"] = [round(high - low, 4) for low, high in zip(measured["min"], measured["max"])]
+        facts["bounds_source"] = "blender, skeleton applied"
     topo = result["topology"]
     enforce = max_non_manifold is not None and kind != "environment"
     out = [check("non_manifold", topo["non_manifold_edges"] <= max_non_manifold if enforce else None,
@@ -155,7 +166,8 @@ def blender_gates(glb: pathlib.Path, blender: str | None, kind: str, max_non_man
 
 # --- Layer 3: Godot -----------------------------------------------------------------------
 
-def godot_gates(glb: pathlib.Path, godot: str | None, loops: list[str], budget_kb: float) -> list[dict]:
+def godot_gates(glb: pathlib.Path, godot: str | None, loops: list[str], budget_kb: float,
+                one_shots: list[str] | None = None) -> list[dict]:
     """Imports the model in a throwaway copy of pipeline3d's Godot template and audits it there."""
     names = ["godot_import", "clip_loops", "web_size"]
     if godot is None:
@@ -192,7 +204,16 @@ def godot_gates(glb: pathlib.Path, godot: str | None, loops: list[str], budget_k
     out = [check("godot_import", not problems, len(problems), 0,
                  "; ".join(problems[:3]) if problems else ("warnings: " + "; ".join(entry["warnings"][:3]) if entry["warnings"] else "clean import"))]
     looping = sorted(clip["name"] for clip in entry["clips"] if clip.get("loop"))
-    if entry["clips"]:
+    if entry["clips"] and one_shots is not None:
+        # Clip-library mode (a character with dozens of clips): only the clips the game uses
+        # are checked. Every clip in `loops` must loop, and no clip in `one_shots` may.
+        not_looping = sorted(set(loops) - set(looping))
+        wrongly_looping = sorted(set(one_shots) & set(looping))
+        out.append(check("clip_loops", not not_looping and not wrongly_looping,
+                         {"should loop but do not": not_looping, "loop but should not": wrongly_looping},
+                         {"loop": sorted(loops), "one-shot": sorted(one_shots)},
+                         f"{len(looping)} of {len(entry['clips'])} clips loop after import"))
+    elif entry["clips"]:
         out.append(check("clip_loops", looping == sorted(loops), looping, sorted(loops),
                          "clips that loop after import vs. the ones that should"))
     else:
@@ -205,6 +226,7 @@ def godot_gates(glb: pathlib.Path, godot: str | None, loops: list[str], budget_k
 # The entry point other scripts import: run_gate(path, kind=..., height=...) -> report dict.
 def run_gate(glb: pathlib.Path, *, kind: str = "prop", height: float | None = None, max_tris: int | None = None,
              max_bones: int = 64, clips: tuple[str, ...] = (), loops: tuple[str, ...] = (),
+             one_shots: tuple[str, ...] | None = None,
              max_non_manifold: int | None = 0, min_retention: float = 0.5, budget_kb: float = 2048.0,
              render_dir: pathlib.Path | None = None, blender: str | None = None, godot: str | None = None) -> dict:
     """Runs all three layers and returns the report dictionary (same shape as gate2d's)."""
@@ -212,10 +234,13 @@ def run_gate(glb: pathlib.Path, *, kind: str = "prop", height: float | None = No
     glb = pathlib.Path(glb).resolve()
     facts = glb_facts.facts(glb)
     limit = max_tris if max_tris is not None else DEFAULT_MAX_TRIS[kind]
-    checks = file_gates(facts, kind, height, limit, max_bones, list(clips))
-    checks += blender_gates(glb, find_tool(blender, "BLENDER"), kind, max_non_manifold, min_retention,
-                            pathlib.Path(render_dir).resolve() if render_dir else None, facts["bones"] > 0)
-    checks += godot_gates(glb, find_tool(godot, "GODOT"), list(loops), budget_kb)
+    # Blender runs first because it may correct the size of a rigged model (see blender_gates);
+    # the report still lists the file gates first.
+    from_blender = blender_gates(glb, find_tool(blender, "BLENDER"), kind, max_non_manifold, min_retention,
+                                 pathlib.Path(render_dir).resolve() if render_dir else None, facts["bones"] > 0, facts)
+    checks = file_gates(facts, kind, height, limit, max_bones, list(clips)) + from_blender
+    checks += godot_gates(glb, find_tool(godot, "GODOT"), list(loops), budget_kb,
+                          list(one_shots) if one_shots is not None else None)
     failed = [c["name"] for c in checks if c["passed"] is False]
     return {
         "asset": glb.name, "kind": kind, "passed": not failed, "failed": failed,

@@ -145,3 +145,50 @@ def screenshot(log: RunLog, cell_dir: pathlib.Path, scene: str = "demo.tscn", fr
         log.fail_mode("demo scene errors: " + " | ".join(errors[:3]))
         raise RuntimeError("screenshot failed:\n" + "\n".join(errors[:8] or [run.stdout[-400:]]))
     return out
+
+
+# ---- 3D cells: downloaded CC0 / CC-BY assets ------------------------------------------------
+
+# Where models shared by several cells are kept (one copy in the repo, not one per cell).
+SHARED = ART_TESTS / "cells" / "_shared"
+
+
+def fetch(log: RunLog, url: str, dest: pathlib.Path) -> pathlib.Path:
+    """Downloads `url` to `dest` unless it is already there. Timed as a machine step.
+
+    Only used for the free-asset sources agreed for this project (Kenney, Quaternius via
+    Poly Pizza, Khronos samples, ambientCG, Poly Haven). Each cell lists what it took and
+    under which licence in its CREDITS.md.
+    """
+    import urllib.request
+    if dest.is_file() and dest.stat().st_size > 0:
+        log.add_step(f"fetch {dest.name} (already here)", 0.0)
+        return dest
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    with log.step(f"fetch {dest.name}"):
+        # Some hosts refuse requests without a browser-like User-Agent header.
+        request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (asset-pipeline-test)"})
+        with urllib.request.urlopen(request, timeout=120) as response:
+            dest.write_bytes(response.read())
+    return dest
+
+
+def gate_model(log: RunLog, glb: pathlib.Path, **options) -> dict:
+    """Runs gate3d on a model, saves turnaround renders under runs/, and attaches the report.
+
+    **options are passed straight through to gate3d.run_gate (kind=, height=, clips=, ...).
+    """
+    renders = ART_TESTS / "runs" / "turnaround" / glb.stem
+    with log.step(f"gate {glb.name}"):
+        report = gate3d.run_gate(glb, render_dir=renders, **options)
+    report.pop("facts", None)          # the full clip list of a 45-clip character bloats report.json
+    log.add_gate(report)
+    return report
+
+
+def write_credits(cell_dir: pathlib.Path, rows: list[tuple]) -> None:
+    """Writes <cell>/CREDITS.md from (asset, author, source, licence) rows."""
+    lines = ["# Credits", "", "Downloaded assets used by this cell. Nothing here was AI-generated.", "",
+             "| Asset | Author | Source | Licence |", "|---|---|---|---|"]
+    lines += [f"| {asset} | {author} | {source} | {licence} |" for asset, author, source, licence in rows]
+    (cell_dir / "CREDITS.md").write_text("\n".join(lines) + "\n", encoding="utf-8")

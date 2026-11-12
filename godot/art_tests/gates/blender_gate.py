@@ -9,6 +9,8 @@ Writes result.json with:
   non_manifold_edges   edges that do not join exactly two faces (holes, loose flaps, T-junctions).
                        They break auto-rigging and booleans; a few are normal on flat cards.
   loose_vertices       vertices that belong to no face.
+  bounds               the bounding box with the armature applied (Y up, metres); gate3d uses it
+                       for rigged models, whose in-file bounds are not the real size.
   bend                 for rigged models: every joint with shared weights is bent 90 degrees and
                        the skin there is measured. retention = how much of its distance from the
                        joint the worst part of the fold keeps (1.0 = rigid, 0.71 = the usual
@@ -52,9 +54,17 @@ def import_model(path: str) -> None:
 
 
 def visible_meshes() -> list:
-    """Mesh objects that are real geometry (collision helpers named -col / -convcolonly are skipped)."""
+    """Mesh objects that are real geometry.
+
+    Skipped: collision helpers (named -col / -convcolonly), and the little shapes Blender's
+    glTF importer creates to DRAW bones with (an "Icosphere" per armature). Those are editor
+    decoration, not part of the model, but they are mesh objects and would be measured.
+    """
+    # A set comprehension: every object used as some bone's display shape.
+    bone_shapes = {bone.custom_shape for obj in bpy.context.scene.objects if obj.type == 'ARMATURE'
+                   for bone in obj.pose.bones if bone.custom_shape}
     return [o for o in bpy.context.scene.objects
-            if o.type == 'MESH' and "-col" not in o.name and "-convcol" not in o.name]
+            if o.type == 'MESH' and o not in bone_shapes and "-col" not in o.name and "-convcol" not in o.name]
 
 
 def topology() -> dict:
@@ -89,6 +99,39 @@ def deformed_positions(obj) -> list:
     positions = [evaluated.matrix_world @ v.co for v in mesh.vertices]
     evaluated.to_mesh_clear()
     return positions
+
+
+def rest_pose() -> None:
+    """Puts every armature in its rest pose with no animation playing.
+
+    After an import Blender leaves the first clip active (for a character with a clip
+    library that can be "crouch"), which would make every measurement below wrong.
+    """
+    for obj in bpy.context.scene.objects:
+        if obj.type != 'ARMATURE':
+            continue
+        if obj.animation_data:
+            obj.animation_data.action = None
+        for pose_bone in obj.pose.bones:
+            pose_bone.matrix_basis = Matrix.Identity(4)
+    bpy.context.view_layer.update()
+
+
+def posed_bounds() -> dict:
+    """The model's real bounding box with the skeleton applied, in glTF axes (Y up), in metres.
+
+    A rigged .glb stores its vertices in "bind space": before the armature's scale and pose.
+    Read straight from the file, a 1.8 m character can look 2 cm tall. Here Blender has
+    already applied the armature, so these are the numbers the game will see.
+    """
+    points = [point for obj in visible_meshes() for point in deformed_positions(obj)]
+    if not points:
+        return {}
+    # Blender is Z-up and glTF/Godot are Y-up: glTF (x, y, z) = Blender (x, z, -y).
+    converted = [(p.x, p.z, -p.y) for p in points]
+    low = [round(min(c[axis] for c in converted), 4) for axis in range(3)]
+    high = [round(max(c[axis] for c in converted), 4) for axis in range(3)]
+    return {"min": low, "max": high}
 
 
 def bend_test(angle_degrees: float = 90.0) -> dict:
@@ -153,7 +196,8 @@ def main() -> None:
     """Imports the model, runs the checks that were asked for, writes the JSON result."""
     args = parse_args()
     import_model(args["glb"])
-    result = {"blender": bpy.app.version_string, "topology": topology()}
+    rest_pose()
+    result = {"blender": bpy.app.version_string, "topology": topology(), "bounds": posed_bounds()}
     if args.get("bend", "1") == "1":
         result["bend"] = bend_test()
     if args.get("render_dir"):

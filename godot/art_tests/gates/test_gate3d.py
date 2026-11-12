@@ -113,6 +113,11 @@ def test_godot_gates(models: pathlib.Path) -> None:
     check(good["passed"], f"the wolf should pass the Godot gates: {good['failed']} {good['checks'][-3:]}")
     wrong_loops = gate3d.run_gate(wolf, kind="prop", loops=("idle",), blender="off")
     check(wrong_loops["failed"] == ["clip_loops"], f"walk loops but was not asked to: {wrong_loops['failed']}")
+    # Clip-library mode: only the named clips are checked, in both directions.
+    library = gate3d.run_gate(wolf, kind="prop", loops=("idle",), one_shots=("wolf_attack",), blender="off")
+    check(library["passed"], f"library mode should ignore the unlisted walk clip: {library['failed']}")
+    bad_library = gate3d.run_gate(wolf, kind="prop", loops=("wolf_death",), one_shots=("walk",), blender="off")
+    check(bad_library["failed"] == ["clip_loops"], f"a one-shot that loops must fail: {bad_library['failed']}")
     tight = gate3d.run_gate(wolf, kind="prop", loops=("idle", "walk"), budget_kb=1.0, blender="off")
     check(tight["failed"] == ["web_size"], f"a 1 KB budget should fail web_size only: {tight['failed']}")
 
