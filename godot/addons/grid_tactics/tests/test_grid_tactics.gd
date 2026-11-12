@@ -200,3 +200,101 @@ func test_model_intents_and_danger() -> void:
 	hero.cell = Vector2i(3, 3)                          # the hero steps out
 	m.damage_cells(ogre.intent.cells, ogre.intent.damage, ogre)
 	check_eq(hero.hp, 10, "dodged the telegraphed attack")
+
+
+# --- TurnManager --------------------------------------------------------------------------
+
+## Turns alternate, the round counter goes up when the order wraps, flags reset, cooldowns tick.
+func test_turns_alternate_and_refresh_units() -> void:
+	var m := GridModel.new(Vector2i(6, 6))
+	var zap := _ability(&"zap", 1, 12, RangeShapes.Shape.SINGLE, 1, 2)
+	var hero_data := _unit(&"hero", 10, 3, 1)
+	hero_data.abilities.append(zap)
+	var hero := m.add_unit(hero_data, 0, Vector2i(0, 0))
+	m.add_unit(_unit(&"foe", 10), 1, Vector2i(5, 5))
+	var tm := TurnManager.new(m)
+	var log: Array[String] = []
+	tm.turn_started.connect(func(team: int, r: int) -> void: log.append("t%d r%d" % [team, r]))
+	tm.start()
+	m.move_unit(hero, Vector2i(1, 0))
+	m.use_ability(hero, zap, Vector2i(5, 5))
+	check(hero.has_moved and hero.has_acted, "hero spent its turn")
+	tm.end_turn()                                       # -> team 1
+	tm.end_turn()                                       # -> team 0, round 2
+	check_eq(log, ["t0 r1", "t1 r1", "t0 r2"] as Array[String], "turn order and rounds")
+	check(not hero.has_moved and not hero.has_acted, "flags reset on the hero's new turn")
+	check(not hero.can_use(zap), "cooldown 2: still unavailable on the next turn")
+	tm.end_turn()
+	tm.end_turn()                                       # hero's third turn
+	check(not hero.can_use(zap), "cooldown 2: unavailable for two of the owner's turns")
+	tm.end_turn()
+	tm.end_turn()
+	check(hero.can_use(zap), "available again after the cooldown")
+
+
+## The battle ends, once, when one team is left; end_turn() then does nothing.
+func test_battle_ends_when_one_team_left() -> void:
+	var m := GridModel.new(Vector2i(4, 4))
+	var hero := m.add_unit(_unit(&"hero", 10, 3, 99), 0, Vector2i(0, 0))
+	m.add_unit(_unit(&"foe", 5), 1, Vector2i(1, 0))
+	var tm := TurnManager.new(m)
+	var winners: Array[int] = []
+	tm.battle_ended.connect(func(w: int) -> void: winners.append(w))
+	tm.start()
+	m.attack(hero, Vector2i(1, 0))
+	check(tm.check_winner(), "battle over after the kill")
+	tm.end_turn()
+	check_eq(winners, [0] as Array[int], "battle_ended emitted once, team 0 wins")
+	check(tm.is_over(), "is_over")
+
+
+# --- TacticsAI ----------------------------------------------------------------------------
+
+## The AI walks toward the nearest enemy; out of range it plans no attack.
+func test_ai_approaches_when_out_of_range() -> void:
+	var m := GridModel.new(Vector2i(10, 3))
+	var hero := m.add_unit(_unit(&"hero"), 0, Vector2i(0, 1))
+	var orc := m.add_unit(_unit(&"orc", 10, 3, 4), 1, Vector2i(9, 1))
+	TacticsAI.take_turn(m, 1)
+	check_eq(orc.cell, Vector2i(6, 1), "moved 3 cells straight at the hero")
+	check(orc.intent.is_empty(), "no telegraph while out of range")
+	check_eq(hero.hp, 10, "no damage yet")
+
+
+## In range, the AI telegraphs first and the hit lands on its NEXT turn (so it can be dodged).
+func test_ai_telegraphs_then_strikes_next_turn() -> void:
+	var m := GridModel.new(Vector2i(6, 3))
+	var hero := m.add_unit(_unit(&"hero"), 0, Vector2i(0, 1))
+	var orc := m.add_unit(_unit(&"orc", 10, 3, 4), 1, Vector2i(3, 1))
+	TacticsAI.take_turn(m, 1)
+	check_eq(orc.cell, Vector2i(1, 1), "stepped adjacent")
+	check_eq(orc.intent.get("cells"), [Vector2i(0, 1)] as Array[Vector2i], "telegraphs the hero's cell")
+	check_eq(hero.hp, 10, "the telegraph itself does no damage")
+	TacticsAI.take_turn(m, 1)                           # hero stayed put
+	check_eq(hero.hp, 6, "the telegraphed hit lands on the next enemy turn")
+
+
+## Stepping out of the marked cell dodges; killing the attacker cancels its telegraph.
+func test_ai_telegraph_can_be_dodged_or_cancelled() -> void:
+	var m := GridModel.new(Vector2i(6, 3))
+	var hero := m.add_unit(_unit(&"hero", 10, 3, 99), 0, Vector2i(0, 1))
+	var orc := m.add_unit(_unit(&"orc", 10, 1, 4), 1, Vector2i(1, 1))
+	TacticsAI.take_turn(m, 1)
+	check(not orc.intent.is_empty(), "attack telegraphed")
+	hero.cell = Vector2i(0, 0)                          # the player steps aside
+	TacticsAI.resolve_intents(m, 1)
+	check_eq(hero.hp, 10, "dodged")
+	TacticsAI.act(m, orc)                               # it aims again
+	check(not m.danger_cells(0).is_empty(), "new telegraph on the hero")
+	m.attack(hero, orc.cell)                            # kill it first
+	check(m.danger_cells(0).is_empty(), "a dead unit's telegraph is cancelled")
+
+
+## A ranged AI unit stops as soon as it can shoot instead of walking into melee.
+func test_ai_ranged_unit_keeps_distance() -> void:
+	var m := GridModel.new(Vector2i(10, 3))
+	m.add_unit(_unit(&"hero"), 0, Vector2i(0, 1))
+	var archer := m.add_unit(_unit(&"archer", 6, 4, 3, 2, 4), 1, Vector2i(7, 1))
+	TacticsAI.take_turn(m, 1)
+	check_eq(archer.cell, Vector2i(4, 1), "stopped at max range (4), walking only 3 of its 4 steps")
+	check(not archer.intent.is_empty(), "and telegraphed a shot")
