@@ -44,7 +44,7 @@ one, put the AI somewhere a judge can see it (generated textures, portraits, dia
 | Rank | Pipeline | Total | Cost | Looks | Re-rolls | Verdict |
 |---|---|---|---|---|---|---|
 | 1 | 2D: one 4-pose billboard sheet + one wall texture | 1:52 | $0.06 | 2 | 1 | Use. Re-roll was an *edit* of take 1 (kept poses, brightened colours) |
-| 2 | 3D: Kenney kit level + pipeline3d boar + fog | 6:23 | $0.00 | 2 | 0 | Works, but the kit's pastel palette fights a horror mood |
+| 2 | 3D: Kenney kit level + pipeline3d boar + fog | 6:24 | $0.00 | 2 | 0 | Works, but the kit's pastel palette fights a horror mood |
 | - | 3D: AI mesh (Tripo/Meshy) + auto-rig | not run | | | | No keys |
 
 ### Action RPG
@@ -61,7 +61,7 @@ one, put the AI somewhere a judge can see it (generated textures, portraits, dia
 | Rank | Pipeline | Total | Cost | Looks | Re-rolls | Verdict |
 |---|---|---|---|---|---|---|
 | 1 | 2D: portrait, token cropped from it by code, one floor image | 1:34 | $0.08 | 2 | 1 | Use. Re-roll removed a franchise-like crest |
-| 2 | 3D: static kit models as minis + floor texture | 5:43 | $0.00 | 1 | 0 | Use when you want a 3D board |
+| 2 | 3D: static kit models as minis + floor texture | 5:44 | $0.00 | 1 | 0 | Use when you want a 3D board |
 
 ### Fighter
 
@@ -84,7 +84,7 @@ one, put the AI somewhere a judge can see it (generated textures, portraits, dia
 | Rank | Pipeline | Total | Cost | Looks | Re-rolls | Verdict |
 |---|---|---|---|---|---|---|
 | 1 | 2D: four flat parts from one sheet, run cycle from a sine wave | 3:01 | $0.04 | 2 | 0 | Use. No frames drawn, first take worked |
-| 2 | 3D: Kenney platformer kit (hero with clips + platforms) | 5:57 | $0.00 | 1 | 0 | Use. Zero risk, but it looks like every other Kenney jam game |
+| 2 | 3D: Kenney platformer kit (hero with clips + platforms) | 5:59 | $0.00 | 1 | 0 | Use. Zero risk, but it looks like every other Kenney jam game |
 
 ## The rules these runs produced
 

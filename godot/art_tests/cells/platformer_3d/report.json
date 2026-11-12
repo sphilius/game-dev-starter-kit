@@ -2,8 +2,8 @@
   "cell": "platformer_3d",
   "pipeline": "one CC0 kit (Kenney): hero with clips + matching platforms",
   "date": "2026-11-12",
-  "wall_seconds": 37.8,
-  "machine_seconds": 37.76,
+  "wall_seconds": 39.85,
+  "machine_seconds": 39.78,
   "human_seconds": 320.0,
   "approvals": 1,
   "rerolls": 0,
@@ -80,37 +80,37 @@
     {
       "name": "gate character.glb",
       "human": false,
-      "seconds": 7.48,
+      "seconds": 8.37,
       "ok": true
     },
     {
       "name": "gate platform-medium.glb",
       "human": false,
-      "seconds": 7.4,
+      "seconds": 7.55,
       "ok": true
     },
     {
       "name": "gate platform-grass-large-round.glb",
       "human": false,
-      "seconds": 7.72,
+      "seconds": 7.41,
       "ok": true
     },
     {
       "name": "gate coin.glb",
       "human": false,
-      "seconds": 7.62,
+      "seconds": 7.64,
       "ok": true
     },
     {
       "name": "godot import",
       "human": false,
-      "seconds": 4.75,
+      "seconds": 5.29,
       "ok": true
     },
     {
       "name": "screenshot",
       "human": false,
-      "seconds": 2.79,
+      "seconds": 3.52,
       "ok": true
     }
   ],
@@ -255,12 +255,12 @@
         {
           "name": "web_size",
           "passed": true,
-          "value": 23.3,
+          "value": 25.7,
           "limit": 2048.0,
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.48
+      "gate_seconds": 8.37
     },
     {
       "asset": "platform-medium.glb",
@@ -372,12 +372,12 @@
         {
           "name": "web_size",
           "passed": true,
-          "value": 7.0,
+          "value": 9.5,
           "limit": 300,
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.4
+      "gate_seconds": 7.55
     },
     {
       "asset": "platform-grass-large-round.glb",
@@ -489,12 +489,12 @@
         {
           "name": "web_size",
           "passed": true,
-          "value": 4.9,
+          "value": 7.4,
           "limit": 300,
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.72
+      "gate_seconds": 7.41
     },
     {
       "asset": "coin.glb",
@@ -606,12 +606,12 @@
         {
           "name": "web_size",
           "passed": true,
-          "value": 6.5,
+          "value": 9.0,
           "limit": 300,
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.62
+      "gate_seconds": 7.64
     }
   ]
 }

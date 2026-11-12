@@ -34,6 +34,11 @@ def verdict(report: dict, name: str) -> bool | None:
     return next(c["passed"] for c in report["checks"] if c["name"] == name)
 
 
+def verdict_value(report: dict, name: str):
+    """The measured value of one named gate in a report."""
+    return next(c["value"] for c in report["checks"] if c["name"] == name)
+
+
 def build_fixtures(blender: str, out: pathlib.Path) -> pathlib.Path:
     """Runs pipeline3d's stage test to make the models; returns the folder holding the .glb files."""
     run = subprocess.run([blender, "-b", "--factory-startup", "--python-exit-code", "1",
@@ -51,6 +56,34 @@ def build_open_plane(blender: str, path: pathlib.Path) -> None:
               f"bpy.ops.export_scene.gltf(filepath=r'{path}', export_format='GLB')\n")
     run = subprocess.run([blender, "-b", "--factory-startup", "--python-expr", script], capture_output=True, text=True, timeout=300)
     check(path.is_file(), "could not build the open-plane model:\n" + run.stdout[-400:])
+
+
+def build_external_texture_model(blender: str, folder: pathlib.Path) -> pathlib.Path:
+    """A cube whose 1024 px noise texture is a SEPARATE file next to the model (.gltf + .bin + .png).
+
+    Kits like Kenney's work this way: the model points at a shared texture beside it. The
+    noise makes the texture large and hard to compress, so it dominates the asset's size.
+    """
+    model = folder / "textured_cube.gltf"
+    script = ("import bpy, random\n"
+              "[bpy.data.objects.remove(o) for o in list(bpy.data.objects)]\n"
+              "bpy.ops.mesh.primitive_cube_add(size=1)\n"
+              "image = bpy.data.images.new('noise', 1024, 1024)\n"
+              "image.pixels.foreach_set([random.random() for _ in range(1024 * 1024 * 4)])\n"
+              f"image.filepath_raw = r'{folder / 'noise.png'}'\n"
+              "image.file_format = 'PNG'\n"
+              "image.save()\n"
+              "material = bpy.data.materials.new('noise')\n"
+              "material.use_nodes = True\n"
+              "node = material.node_tree.nodes.new('ShaderNodeTexImage')\n"
+              "node.image = image\n"
+              "material.node_tree.links.new(node.outputs['Color'], material.node_tree.nodes['Principled BSDF'].inputs['Base Color'])\n"
+              "bpy.context.object.data.materials.append(material)\n"
+              f"bpy.ops.export_scene.gltf(filepath=r'{model}', export_format='GLTF_SEPARATE')\n")
+    run = subprocess.run([blender, "-b", "--factory-startup", "--python-expr", script],
+                         capture_output=True, text=True, timeout=600)
+    check(model.is_file(), "could not build the external-texture model:\n" + run.stdout[-400:])
+    return model
 
 
 def test_facts(models: pathlib.Path) -> None:
@@ -106,6 +139,20 @@ def test_blender_gates(models: pathlib.Path, tmp: pathlib.Path) -> None:
     check(verdict(as_scenery, "non_manifold") is None, "open edges are only reported for environment pieces")
 
 
+def test_external_texture_counts_toward_web_size(tmp: pathlib.Path) -> None:
+    """A texture stored next to the model (not inside it) must count toward web_size."""
+    folder = tmp / "external"
+    folder.mkdir()
+    model = build_external_texture_model(os.environ["BLENDER"], folder)
+    roomy = gate3d.run_gate(model, kind="environment", blender="off")
+    size_kb = verdict_value(roomy, "web_size")
+    check(verdict(roomy, "godot_import") is True, f"the separate texture should import cleanly: {roomy['checks']}")
+    # The cube alone is a few KB; a 1024 px noise texture is hundreds. 100 KB sits between.
+    check(size_kb > 100, f"web_size {size_kb} KB left out the external texture")
+    tight = gate3d.run_gate(model, kind="environment", blender="off", budget_kb=100.0)
+    check(tight["failed"] == ["web_size"], f"a 100 KB budget should fail on the texture: {tight['failed']}")
+
+
 def test_godot_gates(models: pathlib.Path) -> None:
     """Godot layer: clean import, loop flags checked against what was asked, size budget enforced."""
     wolf = models / "wolf_merged.glb"
@@ -134,6 +181,7 @@ if __name__ == "__main__":
         test_blender_gates(models, tmp)
         if gate3d.find_tool(None, "GODOT"):
             test_godot_gates(models)
+            test_external_texture_counts_toward_web_size(tmp)
         else:
             print("  Godot gates skipped (set GODOT to run them)")
     print("PASS")
