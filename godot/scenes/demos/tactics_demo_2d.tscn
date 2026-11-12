@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/demos/tactics_demo.gd" id="1"]
+
+[node name="TacticsDemo2D" type="Node"]
+script = ExtResource("1")
+use_3d = false

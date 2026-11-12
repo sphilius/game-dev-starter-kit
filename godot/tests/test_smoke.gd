@@ -59,3 +59,22 @@ func test_teardown_part_2_time_scale_restored() -> void:
 func test_add_node_puts_node_in_tree() -> void:
 	var node := add_node(Node.new())
 	check(node.is_inside_tree(), "add_node() puts the node in the tree")
+
+
+## Every demo scene under res://scenes/demos loads and runs for a moment without logging an
+## error. The demos double as templates, so a kit change that breaks one must fail CI.
+func test_demo_scenes_run_without_errors() -> void:
+	var dir := "res://scenes/demos"
+	var count := 0
+	for file in DirAccess.get_files_at(dir):
+		if not file.ends_with(".tscn"):
+			continue
+		count += 1
+		var scene := load(dir + "/" + file) as PackedScene
+		if not check(scene != null, "%s did not load" % file):
+			continue
+		var instance := add_node(scene.instantiate())
+		await seconds(0.3)
+		instance.queue_free()               # free now so the next demo starts from a clean tree
+		await tree.process_frame
+	check(count >= 3, "found the demo scenes (%d)" % count)

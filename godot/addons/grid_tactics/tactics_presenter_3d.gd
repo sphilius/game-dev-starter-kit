@@ -261,7 +261,10 @@ func _flat_material(color: Color) -> StandardMaterial3D:
 ## One shared material per highlight colour (created on first use).
 func _tint_material(color: Color) -> StandardMaterial3D:
 	if not _tint_materials.has(color):
-		_tint_materials[color] = _flat_material(color)
+		# Tiles are opaque, so "alpha" is faked: mix the highlight into the floor grey by its
+		# alpha. Color(0.3, 0.7, 1, 0.35) gives a soft blue wash; alpha 1 gives the pure colour.
+		var mixed := Color(0.24, 0.26, 0.3).lerp(Color(color, 1.0), color.a)
+		_tint_materials[color] = _flat_material(mixed)
 	return _tint_materials[color]
 
 
