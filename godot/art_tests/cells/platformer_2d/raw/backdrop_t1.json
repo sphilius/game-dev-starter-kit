@@ -1,0 +1,20 @@
+{
+  "prompt": "Flat paper-cut style background for a 2D platformer, side view: layered silhouettes of rolling hills and tall pine trees in four flat tones from pale peach near the sky to dusty rose and muted plum at the front, a large pale sun low on the horizon, flat solid colours only, no outlines, no gradients, no texture. Light and calm so a dark character stands out. No characters, no animals, no text.",
+  "model": "nano-banana-2-lite",
+  "aspect": "16:9",
+  "wall_s": 6.2,
+  "refs": [],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "platformer_2d",
+    "purpose": "backdrop",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 6.2,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.42,
+    "notes": ""
+  }
+}

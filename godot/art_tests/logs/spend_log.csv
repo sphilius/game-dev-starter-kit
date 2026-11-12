@@ -18,3 +18,5 @@ date,cell,purpose,service,model,images,resolution,wall_s,est_cost_usd,running_to
 2026-11-11,metroidvania_2d,wanderer_run,gemini-api,nano-banana-2-lite,1,1K,6.3,0.02,0.34,
 2026-11-11,metroidvania_2d,tile_top,gemini-api,nano-banana-2-lite,1,1K,6.2,0.02,0.36,
 2026-11-11,metroidvania_2d,tile_fill,gemini-api,nano-banana-2-lite,1,1K,5.9,0.02,0.38,
+2026-11-11,platformer_2d,explorer_parts,gemini-api,nano-banana-2-lite,1,1K,6.8,0.02,0.4,
+2026-11-11,platformer_2d,backdrop,gemini-api,nano-banana-2-lite,1,1K,6.2,0.02,0.42,

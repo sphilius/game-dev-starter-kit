@@ -1,0 +1,20 @@
+{
+  "prompt": "Cut-out puppet parts sheet for a flat-silhouette 2D platformer character, paper-cut style. The character is a small fox-eared explorer shown in side view facing right. Every part is one flat solid deep-navy shape with NO outline, NO shading, NO gradients and NO texture; the only other colour is a bright orange scarf on the body and a small white dot for the eye. Show exactly four separate parts in ONE horizontal row with wide gaps, never touching, in this exact order from left to right: 1) the head with two pointed ears, 2) the body (a rounded torso with the orange scarf, no arms, no legs, no head), 3) one arm with a mitten hand, 4) one leg with a boot. The arm and the leg are drawn straight and vertical, hanging down, with rounded tops. All parts at the same scale. Background is one flat solid pure magenta colour (#FF00FF). No text, no labels, no guide lines.",
+  "model": "nano-banana-2-lite",
+  "aspect": "16:9",
+  "wall_s": 6.8,
+  "refs": [],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "platformer_2d",
+    "purpose": "explorer_parts",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 6.8,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.4,
+    "notes": ""
+  }
+}

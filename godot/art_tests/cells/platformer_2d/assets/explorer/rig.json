@@ -1,0 +1,68 @@
+{
+  "body": {
+    "parent": "",
+    "pivot": [
+      0.5,
+      0.9
+    ],
+    "attach": [
+      0.0,
+      0.0
+    ],
+    "size": [
+      37,
+      45
+    ],
+    "scale": 1.0
+  },
+  "head": {
+    "parent": "body",
+    "pivot": [
+      0.45,
+      0.88
+    ],
+    "attach": [
+      0.5,
+      0.12
+    ],
+    "size": [
+      42,
+      41
+    ],
+    "scale": 1.0
+  },
+  "arm": {
+    "back": true,
+    "parent": "body",
+    "pivot": [
+      0.5,
+      0.1
+    ],
+    "attach": [
+      0.5,
+      0.3
+    ],
+    "size": [
+      14,
+      55
+    ],
+    "scale": 0.7
+  },
+  "leg": {
+    "back": true,
+    "parent": "body",
+    "pivot": [
+      0.5,
+      0.08
+    ],
+    "attach": [
+      0.5,
+      0.88
+    ],
+    "size": [
+      18,
+      55
+    ],
+    "scale": 0.72
+  }
+}
