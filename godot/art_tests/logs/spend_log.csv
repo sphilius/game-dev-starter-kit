@@ -9,3 +9,7 @@ date,cell,purpose,service,model,images,resolution,wall_s,est_cost_usd,running_to
 2026-11-11,action_rpg_2d,ranger_right,gemini-api,nano-banana-2-lite,1,1K,8.0,0.02,0.16,
 2026-11-11,action_rpg_2d,ranger_up,gemini-api,nano-banana-2-lite,1,1K,7.4,0.02,0.18,
 2026-11-11,action_rpg_2d,sand,gemini-api,nano-banana-2-lite,1,1K,6.7,0.02,0.2,
+2026-11-11,tactics_2d,knight,gemini-api,nano-banana-2-lite,1,1K,7.2,0.02,0.22,
+2026-11-11,tactics_2d,orc,gemini-api,nano-banana-2-lite,1,1K,6.0,0.02,0.24,
+2026-11-11,tactics_2d,floor,gemini-api,nano-banana-2-lite,1,1K,6.4,0.02,0.26,
+2026-11-11,tactics_2d,knight,gemini-api,nano-banana-2-lite,1,1K,7.7,0.02,0.28,

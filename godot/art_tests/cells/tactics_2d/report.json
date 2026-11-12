@@ -1,0 +1,532 @@
+{
+  "cell": "tactics_2d",
+  "pipeline": "nano-banana portrait -> code-made token",
+  "date": "2026-11-11",
+  "wall_seconds": 7.47,
+  "machine_seconds": 34.77,
+  "human_seconds": 60.0,
+  "approvals": 2,
+  "rerolls": 1,
+  "cost_usd": 0.08,
+  "gates_passed": true,
+  "gates_failed": [],
+  "steps": [
+    {
+      "name": "generate knight take 1 (cached)",
+      "human": false,
+      "seconds": 7.2,
+      "ok": true
+    },
+    {
+      "name": "generate orc take 1 (cached)",
+      "human": false,
+      "seconds": 6.0,
+      "ok": true
+    },
+    {
+      "name": "review: rejected knight take 1",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "generate knight take 2 (cached)",
+      "human": false,
+      "seconds": 7.7,
+      "ok": true
+    },
+    {
+      "name": "generate floor take 1 (cached)",
+      "human": false,
+      "seconds": 6.4,
+      "ok": true
+    },
+    {
+      "name": "cleanup knight",
+      "human": false,
+      "seconds": 0.11,
+      "ok": true
+    },
+    {
+      "name": "token knight",
+      "human": false,
+      "seconds": 0.01,
+      "ok": true
+    },
+    {
+      "name": "cleanup orc",
+      "human": false,
+      "seconds": 0.07,
+      "ok": true
+    },
+    {
+      "name": "token orc",
+      "human": false,
+      "seconds": 0.01,
+      "ok": true
+    },
+    {
+      "name": "review: two portraits: same style, faces centred so the token crop works",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "board tiles",
+      "human": false,
+      "seconds": 0.02,
+      "ok": true
+    },
+    {
+      "name": "review: floor tile: calm enough that tokens stand out",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "gates",
+      "human": false,
+      "seconds": 0.07,
+      "ok": true
+    },
+    {
+      "name": "godot import",
+      "human": false,
+      "seconds": 4.3,
+      "ok": true
+    },
+    {
+      "name": "screenshot",
+      "human": false,
+      "seconds": 2.88,
+      "ok": true
+    }
+  ],
+  "approval_notes": [
+    "two portraits: same style, faces centred so the token crop works",
+    "floor tile: calm enough that tokens stand out"
+  ],
+  "reroll_reasons": [
+    "knight: armour carried a lion crest resembling a known franchise emblem"
+  ],
+  "failure_modes": [
+    "AI portraits drift toward recognisable franchise designs; say 'no emblems or logos' up front"
+  ],
+  "notes": [],
+  "spends": [
+    {
+      "date": "2026-11-11",
+      "cell": "tactics_2d",
+      "purpose": "knight",
+      "service": "gemini-api",
+      "model": "nano-banana-2-lite",
+      "images": 1,
+      "resolution": "1K",
+      "wall_s": 7.2,
+      "est_cost_usd": 0.02,
+      "running_total_usd": 0.22,
+      "notes": ""
+    },
+    {
+      "date": "2026-11-11",
+      "cell": "tactics_2d",
+      "purpose": "orc",
+      "service": "gemini-api",
+      "model": "nano-banana-2-lite",
+      "images": 1,
+      "resolution": "1K",
+      "wall_s": 6.0,
+      "est_cost_usd": 0.02,
+      "running_total_usd": 0.24,
+      "notes": ""
+    },
+    {
+      "date": "2026-11-11",
+      "cell": "tactics_2d",
+      "purpose": "knight",
+      "service": "gemini-api",
+      "model": "nano-banana-2-lite",
+      "images": 1,
+      "resolution": "1K",
+      "wall_s": 7.7,
+      "est_cost_usd": 0.02,
+      "running_total_usd": 0.28,
+      "notes": ""
+    },
+    {
+      "date": "2026-11-11",
+      "cell": "tactics_2d",
+      "purpose": "floor",
+      "service": "gemini-api",
+      "model": "nano-banana-2-lite",
+      "images": 1,
+      "resolution": "1K",
+      "wall_s": 6.4,
+      "est_cost_usd": 0.02,
+      "running_total_usd": 0.26,
+      "notes": ""
+    }
+  ],
+  "gates": [
+    {
+      "asset": "knight_00.png",
+      "kind": "portrait",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0004,
+          "limit": 0.02,
+          "detail": "1 of 2555 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 17696,
+          "limit": null,
+          "detail": "no palette given; 17696 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              256,
+              256
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": true,
+          "value": {
+            "solid_pixels": 24086,
+            "contrast": 5.85
+          },
+          "limit": {
+            "solid_pixels": 120,
+            "contrast": 2.0
+          },
+          "detail": "figure 202 px tall shown at 202 px on #d8cfb8"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 66.9,
+            "vram_mb": 0.25
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.02
+    },
+    {
+      "asset": "knight.png",
+      "kind": "portrait",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 456 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 1647,
+          "limit": null,
+          "detail": "no palette given; 1647 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              56,
+              56
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": true,
+          "value": {
+            "solid_pixels": 2472,
+            "contrast": 2.47
+          },
+          "limit": {
+            "solid_pixels": 120,
+            "contrast": 2.0
+          },
+          "detail": "figure 56 px tall shown at 56 px on #605a4e"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 7.4,
+            "vram_mb": 0.01
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.0
+    },
+    {
+      "asset": "orc_00.png",
+      "kind": "portrait",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0004,
+          "limit": 0.02,
+          "detail": "1 of 2655 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 18973,
+          "limit": null,
+          "detail": "no palette given; 18973 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              256,
+              256
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": true,
+          "value": {
+            "solid_pixels": 27088,
+            "contrast": 8.94
+          },
+          "limit": {
+            "solid_pixels": 120,
+            "contrast": 2.0
+          },
+          "detail": "figure 217 px tall shown at 217 px on #d8cfb8"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 73.9,
+            "vram_mb": 0.25
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.03
+    },
+    {
+      "asset": "orc.png",
+      "kind": "portrait",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 456 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 1744,
+          "limit": null,
+          "detail": "no palette given; 1744 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              56,
+              56
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": true,
+          "value": {
+            "solid_pixels": 2472,
+            "contrast": 2.13
+          },
+          "limit": {
+            "solid_pixels": 120,
+            "contrast": 2.0
+          },
+          "detail": "figure 56 px tall shown at 56 px on #605a4e"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 7.1,
+            "vram_mb": 0.01
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.01
+    },
+    {
+      "asset": "tiles.png",
+      "kind": "background",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "readability",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 380 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 3983,
+          "limit": null,
+          "detail": "no palette given; 3983 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              128,
+              64
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": null,
+          "value": null,
+          "limit": null,
+          "detail": "skipped: backgrounds are what art is read against"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 14.5,
+            "vram_mb": 0.03
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.01
+    }
+  ]
+}
