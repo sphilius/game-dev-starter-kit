@@ -2,8 +2,8 @@
   "cell": "tactics_3d",
   "pipeline": "static CC0 kit models as minis (Kenney) + CC0 board texture",
   "date": "2026-11-12",
-  "wall_seconds": 23.89,
-  "machine_seconds": 23.86,
+  "wall_seconds": 23.19,
+  "machine_seconds": 23.16,
   "human_seconds": 320.0,
   "approvals": 1,
   "rerolls": 0,
@@ -62,31 +62,31 @@
     {
       "name": "gate character.glb",
       "human": false,
-      "seconds": 7.51,
+      "seconds": 7.68,
       "ok": true
     },
     {
       "name": "gate enemy-flying.glb",
       "human": false,
-      "seconds": 7.52,
+      "seconds": 7.31,
       "ok": true
     },
     {
       "name": "gate board",
       "human": false,
-      "seconds": 0.27,
+      "seconds": 0.26,
       "ok": true
     },
     {
       "name": "godot import",
       "human": false,
-      "seconds": 4.87,
+      "seconds": 4.28,
       "ok": true
     },
     {
       "name": "screenshot",
       "human": false,
-      "seconds": 3.6,
+      "seconds": 3.54,
       "ok": true
     }
   ],
@@ -196,7 +196,7 @@
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\character"
+          "detail": "art_tests\\runs\\turnaround\\character"
         },
         {
           "name": "godot_import",
@@ -226,7 +226,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.51
+      "gate_seconds": 7.68
     },
     {
       "asset": "enemy-flying.glb",
@@ -322,7 +322,7 @@
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\enemy-flying"
+          "detail": "art_tests\\runs\\turnaround\\enemy-flying"
         },
         {
           "name": "godot_import",
@@ -346,7 +346,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.52
+      "gate_seconds": 7.31
     },
     {
       "asset": "board.jpg",
@@ -414,7 +414,7 @@
           "detail": "skipped: --godot off"
         }
       ],
-      "gate_seconds": 0.27
+      "gate_seconds": 0.26
     }
   ]
 }

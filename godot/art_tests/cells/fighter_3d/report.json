@@ -2,8 +2,8 @@
   "cell": "fighter_3d",
   "pipeline": "one CC rigged humanoid used for both fighters + CC0 floor texture",
   "date": "2026-11-12",
-  "wall_seconds": 16.94,
-  "machine_seconds": 16.91,
+  "wall_seconds": 17.2,
+  "machine_seconds": 17.16,
   "human_seconds": 20.0,
   "approvals": 1,
   "rerolls": 0,
@@ -26,7 +26,7 @@
     {
       "name": "shrink floor texture",
       "human": false,
-      "seconds": 0.1,
+      "seconds": 0.11,
       "ok": true
     },
     {
@@ -38,25 +38,25 @@
     {
       "name": "gate animated_base_character.glb",
       "human": false,
-      "seconds": 9.09,
+      "seconds": 9.11,
       "ok": true
     },
     {
       "name": "gate floor",
       "human": false,
-      "seconds": 0.26,
+      "seconds": 0.33,
       "ok": true
     },
     {
       "name": "godot import",
       "human": false,
-      "seconds": 4.28,
+      "seconds": 4.44,
       "ok": true
     },
     {
       "name": "screenshot",
       "human": false,
-      "seconds": 3.18,
+      "seconds": 3.17,
       "ok": true
     }
   ],
@@ -200,14 +200,14 @@
           "passed": true,
           "value": 0.545,
           "limit": 0.5,
-          "detail": "worst joint DEF-spine.001>DEF-spine.002 of 47 tested"
+          "detail": "worst joint DEF-spine.001>DEF-spine.002 of 47 tested; not counted: DEF-upper_arm.L>DEF-forearm.L, DEF-upper_arm.R>DEF-forearm.R, DEF-forearm.L>DEF-hand.L, DEF-forearm.R>DEF-hand.R"
         },
         {
           "name": "turnaround",
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\animated_base_character"
+          "detail": "art_tests\\runs\\turnaround\\animated_base_character"
         },
         {
           "name": "godot_import",
@@ -244,7 +244,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 9.09
+      "gate_seconds": 9.11
     },
     {
       "asset": "floor.jpg",
@@ -312,7 +312,7 @@
           "detail": "skipped: --godot off"
         }
       ],
-      "gate_seconds": 0.26
+      "gate_seconds": 0.33
     }
   ]
 }

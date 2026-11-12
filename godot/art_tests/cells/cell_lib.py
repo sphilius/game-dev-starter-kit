@@ -182,6 +182,14 @@ def gate_model(log: RunLog, glb: pathlib.Path, **options) -> dict:
     with log.step(f"gate {glb.name}"):
         report = gate3d.run_gate(glb, render_dir=renders, **options)
     report.pop("facts", None)          # the full clip list of a 45-clip character bloats report.json
+    # Reports are committed: keep machine-specific absolute paths out of them.
+    # as_posix() writes a path with forward slashes on every operating system.
+    here = (ART_TESTS.as_posix(), str(ART_TESTS))
+    for item in report["checks"]:
+        detail = str(item["detail"])
+        for prefix in here:
+            detail = detail.replace(prefix, "art_tests")
+        item["detail"] = detail
     log.add_gate(report)
     return report
 

@@ -54,6 +54,10 @@ jobs:
       - run: pip install pillow numpy scipy
       - name: Run gate tests
         run: GODOT="$HOME/godot/godot" bash godot/art_tests/gates/run_tests.sh
+      # Every cell of the matrix has a report, no cell has a failing gate, and SCOREBOARD.md
+      # was regenerated after the last report changed.
+      - name: Check the art scoreboard
+        run: python godot/art_tests/scoreboard.py --check
 
   export-web:
     needs: test

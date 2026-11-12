@@ -2,8 +2,8 @@
   "cell": "platformer_3d",
   "pipeline": "one CC0 kit (Kenney): hero with clips + matching platforms",
   "date": "2026-11-12",
-  "wall_seconds": 39.31,
-  "machine_seconds": 39.27,
+  "wall_seconds": 37.8,
+  "machine_seconds": 37.76,
   "human_seconds": 320.0,
   "approvals": 1,
   "rerolls": 0,
@@ -80,37 +80,37 @@
     {
       "name": "gate character.glb",
       "human": false,
-      "seconds": 7.54,
+      "seconds": 7.48,
       "ok": true
     },
     {
       "name": "gate platform-medium.glb",
       "human": false,
-      "seconds": 7.35,
+      "seconds": 7.4,
       "ok": true
     },
     {
       "name": "gate platform-grass-large-round.glb",
       "human": false,
-      "seconds": 7.43,
+      "seconds": 7.72,
       "ok": true
     },
     {
       "name": "gate coin.glb",
       "human": false,
-      "seconds": 7.74,
+      "seconds": 7.62,
       "ok": true
     },
     {
       "name": "godot import",
       "human": false,
-      "seconds": 5.14,
+      "seconds": 4.75,
       "ok": true
     },
     {
       "name": "screenshot",
       "human": false,
-      "seconds": 4.07,
+      "seconds": 2.79,
       "ok": true
     }
   ],
@@ -225,7 +225,7 @@
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\character"
+          "detail": "art_tests\\runs\\turnaround\\character"
         },
         {
           "name": "godot_import",
@@ -260,7 +260,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.54
+      "gate_seconds": 7.48
     },
     {
       "asset": "platform-medium.glb",
@@ -353,7 +353,7 @@
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\platform-medium"
+          "detail": "art_tests\\runs\\turnaround\\platform-medium"
         },
         {
           "name": "godot_import",
@@ -377,7 +377,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.35
+      "gate_seconds": 7.4
     },
     {
       "asset": "platform-grass-large-round.glb",
@@ -470,7 +470,7 @@
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\platform-grass-large-round"
+          "detail": "art_tests\\runs\\turnaround\\platform-grass-large-round"
         },
         {
           "name": "godot_import",
@@ -494,7 +494,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.43
+      "gate_seconds": 7.72
     },
     {
       "asset": "coin.glb",
@@ -587,7 +587,7 @@
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\coin"
+          "detail": "art_tests\\runs\\turnaround\\coin"
         },
         {
           "name": "godot_import",
@@ -611,7 +611,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.74
+      "gate_seconds": 7.62
     }
   ]
 }

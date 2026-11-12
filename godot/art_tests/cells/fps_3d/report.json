@@ -2,8 +2,8 @@
   "cell": "fps_3d",
   "pipeline": "CC0 kit level (Kenney) + pipeline3d procedural rigged enemy + fog",
   "date": "2026-11-12",
-  "wall_seconds": 31.09,
-  "machine_seconds": 44.05,
+  "wall_seconds": 31.01,
+  "machine_seconds": 43.98,
   "human_seconds": 340.0,
   "approvals": 2,
   "rerolls": 0,
@@ -74,31 +74,31 @@
     {
       "name": "gate boar.glb",
       "human": false,
-      "seconds": 7.82,
+      "seconds": 7.63,
       "ok": true
     },
     {
       "name": "gate wall-high.glb",
       "human": false,
-      "seconds": 7.63,
+      "seconds": 7.96,
       "ok": true
     },
     {
       "name": "gate platform-large-grass.glb",
       "human": false,
-      "seconds": 7.99,
+      "seconds": 7.66,
       "ok": true
     },
     {
       "name": "godot import",
       "human": false,
-      "seconds": 4.58,
+      "seconds": 4.66,
       "ok": true
     },
     {
       "name": "screenshot",
       "human": false,
-      "seconds": 3.03,
+      "seconds": 3.07,
       "ok": true
     }
   ],
@@ -211,7 +211,7 @@
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\boar"
+          "detail": "art_tests\\runs\\turnaround\\boar"
         },
         {
           "name": "godot_import",
@@ -247,7 +247,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.82
+      "gate_seconds": 7.63
     },
     {
       "asset": "wall-high.glb",
@@ -340,7 +340,7 @@
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\wall-high"
+          "detail": "art_tests\\runs\\turnaround\\wall-high"
         },
         {
           "name": "godot_import",
@@ -364,7 +364,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.63
+      "gate_seconds": 7.96
     },
     {
       "asset": "platform-large-grass.glb",
@@ -457,7 +457,7 @@
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\platform-large-grass"
+          "detail": "art_tests\\runs\\turnaround\\platform-large-grass"
         },
         {
           "name": "godot_import",
@@ -481,7 +481,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.99
+      "gate_seconds": 7.66
     }
   ]
 }

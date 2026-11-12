@@ -2,8 +2,8 @@
   "cell": "metroidvania_3d",
   "pipeline": "CC rigged animal (Khronos Fox) + CC0 rock texture on boxes, side camera",
   "date": "2026-11-12",
-  "wall_seconds": 22.0,
-  "machine_seconds": 21.97,
+  "wall_seconds": 15.49,
+  "machine_seconds": 15.45,
   "human_seconds": 440.0,
   "approvals": 1,
   "rerolls": 0,
@@ -12,21 +12,21 @@
   "gates_failed": [],
   "steps": [
     {
-      "name": "fetch fox.glb",
+      "name": "fetch fox.glb (already here)",
       "human": false,
-      "seconds": 0.3,
+      "seconds": 0.0,
       "ok": true
     },
     {
-      "name": "fetch Rock030_1K-JPG.zip",
+      "name": "fetch Rock030_1K-JPG.zip (already here)",
       "human": false,
-      "seconds": 4.74,
+      "seconds": 0.0,
       "ok": true
     },
     {
       "name": "extract and shrink rock texture",
       "human": false,
-      "seconds": 0.16,
+      "seconds": 0.11,
       "ok": true
     },
     {
@@ -44,25 +44,25 @@
     {
       "name": "gate fox.glb",
       "human": false,
-      "seconds": 8.23,
+      "seconds": 7.7,
       "ok": true
     },
     {
       "name": "gate rock",
       "human": false,
-      "seconds": 0.28,
+      "seconds": 0.25,
       "ok": true
     },
     {
       "name": "godot import",
       "human": false,
-      "seconds": 4.75,
+      "seconds": 4.28,
       "ok": true
     },
     {
       "name": "screenshot",
       "human": false,
-      "seconds": 3.51,
+      "seconds": 3.11,
       "ok": true
     }
   ],
@@ -167,14 +167,14 @@
           "passed": true,
           "value": 0.678,
           "limit": 0.5,
-          "detail": "worst joint b_Spine02_03>b_RightUpperArm_06 of 18 tested"
+          "detail": "worst joint b_Spine02_03>b_RightUpperArm_06 of 18 tested; not counted: b_Tail01_012>b_Tail02_013, b_Tail02_013>b_Tail03_014, b_RightUpperArm_06>b_RightForeArm_07, b_LeftUpperArm_09>b_LeftForeArm_010, b_LeftForeArm_010>b_LeftHand_011, b_RightForeArm_07>b_RightHand_08, b_Hip_01>b_Tail01_012"
         },
         {
           "name": "turnaround",
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\fox"
+          "detail": "art_tests\\runs\\turnaround\\fox"
         },
         {
           "name": "godot_import",
@@ -207,7 +207,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 8.23
+      "gate_seconds": 7.7
     },
     {
       "asset": "rock.jpg",
@@ -275,7 +275,7 @@
           "detail": "skipped: --godot off"
         }
       ],
-      "gate_seconds": 0.28
+      "gate_seconds": 0.25
     }
   ]
 }

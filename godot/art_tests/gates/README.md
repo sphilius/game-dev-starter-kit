@@ -44,3 +44,19 @@ Without `GODOT` or `BLENDER` the gates that need them are reported as `skip`, ne
   `bend_test.py` (limb joints, 0.85) stays the bar for rigs it generates.
 - **Open edges are normal on scenery.** `non_manifold` is enforced for characters and props
   (it breaks auto-rigging) and only reported for `--kind environment`.
+- **Full-colour sprites need despill.** Without a palette to snap to, the outline keeps a pink
+  halo (18 % of edge pixels on the first real sheet). `art_cleanup.py` now removes it whenever
+  `--palette none` is used.
+- **Side-view sheets flip direction.** A 4-frame row came back facing left, right, left, right.
+  `gate2d.py --side-view` (the `facing` gate) catches it by comparing each frame with the
+  mirror image of the next.
+- **A palette colour is not fringe.** A purple that belongs to the palette looked like leftover
+  magenta to the fringe gate; on-palette edge pixels are now exempt.
+- **A rigged model's real size is not in the file.** Vertices are stored before the skeleton's
+  scale is applied (a 1.8 m character read as 2 cm). For rigged models `gate3d.py` now takes
+  size and origin from Blender, in rest pose, ignoring the importer's bone-display shapes.
+- **Clip libraries need a different loop check.** A character with 45 clips cannot list every
+  loop; `one_shots=` checks only the clips the game uses, in both directions.
+- **Kits keep textures outside the model.** The Godot gate copies files a `.glb` points to, and
+  fails loudly when one is missing.
+- **Jaws, ears, tails and eyes are left out of the bend verdict.** They never bend 90 degrees.

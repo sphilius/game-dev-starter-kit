@@ -7,7 +7,7 @@ Preflight run: **Tuesday, November 10, 2026, 05:29 AM -05:00** on the Windows 11
 
 | Tool | Status | Path / version | Notes |
 |---|---|---|---|
-| Godot 4.7.2 (console, non-mono) | OK | `C:\Users\sphil\AppData\Local\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\Godot_v4.7.2-stable_win64_console.exe` → `4.7.2.stable.official.ed1daf0bf` | Do **not** use `godot` on PATH for headless runs: it is the 4.6.3 mono build and hangs at ".NET: Initializing module". |
+| Godot 4.7.2 (console, non-mono) | OK | `%LOCALAPPDATA%\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\Godot_v4.7.2-stable_win64_console.exe` → `4.7.2.stable.official.ed1daf0bf` | Do **not** use `godot` on PATH for headless runs: it is the 4.6.3 mono build and hangs at ".NET: Initializing module". |
 | Godot web export templates | OK | `%APPDATA%\Godot\export_templates\4.7.2.stable` | Needed for the web-export size gate. |
 | Blender | OK (5.1.1 only) | `C:\Program Files\Blender Foundation\Blender 5.1\blender.exe` | The `Blender 4.2` folder has no `blender.exe` (leftover from an uninstall). pipeline3d was written against 4.2; see "pipeline3d on Blender 5.1" below. |
 | uv | OK | 0.6.10 | |

@@ -2,8 +2,8 @@
   "cell": "action_rpg_3d",
   "pipeline": "CC rigged humanoid + clip library (Quaternius), no manual step",
   "date": "2026-11-12",
-  "wall_seconds": 32.61,
-  "machine_seconds": 32.58,
+  "wall_seconds": 34.77,
+  "machine_seconds": 34.74,
   "human_seconds": 620.0,
   "approvals": 1,
   "rerolls": 0,
@@ -44,31 +44,31 @@
     {
       "name": "gate animated_base_character.glb",
       "human": false,
-      "seconds": 9.29,
+      "seconds": 8.76,
       "ok": true
     },
     {
       "name": "gate rock_medium.glb",
       "human": false,
-      "seconds": 7.82,
+      "seconds": 8.57,
       "ok": true
     },
     {
       "name": "gate plant_big.glb",
       "human": false,
-      "seconds": 7.78,
+      "seconds": 7.87,
       "ok": true
     },
     {
       "name": "godot import",
       "human": false,
-      "seconds": 4.57,
+      "seconds": 5.91,
       "ok": true
     },
     {
       "name": "screenshot",
       "human": false,
-      "seconds": 3.12,
+      "seconds": 3.63,
       "ok": true
     }
   ],
@@ -213,14 +213,14 @@
           "passed": true,
           "value": 0.545,
           "limit": 0.5,
-          "detail": "worst joint DEF-spine.001>DEF-spine.002 of 47 tested"
+          "detail": "worst joint DEF-spine.001>DEF-spine.002 of 47 tested; not counted: DEF-upper_arm.L>DEF-forearm.L, DEF-upper_arm.R>DEF-forearm.R, DEF-forearm.L>DEF-hand.L, DEF-forearm.R>DEF-hand.R"
         },
         {
           "name": "turnaround",
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\animated_base_character"
+          "detail": "art_tests\\runs\\turnaround\\animated_base_character"
         },
         {
           "name": "godot_import",
@@ -258,7 +258,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 9.29
+      "gate_seconds": 8.76
     },
     {
       "asset": "rock_medium.glb",
@@ -351,7 +351,7 @@
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\rock_medium"
+          "detail": "art_tests\\runs\\turnaround\\rock_medium"
         },
         {
           "name": "godot_import",
@@ -375,7 +375,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.82
+      "gate_seconds": 8.57
     },
     {
       "asset": "plant_big.glb",
@@ -468,7 +468,7 @@
           "passed": true,
           "value": 4,
           "limit": 4,
-          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\plant_big"
+          "detail": "art_tests\\runs\\turnaround\\plant_big"
         },
         {
           "name": "godot_import",
@@ -492,7 +492,7 @@
           "detail": "imported scene + textures (what the asset adds to the .pck)"
         }
       ],
-      "gate_seconds": 7.78
+      "gate_seconds": 7.87
     }
   ]
 }
