@@ -402,3 +402,125 @@ func test_bot_verifies_a_folder_of_encounters() -> void:
 	check(results[dir + "/fair.tres"].won, "and proven winnable from its saved file")
 	DirAccess.remove_absolute(dir + "/fair.tres")
 	DirAccess.remove_absolute(dir)
+
+
+# --- Presenters ---------------------------------------------------------------------------
+
+## A small board with one wall, one hero and one orc, shared by the presenter tests.
+func _presenter_model() -> GridModel:
+	var m := GridModel.new(Vector2i(5, 4))
+	m.set_blocked(Vector2i(2, 2))
+	m.add_unit(_unit(&"hero", 10, 3, 99), 0, Vector2i(0, 0))
+	m.add_unit(_unit(&"orc", 6), 1, Vector2i(4, 3))
+	return m
+
+
+## 2D: tiles match the model (floor vs wall) and each unit gets a node at its cell centre.
+func test_presenter_2d_builds_board_and_units() -> void:
+	var m := _presenter_model()
+	var view := add_node(TacticsPresenter2D.new()) as TacticsPresenter2D
+	view.setup(m)
+	check_eq(view.tiles.get_used_cells().size(), 20, "one tile per cell (5×4)")
+	check_eq(view.tiles.get_cell_atlas_coords(Vector2i(2, 2)), Vector2i(1, 0), "wall tile on the blocked cell")
+	check_eq(view.tiles.get_cell_atlas_coords(Vector2i(0, 0)), Vector2i(0, 0), "floor tile elsewhere")
+	check_eq(view.unit_nodes.size(), 2, "one node per unit")
+	var hero := m.living(0)[0]
+	check_eq((view.unit_nodes[hero] as Node2D).position, Vector2(32, 32), "hero drawn at its cell centre")
+	check_eq(view.world_to_cell(view.cell_to_world(Vector2i(3, 2))), Vector2i(3, 2), "cell <-> world round trip")
+
+
+## 2D: a model move becomes a tween that ends on the destination; death removes the node.
+func test_presenter_2d_animates_moves_and_deaths() -> void:
+	var m := _presenter_model()
+	var view := add_node(TacticsPresenter2D.new()) as TacticsPresenter2D
+	view.move_seconds_per_cell = 0.02
+	view.setup(m)
+	var hero := m.living(0)[0]
+	var orc := m.living(1)[0]
+	var hero_node := view.unit_nodes[hero] as Node2D
+	m.move_unit(hero, Vector2i(2, 1))
+	check(view.is_busy(), "busy while the move animates")
+	check(await wait_until(func() -> bool: return not view.is_busy(), 2.0), "animation finishes")
+	check_eq(hero_node.position, view.cell_to_world(Vector2i(2, 1)), "node ended on the destination cell")
+	m.apply_damage(orc, 99, hero)
+	check(not view.unit_nodes.has(orc), "dead unit no longer tracked")
+	check(await wait_until(func() -> bool: return not view.is_busy(), 2.0), "death fade finishes")
+	check_eq(view.unit_nodes.size(), 1, "only the hero remains on screen")
+
+
+## 2D: units added after setup() appear too, and setup() can be called again for a new battle.
+func test_presenter_2d_follows_later_spawns_and_resets() -> void:
+	var m := _presenter_model()
+	var view := add_node(TacticsPresenter2D.new()) as TacticsPresenter2D
+	view.setup(m)
+	m.add_unit(_unit(&"late"), 1, Vector2i(4, 0))
+	check_eq(view.unit_nodes.size(), 3, "reinforcement got a node")
+	view.setup(_presenter_model())
+	check_eq(view.unit_nodes.size(), 2, "second setup starts clean")
+	m.add_unit(_unit(&"ghost"), 1, Vector2i(3, 0))
+	check_eq(view.unit_nodes.size(), 2, "the old model no longer drives this presenter")
+
+
+## 3D: one tile mesh per cell, walls are tall, units stand on the ground plane at their cell.
+func test_presenter_3d_builds_board_and_units() -> void:
+	var m := _presenter_model()
+	var view := add_node(TacticsPresenter3D.new()) as TacticsPresenter3D
+	view.setup(m)
+	check_eq(view.tile_nodes.size(), 20, "one tile per cell")
+	var wall := view.tile_nodes[Vector2i(2, 2)] as MeshInstance3D
+	var floor_tile := view.tile_nodes[Vector2i(0, 0)] as MeshInstance3D
+	check(wall.mesh.get_aabb().size.y > floor_tile.mesh.get_aabb().size.y * 5.0, "walls are much taller than floor slabs")
+	var hero := m.living(0)[0]
+	check_eq((view.unit_nodes[hero] as Node3D).position, Vector3(0.5, 0.0, 0.5), "hero on the ground at its cell centre")
+	check_eq(view.world_to_cell(view.cell_to_world(Vector2i(4, 1))), Vector2i(4, 1), "cell <-> world round trip")
+
+
+## 3D: moves tween to the destination and turn the unit to face its last step; deaths remove it.
+func test_presenter_3d_animates_moves_and_deaths() -> void:
+	var m := _presenter_model()
+	var view := add_node(TacticsPresenter3D.new()) as TacticsPresenter3D
+	view.move_seconds_per_cell = 0.02
+	view.setup(m)
+	var hero := m.living(0)[0]
+	var orc := m.living(1)[0]
+	var hero_node := view.unit_nodes[hero] as Node3D
+	m.move_unit(hero, Vector2i(3, 0))                   # three steps along +X
+	check(await wait_until(func() -> bool: return not view.is_busy(), 2.0), "animation finishes")
+	check_near(hero_node.position, view.cell_to_world(Vector2i(3, 0)), 0.001, "node ended on the destination")
+	check_near(hero_node.rotation.y, -PI / 2.0, 0.001, "facing +X after walking along +X")
+	m.apply_damage(orc, 99, hero)
+	check(await wait_until(func() -> bool: return not view.is_busy(), 2.0), "death animation finishes")
+	check_eq(view.unit_nodes.size(), 1, "only the hero remains")
+
+
+## 3D: telegraphed cells and range highlights tint tiles; clearing restores them.
+func test_presenter_3d_tints_danger_and_ranges() -> void:
+	var m := _presenter_model()
+	var view := add_node(TacticsPresenter3D.new()) as TacticsPresenter3D
+	view.setup(m)
+	var orc := m.living(1)[0]
+	var marked: Array[Vector2i] = [Vector2i(1, 1)]
+	m.set_intent(orc, marked, 3)
+	var danger_tile := view.tile_nodes[Vector2i(1, 1)] as MeshInstance3D
+	check(danger_tile.material_override != null, "telegraphed cell is tinted")
+	view.show_cells([Vector2i(0, 1), Vector2i(1, 1)], Color.CYAN)
+	check((view.tile_nodes[Vector2i(0, 1)] as MeshInstance3D).material_override != null, "range cell is tinted")
+	check_eq((danger_tile.material_override as StandardMaterial3D).albedo_color, Color(1.0, 0.2, 0.15), "danger colour wins over range colour")
+	m.set_intent(orc)
+	view.clear_highlights()
+	check(danger_tile.material_override == null, "tints removed")
+
+
+## 3D picking: a camera looking straight down maps the screen centre to the cell beneath it.
+func test_presenter_3d_picks_cell_under_screen_point() -> void:
+	var m := _presenter_model()
+	var view := add_node(TacticsPresenter3D.new()) as TacticsPresenter3D
+	view.setup(m)
+	var camera := add_node(Camera3D.new()) as Camera3D
+	camera.position = Vector3(3.5, 10.0, 1.5)           # directly above cell (3, 1)
+	camera.rotation.x = -PI / 2.0                       # look straight down
+	await tree.process_frame
+	var centre := Vector2(tree.root.get_visible_rect().size) * 0.5
+	check_eq(view.cell_at_screen(camera, centre), Vector2i(3, 1), "screen centre -> cell under the camera")
+	camera.position = Vector3(50.0, 10.0, 50.0)
+	check_eq(view.cell_at_screen(camera, centre), Vector2i(-1, -1), "off the board -> (-1, -1)")
