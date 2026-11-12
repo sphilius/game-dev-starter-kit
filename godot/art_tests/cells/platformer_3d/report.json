@@ -1,0 +1,617 @@
+{
+  "cell": "platformer_3d",
+  "pipeline": "one CC0 kit (Kenney): hero with clips + matching platforms",
+  "date": "2026-11-12",
+  "wall_seconds": 39.31,
+  "machine_seconds": 39.27,
+  "human_seconds": 320.0,
+  "approvals": 1,
+  "rerolls": 0,
+  "cost_usd": 0,
+  "gates_passed": true,
+  "gates_failed": [],
+  "steps": [
+    {
+      "name": "fetch character.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch platform.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch platform-medium.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch platform-grass-large-round.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch coin.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch flag.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch cloud.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch brick.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch colormap.png (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "review: kit pieces: one style, hero has idle / walk / jump",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "find the kit and pick the pieces",
+      "human": true,
+      "seconds": 300.0,
+      "ok": true
+    },
+    {
+      "name": "gate character.glb",
+      "human": false,
+      "seconds": 7.54,
+      "ok": true
+    },
+    {
+      "name": "gate platform-medium.glb",
+      "human": false,
+      "seconds": 7.35,
+      "ok": true
+    },
+    {
+      "name": "gate platform-grass-large-round.glb",
+      "human": false,
+      "seconds": 7.43,
+      "ok": true
+    },
+    {
+      "name": "gate coin.glb",
+      "human": false,
+      "seconds": 7.74,
+      "ok": true
+    },
+    {
+      "name": "godot import",
+      "human": false,
+      "seconds": 5.14,
+      "ok": true
+    },
+    {
+      "name": "screenshot",
+      "human": false,
+      "seconds": 4.07,
+      "ok": true
+    }
+  ],
+  "approval_notes": [
+    "kit pieces: one style, hero has idle / walk / jump"
+  ],
+  "reroll_reasons": [],
+  "failure_modes": [
+    "kit models reference an external shared texture: copy the Textures folder with them"
+  ],
+  "notes": [],
+  "spends": [],
+  "gates": [
+    {
+      "asset": "character.glb",
+      "kind": "prop",
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "height",
+        "y_up",
+        "bones",
+        "influences",
+        "non_manifold",
+        "bend"
+      ],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 550,
+          "limit": 3000,
+          "detail": "6 mesh(es), 1 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": null,
+          "value": 1.1,
+          "limit": null,
+          "detail": "no --height given"
+        },
+        {
+          "name": "y_up",
+          "passed": null,
+          "value": [
+            1.2,
+            1.1,
+            0.635
+          ],
+          "limit": null,
+          "detail": "only checked for characters"
+        },
+        {
+          "name": "origin",
+          "passed": true,
+          "value": {
+            "lowest_y": -0.0,
+            "centre_offset": 0.01
+          },
+          "limit": {
+            "lowest_y": "0 +-2 cm",
+            "centre_offset": 0.1
+          },
+          "detail": "origin should sit on the ground, under the middle of the model"
+        },
+        {
+          "name": "bones",
+          "passed": null,
+          "value": 0,
+          "limit": 64,
+          "detail": "not rigged"
+        },
+        {
+          "name": "influences",
+          "passed": null,
+          "value": 0,
+          "limit": 4,
+          "detail": "not rigged"
+        },
+        {
+          "name": "clip_names",
+          "passed": true,
+          "value": [
+            "idle",
+            "jump",
+            "static",
+            "walk"
+          ],
+          "limit": [
+            "idle",
+            "walk",
+            "jump"
+          ],
+          "detail": "idle 0.667 s, walk 0.433 s, jump 0.5 s"
+        },
+        {
+          "name": "non_manifold",
+          "passed": null,
+          "value": 34,
+          "limit": null,
+          "detail": "0 loose vertices; reported only for environment pieces"
+        },
+        {
+          "name": "bend",
+          "passed": null,
+          "value": null,
+          "limit": 0.5,
+          "detail": "not rigged"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\character"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "warnings: static prop without collision - export with collision='convex' (adds -convcolonly)"
+        },
+        {
+          "name": "clip_loops",
+          "passed": true,
+          "value": {
+            "should loop but do not": [],
+            "loop but should not": []
+          },
+          "limit": {
+            "loop": [
+              "idle",
+              "walk"
+            ],
+            "one-shot": [
+              "jump"
+            ]
+          },
+          "detail": "2 of 4 clips loop after import"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 23.3,
+          "limit": 2048.0,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 7.54
+    },
+    {
+      "asset": "platform-medium.glb",
+      "kind": "environment",
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "height",
+        "y_up",
+        "origin",
+        "bones",
+        "influences",
+        "clip_names",
+        "non_manifold",
+        "bend",
+        "clip_loops"
+      ],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 188,
+          "limit": 60000,
+          "detail": "1 mesh(es), 1 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": null,
+          "value": 0.55,
+          "limit": null,
+          "detail": "no --height given"
+        },
+        {
+          "name": "y_up",
+          "passed": null,
+          "value": [
+            3.0,
+            0.55,
+            3.0
+          ],
+          "limit": null,
+          "detail": "only checked for characters"
+        },
+        {
+          "name": "origin",
+          "passed": null,
+          "value": {
+            "lowest_y": 0.0
+          },
+          "limit": null,
+          "detail": "not enforced for environment pieces"
+        },
+        {
+          "name": "bones",
+          "passed": null,
+          "value": 0,
+          "limit": 64,
+          "detail": "not rigged"
+        },
+        {
+          "name": "influences",
+          "passed": null,
+          "value": 0,
+          "limit": 4,
+          "detail": "not rigged"
+        },
+        {
+          "name": "clip_names",
+          "passed": null,
+          "value": [],
+          "limit": null,
+          "detail": "no --clips given"
+        },
+        {
+          "name": "non_manifold",
+          "passed": null,
+          "value": 32,
+          "limit": null,
+          "detail": "0 loose vertices; reported only for environment pieces"
+        },
+        {
+          "name": "bend",
+          "passed": null,
+          "value": null,
+          "limit": 0.5,
+          "detail": "not rigged"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\platform-medium"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "warnings: static prop without collision - export with collision='convex' (adds -convcolonly)"
+        },
+        {
+          "name": "clip_loops",
+          "passed": null,
+          "value": [],
+          "limit": [],
+          "detail": "no clips"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 7.0,
+          "limit": 300,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 7.35
+    },
+    {
+      "asset": "platform-grass-large-round.glb",
+      "kind": "environment",
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "height",
+        "y_up",
+        "origin",
+        "bones",
+        "influences",
+        "clip_names",
+        "non_manifold",
+        "bend",
+        "clip_loops"
+      ],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 124,
+          "limit": 60000,
+          "detail": "1 mesh(es), 1 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": null,
+          "value": 0.5,
+          "limit": null,
+          "detail": "no --height given"
+        },
+        {
+          "name": "y_up",
+          "passed": null,
+          "value": [
+            5.0,
+            0.5,
+            5.0
+          ],
+          "limit": null,
+          "detail": "only checked for characters"
+        },
+        {
+          "name": "origin",
+          "passed": null,
+          "value": {
+            "lowest_y": 0.0
+          },
+          "limit": null,
+          "detail": "not enforced for environment pieces"
+        },
+        {
+          "name": "bones",
+          "passed": null,
+          "value": 0,
+          "limit": 64,
+          "detail": "not rigged"
+        },
+        {
+          "name": "influences",
+          "passed": null,
+          "value": 0,
+          "limit": 4,
+          "detail": "not rigged"
+        },
+        {
+          "name": "clip_names",
+          "passed": null,
+          "value": [],
+          "limit": null,
+          "detail": "no --clips given"
+        },
+        {
+          "name": "non_manifold",
+          "passed": null,
+          "value": 0,
+          "limit": null,
+          "detail": "0 loose vertices; reported only for environment pieces"
+        },
+        {
+          "name": "bend",
+          "passed": null,
+          "value": null,
+          "limit": 0.5,
+          "detail": "not rigged"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\platform-grass-large-round"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "warnings: static prop without collision - export with collision='convex' (adds -convcolonly)"
+        },
+        {
+          "name": "clip_loops",
+          "passed": null,
+          "value": [],
+          "limit": [],
+          "detail": "no clips"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 4.9,
+          "limit": 300,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 7.43
+    },
+    {
+      "asset": "coin.glb",
+      "kind": "environment",
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "height",
+        "y_up",
+        "origin",
+        "bones",
+        "influences",
+        "clip_names",
+        "non_manifold",
+        "bend",
+        "clip_loops"
+      ],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 252,
+          "limit": 60000,
+          "detail": "1 mesh(es), 1 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": null,
+          "value": 0.4167,
+          "limit": null,
+          "detail": "no --height given"
+        },
+        {
+          "name": "y_up",
+          "passed": null,
+          "value": [
+            0.415,
+            0.4167,
+            0.1667
+          ],
+          "limit": null,
+          "detail": "only checked for characters"
+        },
+        {
+          "name": "origin",
+          "passed": null,
+          "value": {
+            "lowest_y": -0.0
+          },
+          "limit": null,
+          "detail": "not enforced for environment pieces"
+        },
+        {
+          "name": "bones",
+          "passed": null,
+          "value": 0,
+          "limit": 64,
+          "detail": "not rigged"
+        },
+        {
+          "name": "influences",
+          "passed": null,
+          "value": 0,
+          "limit": 4,
+          "detail": "not rigged"
+        },
+        {
+          "name": "clip_names",
+          "passed": null,
+          "value": [],
+          "limit": null,
+          "detail": "no --clips given"
+        },
+        {
+          "name": "non_manifold",
+          "passed": null,
+          "value": 0,
+          "limit": null,
+          "detail": "0 loose vertices; reported only for environment pieces"
+        },
+        {
+          "name": "bend",
+          "passed": null,
+          "value": null,
+          "limit": 0.5,
+          "detail": "not rigged"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "C:\\Users\\sphil\\dev\\game-dev-starter-kit\\godot\\art_tests\\runs\\turnaround\\coin"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "warnings: static prop without collision - export with collision='convex' (adds -convcolonly)"
+        },
+        {
+          "name": "clip_loops",
+          "passed": null,
+          "value": [],
+          "limit": [],
+          "detail": "no clips"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 6.5,
+          "limit": 300,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 7.74
+    }
+  ]
+}

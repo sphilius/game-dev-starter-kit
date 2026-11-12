@@ -180,6 +180,16 @@ def godot_gates(glb: pathlib.Path, godot: str | None, loops: list[str], budget_k
             if old.suffix.lower() in (".glb", ".gltf", ".fbx"):
                 old.unlink()
         shutil.copy(glb, assets / glb.name)
+        # Some kits keep textures OUTSIDE the .glb (a shared "Textures/colormap.png"). Copy every
+        # file the model points to, keeping its relative path; a missing one is the model's
+        # problem and will show up below as an import error, which is exactly what we want.
+        document = glb_facts.read_gltf_json(glb)
+        for item in document.get("images", []) + document.get("buffers", []):
+            uri = item.get("uri", "")
+            side_file = glb.parent / uri
+            if uri and not uri.startswith("data:") and side_file.is_file():
+                (assets / uri).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy(side_file, assets / uri)
         audit_path = pathlib.Path(folder) / "audit.json"
         try:
             imported = subprocess.run([godot, "--headless", "--path", str(project), "--import"],
