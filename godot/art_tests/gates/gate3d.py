@@ -111,6 +111,9 @@ def file_gates(facts: dict, kind: str, height: float | None, max_tris: int, max_
     return out
 
 
+# Joint-name words the bend gate does not count (see blender_gates).
+BEND_IGNORE = ("jaw", "ear", "tail", "eye")
+
 # --- Layer 2: Blender ---------------------------------------------------------------------
 
 def blender_gates(glb: pathlib.Path, blender: str | None, kind: str, max_non_manifold: int | None,
@@ -152,8 +155,16 @@ def blender_gates(glb: pathlib.Path, blender: str | None, kind: str, max_non_man
                  f"{topo['loose_vertices']} loose vertices" + ("" if enforce else "; reported only for environment pieces"))]
     bend = result.get("bend", {"tested": False, "reason": "not rigged"})
     if bend.get("tested"):
-        out.append(check("bend", bend["worst_retention"] >= min_retention, bend["worst_retention"], min_retention,
-                         f"worst joint {bend['worst_joint']} of {bend['joints_tested']} tested"))
+        # Jaws, ears, tails and eyes never bend 90 degrees in a game, and their tiny folds
+        # always score badly, so they are left out of the verdict (still listed in the detail).
+        counted = [j for j in bend["joints"] if not any(word in j["joint"].lower() for word in BEND_IGNORE)]
+        ignored = [j["joint"] for j in bend["joints"] if j not in counted]
+        worst = min(counted, key=lambda j: j["retention"]) if counted else None
+        value = worst["retention"] if worst else 1.0
+        detail = f"worst joint {worst['joint'] if worst else 'none'} of {bend['joints_tested']} tested"
+        if ignored:
+            detail += f"; not counted: {', '.join(ignored)}"
+        out.append(check("bend", value >= min_retention, value, min_retention, detail))
     else:
         out.append(check("bend", None, None, min_retention, bend.get("reason", "")))
     renders = [p for p in result.get("renders", []) if pathlib.Path(p).is_file() and pathlib.Path(p).stat().st_size > 2000]

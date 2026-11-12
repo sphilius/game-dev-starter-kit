@@ -180,7 +180,7 @@ def bend_test(angle_degrees: float = 90.0) -> dict:
         return {"tested": False, "reason": "no joint has 8+ vertices weighted to both bones"}
     worst = min(joints, key=lambda j: j["retention"])
     return {"tested": True, "joints_tested": len(joints), "worst_retention": worst["retention"],
-            "worst_joint": worst["joint"], "joints": sorted(joints, key=lambda j: j["retention"])[:8]}
+            "worst_joint": worst["joint"], "joints": sorted(joints, key=lambda j: j["retention"])}
 
 
 def turnaround(render_dir: str, prefix: str, resolution: int) -> list:
