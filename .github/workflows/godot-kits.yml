@@ -36,6 +36,25 @@ jobs:
       - name: Run headless kit tests
         run: ~/godot/godot --headless --path godot --script res://addons/kit_tests/run_tests.gd
 
+  # The Python art gates (2D cleanup, gate2d, run log). The 3D gate test needs Blender to build
+  # its models; it prints SKIP and passes here, and runs fully on a machine with BLENDER set.
+  art-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          release: ${{ env.GODOT_RELEASE }}
+          project: godot
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: pip install pillow numpy scipy
+      - name: Run gate tests
+        run: GODOT="$HOME/godot/godot" bash godot/art_tests/gates/run_tests.sh
+
   export-web:
     needs: test
     runs-on: ubuntu-latest
