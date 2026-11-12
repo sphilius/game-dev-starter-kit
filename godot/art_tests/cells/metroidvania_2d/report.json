@@ -1,0 +1,323 @@
+{
+  "cell": "metroidvania_2d",
+  "pipeline": "nano-banana run sheet + 2 tiles, one 16-colour palette",
+  "date": "2026-11-11",
+  "wall_seconds": 8.49,
+  "machine_seconds": 26.88,
+  "human_seconds": 160.0,
+  "approvals": 2,
+  "rerolls": 0,
+  "cost_usd": 0.06,
+  "gates_passed": true,
+  "gates_failed": [],
+  "steps": [
+    {
+      "name": "generate wanderer_run take 1 (cached)",
+      "human": false,
+      "seconds": 6.3,
+      "ok": true
+    },
+    {
+      "name": "generate tile_top take 1 (cached)",
+      "human": false,
+      "seconds": 6.2,
+      "ok": true
+    },
+    {
+      "name": "generate tile_fill take 1 (cached)",
+      "human": false,
+      "seconds": 5.9,
+      "ok": true
+    },
+    {
+      "name": "cleanup run",
+      "human": false,
+      "seconds": 0.61,
+      "ok": true
+    },
+    {
+      "name": "review: run sheet: 6 frames, all facing right, legs alternate",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "crop top",
+      "human": false,
+      "seconds": 0.08,
+      "ok": true
+    },
+    {
+      "name": "cleanup top",
+      "human": false,
+      "seconds": 0.37,
+      "ok": true
+    },
+    {
+      "name": "crop fill",
+      "human": false,
+      "seconds": 0.04,
+      "ok": true
+    },
+    {
+      "name": "cleanup fill",
+      "human": false,
+      "seconds": 0.16,
+      "ok": true
+    },
+    {
+      "name": "pick crop boxes for the two tiles by eye",
+      "human": true,
+      "seconds": 120.0,
+      "ok": true
+    },
+    {
+      "name": "tile atlas",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "review: tiles: moss strip on top, rock matches between the two tiles",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "gates",
+      "human": false,
+      "seconds": 0.02,
+      "ok": true
+    },
+    {
+      "name": "godot import",
+      "human": false,
+      "seconds": 4.02,
+      "ok": true
+    },
+    {
+      "name": "screenshot",
+      "human": false,
+      "seconds": 3.18,
+      "ok": true
+    }
+  ],
+  "approval_notes": [
+    "run sheet: 6 frames, all facing right, legs alternate",
+    "tiles: moss strip on top, rock matches between the two tiles"
+  ],
+  "reroll_reasons": [],
+  "failure_modes": [
+    "tile images come with a drawn border and far too much detail for 32 px",
+    "two tiles from two requests do not match each other: derive variants from ONE tile"
+  ],
+  "notes": [],
+  "spends": [
+    {
+      "date": "2026-11-11",
+      "cell": "metroidvania_2d",
+      "purpose": "wanderer_run",
+      "service": "gemini-api",
+      "model": "nano-banana-2-lite",
+      "images": 1,
+      "resolution": "1K",
+      "wall_s": 6.3,
+      "est_cost_usd": 0.02,
+      "running_total_usd": 0.34,
+      "notes": ""
+    },
+    {
+      "date": "2026-11-11",
+      "cell": "metroidvania_2d",
+      "purpose": "tile_top",
+      "service": "gemini-api",
+      "model": "nano-banana-2-lite",
+      "images": 1,
+      "resolution": "1K",
+      "wall_s": 6.2,
+      "est_cost_usd": 0.02,
+      "running_total_usd": 0.36,
+      "notes": ""
+    },
+    {
+      "date": "2026-11-11",
+      "cell": "metroidvania_2d",
+      "purpose": "tile_fill",
+      "service": "gemini-api",
+      "model": "nano-banana-2-lite",
+      "images": 1,
+      "resolution": "1K",
+      "wall_s": 5.9,
+      "est_cost_usd": 0.02,
+      "running_total_usd": 0.38,
+      "notes": ""
+    }
+  ],
+  "gates": [
+    {
+      "asset": "wanderer",
+      "kind": "sprite",
+      "frames": 6,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 1127 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.01,
+          "detail": "16 distinct colours, 16 in the palette, tolerance 10.0"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              51,
+              52
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "6 frame(s)"
+        },
+        {
+          "name": "feet_baseline",
+          "passed": true,
+          "value": 0,
+          "limit": 2.0,
+          "detail": "lowest solid rows: [49, 49, 49, 49, 49, 49]"
+        },
+        {
+          "name": "silhouette_iou",
+          "passed": true,
+          "value": 0.49,
+          "limit": 0.3,
+          "detail": "min 0.49 at frames (5, 0), mean 0.63"
+        },
+        {
+          "name": "facing",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "frames facing the other way than the one before: none"
+        },
+        {
+          "name": "readability",
+          "passed": true,
+          "value": {
+            "solid_pixels": 839,
+            "contrast": 2.38
+          },
+          "limit": {
+            "solid_pixels": 120,
+            "contrast": 2.0
+          },
+          "detail": "figure 48 px tall shown at 48 px on #566c86"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 8.9,
+            "vram_mb": 0.06
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "6 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.02
+    },
+    {
+      "asset": "atlas.png",
+      "kind": "tileset",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 188 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.01,
+          "detail": "7 distinct colours, 16 in the palette, tolerance 10.0"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              64,
+              32
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": true,
+          "value": {
+            "solid_pixels": 2048,
+            "contrast": 2.02
+          },
+          "limit": {
+            "solid_pixels": 120,
+            "contrast": 2.0
+          },
+          "detail": "figure 32 px tall shown at 32 px on #566c86"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 0.9,
+            "vram_mb": 0.01
+          },
+          "limit": {
+            "png_kb": 512.0,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.01
+    }
+  ]
+}

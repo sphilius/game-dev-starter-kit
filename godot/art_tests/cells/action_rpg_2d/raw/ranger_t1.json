@@ -1,0 +1,20 @@
+{
+  "prompt": "Sprite sheet for a top-down action RPG hero in the style of classic 16-bit overhead adventure games, seen from a high three-quarter overhead angle. One character: a young ranger with a bright green hooded cloak, tan tunic, brown boots and a short sword on the back. A strict grid of 4 rows and 4 columns, 16 frames, evenly spaced, frames not touching each other, every frame the same size and the same character. Row 1: walk cycle facing the viewer (walking down). Row 2: walk cycle facing left. Row 3: walk cycle facing right. Row 4: walk cycle facing away (walking up). Each row is a 4-frame walk: contact, passing, contact with the other leg, passing. Clean readable pixel art, dark outline, bright colours. Background is one flat solid pure magenta colour (#FF00FF), no ground, no shadows, no text, no labels, no grid lines.",
+  "model": "nano-banana-2-lite",
+  "aspect": "1:1",
+  "wall_s": 6.3,
+  "refs": [],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "action_rpg_2d",
+    "purpose": "ranger",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 6.3,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.1,
+    "notes": ""
+  }
+}

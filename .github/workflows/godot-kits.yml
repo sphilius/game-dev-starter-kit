@@ -1,0 +1,86 @@
+# Jam kits CI: headless tests for godot/ (kit_tests, kit_combat, fps_kit, grid_tactics), then a
+# web export of the same project, so a kit change that breaks the browser build fails here.
+#   pull request / push touching godot/ -> test -> export (artifact, not deployed)
+#   manual run                          -> same
+# Nothing exports unless every test passes. Godot is pinned to the version the kits target.
+name: Godot kits
+
+on:
+  push:
+    branches: [main]
+    paths: ["godot/**", ".github/workflows/godot-kits.yml", ".github/actions/setup-godot/**"]
+  pull_request:
+    paths: ["godot/**", ".github/workflows/godot-kits.yml", ".github/actions/setup-godot/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GODOT_VERSION: "4.7.2"
+  GODOT_RELEASE: "4.7.2-stable"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          release: ${{ env.GODOT_RELEASE }}
+          project: godot
+      # Every test_*.gd under godot/tests and godot/addons. A failed check, a timeout, or any
+      # engine/script error logged during a test fails the job.
+      - name: Run headless kit tests
+        run: ~/godot/godot --headless --path godot --script res://addons/kit_tests/run_tests.gd
+
+  # The Python art gates (2D cleanup, gate2d, run log). The 3D gate test needs Blender to build
+  # its models; it prints SKIP and passes here, and runs fully on a machine with BLENDER set.
+  art-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          release: ${{ env.GODOT_RELEASE }}
+          project: godot
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: pip install pillow numpy scipy
+      - name: Run gate tests
+        run: GODOT="$HOME/godot/godot" bash godot/art_tests/gates/run_tests.sh
+      # Every cell of the matrix has a report, no cell has a failing gate, and SCOREBOARD.md
+      # was regenerated after the last report changed.
+      - name: Check the art scoreboard
+        run: python godot/art_tests/scoreboard.py --check
+
+  export-web:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          release: ${{ env.GODOT_RELEASE }}
+          project: godot
+      - name: Export Web preset
+        run: |
+          mkdir -p godot/build/web
+          ~/godot/godot --headless --path godot --export-release "Web" build/web/index.html
+          test -s godot/build/web/index.wasm && test -s godot/build/web/index.pck   # fail loudly on a silent export error
+          ls -lh godot/build/web
+          # Web build size is one of the art gates: print it so it shows in the run summary.
+          echo "### Web build size" >> "$GITHUB_STEP_SUMMARY"
+          du -sh godot/build/web >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: kits-web-build
+          path: godot/build/web
+          retention-days: 7

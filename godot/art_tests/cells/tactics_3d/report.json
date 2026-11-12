@@ -1,0 +1,420 @@
+{
+  "cell": "tactics_3d",
+  "pipeline": "static CC0 kit models as minis (Kenney) + CC0 board texture",
+  "date": "2026-11-12",
+  "wall_seconds": 23.19,
+  "machine_seconds": 23.16,
+  "human_seconds": 320.0,
+  "approvals": 1,
+  "rerolls": 0,
+  "cost_usd": 0,
+  "gates_passed": true,
+  "gates_failed": [],
+  "steps": [
+    {
+      "name": "fetch character.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch colormap.png (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch enemy-flying.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch colormap.png (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch concrete_floor_worn_001_diff_1k.jpg (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "shrink board texture",
+      "human": false,
+      "seconds": 0.09,
+      "ok": true
+    },
+    {
+      "name": "review: two minis read as different units from above; board is calm",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "pick two models and a floor texture",
+      "human": true,
+      "seconds": 300.0,
+      "ok": true
+    },
+    {
+      "name": "gate character.glb",
+      "human": false,
+      "seconds": 7.68,
+      "ok": true
+    },
+    {
+      "name": "gate enemy-flying.glb",
+      "human": false,
+      "seconds": 7.31,
+      "ok": true
+    },
+    {
+      "name": "gate board",
+      "human": false,
+      "seconds": 0.26,
+      "ok": true
+    },
+    {
+      "name": "godot import",
+      "human": false,
+      "seconds": 4.28,
+      "ok": true
+    },
+    {
+      "name": "screenshot",
+      "human": false,
+      "seconds": 3.54,
+      "ok": true
+    }
+  ],
+  "approval_notes": [
+    "two minis read as different units from above; board is calm"
+  ],
+  "reroll_reasons": [],
+  "failure_modes": [],
+  "notes": [],
+  "spends": [],
+  "gates": [
+    {
+      "asset": "character.glb",
+      "kind": "prop",
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "height",
+        "y_up",
+        "bones",
+        "influences",
+        "clip_names",
+        "non_manifold",
+        "bend"
+      ],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 550,
+          "limit": 1500,
+          "detail": "6 mesh(es), 1 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": null,
+          "value": 1.1,
+          "limit": null,
+          "detail": "no --height given"
+        },
+        {
+          "name": "y_up",
+          "passed": null,
+          "value": [
+            1.2,
+            1.1,
+            0.635
+          ],
+          "limit": null,
+          "detail": "only checked for characters"
+        },
+        {
+          "name": "origin",
+          "passed": true,
+          "value": {
+            "lowest_y": -0.0,
+            "centre_offset": 0.01
+          },
+          "limit": {
+            "lowest_y": "0 +-2 cm",
+            "centre_offset": 0.1
+          },
+          "detail": "origin should sit on the ground, under the middle of the model"
+        },
+        {
+          "name": "bones",
+          "passed": null,
+          "value": 0,
+          "limit": 64,
+          "detail": "not rigged"
+        },
+        {
+          "name": "influences",
+          "passed": null,
+          "value": 0,
+          "limit": 4,
+          "detail": "not rigged"
+        },
+        {
+          "name": "clip_names",
+          "passed": null,
+          "value": [
+            "idle",
+            "jump",
+            "static",
+            "walk"
+          ],
+          "limit": null,
+          "detail": "no --clips given"
+        },
+        {
+          "name": "non_manifold",
+          "passed": null,
+          "value": 34,
+          "limit": null,
+          "detail": "0 loose vertices; reported only for environment pieces"
+        },
+        {
+          "name": "bend",
+          "passed": null,
+          "value": null,
+          "limit": 0.5,
+          "detail": "not rigged"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "art_tests\\runs\\turnaround\\character"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "warnings: static prop without collision - export with collision='convex' (adds -convcolonly)"
+        },
+        {
+          "name": "clip_loops",
+          "passed": true,
+          "value": {
+            "should loop but do not": [],
+            "loop but should not": []
+          },
+          "limit": {
+            "loop": [],
+            "one-shot": []
+          },
+          "detail": "2 of 4 clips loop after import"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 23.3,
+          "limit": 300,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 7.68
+    },
+    {
+      "asset": "enemy-flying.glb",
+      "kind": "prop",
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "height",
+        "y_up",
+        "bones",
+        "influences",
+        "clip_names",
+        "non_manifold",
+        "bend",
+        "clip_loops"
+      ],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 544,
+          "limit": 1500,
+          "detail": "4 mesh(es), 1 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": null,
+          "value": 0.875,
+          "limit": null,
+          "detail": "no --height given"
+        },
+        {
+          "name": "y_up",
+          "passed": null,
+          "value": [
+            1.2,
+            0.875,
+            0.7586
+          ],
+          "limit": null,
+          "detail": "only checked for characters"
+        },
+        {
+          "name": "origin",
+          "passed": true,
+          "value": {
+            "lowest_y": 0.0,
+            "centre_offset": 0.073
+          },
+          "limit": {
+            "lowest_y": "0 +-2 cm",
+            "centre_offset": 0.1
+          },
+          "detail": "origin should sit on the ground, under the middle of the model"
+        },
+        {
+          "name": "bones",
+          "passed": null,
+          "value": 0,
+          "limit": 64,
+          "detail": "not rigged"
+        },
+        {
+          "name": "influences",
+          "passed": null,
+          "value": 0,
+          "limit": 4,
+          "detail": "not rigged"
+        },
+        {
+          "name": "clip_names",
+          "passed": null,
+          "value": [],
+          "limit": null,
+          "detail": "no --clips given"
+        },
+        {
+          "name": "non_manifold",
+          "passed": null,
+          "value": 70,
+          "limit": null,
+          "detail": "0 loose vertices; reported only for environment pieces"
+        },
+        {
+          "name": "bend",
+          "passed": null,
+          "value": null,
+          "limit": 0.5,
+          "detail": "not rigged"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "art_tests\\runs\\turnaround\\enemy-flying"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "warnings: static prop without collision - export with collision='convex' (adds -convcolonly)"
+        },
+        {
+          "name": "clip_loops",
+          "passed": null,
+          "value": [],
+          "limit": [],
+          "detail": "no clips"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 18.0,
+          "limit": 300,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 7.31
+    },
+    {
+      "asset": "board.jpg",
+      "kind": "background",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "readability",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 2044 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 800,
+          "limit": null,
+          "detail": "no palette given; 800 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              512,
+              512
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": null,
+          "value": null,
+          "limit": null,
+          "detail": "skipped: backgrounds are what art is read against"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 162.7,
+            "vram_mb": 1.0
+          },
+          "limit": {
+            "png_kb": 600,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.26
+    }
+  ]
+}

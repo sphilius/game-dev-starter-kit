@@ -1,0 +1,20 @@
+{
+  "prompt": "Character portrait for a tactics RPG: a stern female knight captain with short silver hair and blue steel armour with gold trim. Head and shoulders bust, the face large and centred in the upper half of the picture, looking slightly to the side, bold painterly digital illustration with clean shapes and strong rim light, readable at small size. Background is one flat solid pure magenta colour (#FF00FF). No text, no frame, no border.",
+  "model": "nano-banana-2-lite",
+  "aspect": "1:1",
+  "wall_s": 7.2,
+  "refs": [],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "tactics_2d",
+    "purpose": "knight",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 7.2,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.22,
+    "notes": ""
+  }
+}

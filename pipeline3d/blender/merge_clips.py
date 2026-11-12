@@ -51,10 +51,35 @@ def _import(path):
     return [o for o in bpy.data.objects if o not in before]
 
 
+def _channelbags(action):
+    """Blender 4.4+ "slotted actions" keep F-curves in layers -> strips -> channel bags
+    (one bag per slot); Blender 5.0 removed the old flat `action.fcurves` list."""
+    if not hasattr(action, "layers"):
+        return []
+    return [bag for layer in action.layers for strip in layer.strips for bag in strip.channelbags]
+
+
+def _fcurves(action):
+    """Every F-curve on an action, on Blender 4.x (flat list) or 5.x (channel bags)."""
+    bags = _channelbags(action)
+    if bags:
+        return [fc for bag in bags for fc in bag.fcurves]
+    return list(getattr(action, "fcurves", []))
+
+
+def _remove_fcurve(action, fc):
+    """Delete one F-curve from whichever container holds it."""
+    for bag in _channelbags(action):
+        if fc in list(bag.fcurves):
+            bag.fcurves.remove(fc)
+            return
+    action.fcurves.remove(fc)   # Blender 4.x fallback
+
+
 def _strip_root_motion(action, hips):
     """Zero the hips' horizontal translation. Mixamo hips: bone-local Y is up, X/Z horizontal."""
     removed = 0
-    for fc in action.fcurves:
+    for fc in _fcurves(action):
         if fc.data_path == f'pose.bones["{hips}"].location' and fc.array_index in (0, 2):
             first = fc.keyframe_points[0].co.y if fc.keyframe_points else 0.0
             for kp in fc.keyframe_points:
@@ -78,8 +103,8 @@ def _helper_constraints(arm, actions):
             con.owner_space = con.target_space = 'LOCAL'
             con.mix_mode, con.influence = 'REPLACE', 0.5
     for act in actions:
-        for fc in [fc for fc in act.fcurves if "_vol." in fc.data_path]:
-            act.fcurves.remove(fc)
+        for fc in [fc for fc in _fcurves(act) if "_vol." in fc.data_path]:
+            _remove_fcurve(act, fc)
     return len(helpers)
 
 
@@ -121,7 +146,7 @@ def main(config=None):
             name = c["rename"].get(_slug(os.path.splitext(fname)[0]), _slug(os.path.splitext(fname)[0]))
             act.name = name
             act.use_fake_user = True
-            missing = {m for m in re.findall(r'pose\.bones\["([^"]+)"\]', " ".join(fc.data_path for fc in act.fcurves))
+            missing = {m for m in re.findall(r'pose\.bones\["([^"]+)"\]', " ".join(fc.data_path for fc in _fcurves(act)))
                        if m not in bone_names}
             if missing:
                 warnings.append(f"{fname}: {len(missing)} bones not on the character (e.g. {sorted(missing)[:3]})")

@@ -1,0 +1,20 @@
+{
+  "prompt": "Seamless tileable square wall texture for a retro first-person shooter: damp grey-green dungeon stone blocks with dark mortar lines and a few cracks, flat front-on view, evenly lit, no perspective, no shadows cast from outside, chunky low-resolution pixel-art look, the left edge matches the right edge and the top edge matches the bottom edge. No text.",
+  "model": "nano-banana-2-lite",
+  "aspect": "1:1",
+  "wall_s": 6.6,
+  "refs": [],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "fps_2d",
+    "purpose": "wall",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 6.6,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.06,
+    "notes": ""
+  }
+}

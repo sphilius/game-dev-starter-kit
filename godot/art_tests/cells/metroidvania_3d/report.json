@@ -1,0 +1,281 @@
+{
+  "cell": "metroidvania_3d",
+  "pipeline": "CC rigged animal (Khronos Fox) + CC0 rock texture on boxes, side camera",
+  "date": "2026-11-12",
+  "wall_seconds": 15.49,
+  "machine_seconds": 15.45,
+  "human_seconds": 440.0,
+  "approvals": 1,
+  "rerolls": 0,
+  "cost_usd": 0,
+  "gates_passed": true,
+  "gates_failed": [],
+  "steps": [
+    {
+      "name": "fetch fox.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch Rock030_1K-JPG.zip (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "extract and shrink rock texture",
+      "human": false,
+      "seconds": 0.11,
+      "ok": true
+    },
+    {
+      "name": "review: fox has a run clip; rock texture is neutral enough to tint with lights",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "find a rigged, animated model and a rock texture on the two sites",
+      "human": true,
+      "seconds": 420.0,
+      "ok": true
+    },
+    {
+      "name": "gate fox.glb",
+      "human": false,
+      "seconds": 7.7,
+      "ok": true
+    },
+    {
+      "name": "gate rock",
+      "human": false,
+      "seconds": 0.25,
+      "ok": true
+    },
+    {
+      "name": "godot import",
+      "human": false,
+      "seconds": 4.28,
+      "ok": true
+    },
+    {
+      "name": "screenshot",
+      "human": false,
+      "seconds": 3.11,
+      "ok": true
+    }
+  ],
+  "approval_notes": [
+    "fox has a run clip; rock texture is neutral enough to tint with lights"
+  ],
+  "reroll_reasons": [],
+  "failure_modes": [
+    "downloaded model is not in metres (79 units tall): scale it in the scene"
+  ],
+  "notes": [
+    "rock texture: 9450 KB downloaded, 77 KB shipped"
+  ],
+  "spends": [],
+  "gates": [
+    {
+      "asset": "fox.glb",
+      "kind": "prop",
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "height",
+        "y_up"
+      ],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 576,
+          "limit": 3000,
+          "detail": "1 mesh(es), 1 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": null,
+          "value": 79.0289,
+          "limit": null,
+          "detail": "no --height given"
+        },
+        {
+          "name": "y_up",
+          "passed": null,
+          "value": [
+            25.1854,
+            79.0289,
+            154.7199
+          ],
+          "limit": null,
+          "detail": "only checked for characters"
+        },
+        {
+          "name": "origin",
+          "passed": true,
+          "value": {
+            "lowest_y": -0.122,
+            "centre_offset": 0.069
+          },
+          "limit": {
+            "lowest_y": "0 +-2 cm",
+            "centre_offset": 0.1
+          },
+          "detail": "origin should sit on the ground, under the middle of the model"
+        },
+        {
+          "name": "bones",
+          "passed": true,
+          "value": 24,
+          "limit": 64,
+          "detail": ""
+        },
+        {
+          "name": "influences",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "bone weights per vertex"
+        },
+        {
+          "name": "clip_names",
+          "passed": true,
+          "value": [
+            "Run",
+            "Survey",
+            "Walk"
+          ],
+          "limit": [
+            "Run",
+            "Walk",
+            "Survey"
+          ],
+          "detail": "Run 1.158 s, Walk 0.708 s, Survey 3.417 s"
+        },
+        {
+          "name": "non_manifold",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "0 loose vertices"
+        },
+        {
+          "name": "bend",
+          "passed": true,
+          "value": 0.678,
+          "limit": 0.5,
+          "detail": "worst joint b_Spine02_03>b_RightUpperArm_06 of 18 tested; not counted: b_Tail01_012>b_Tail02_013, b_Tail02_013>b_Tail03_014, b_RightUpperArm_06>b_RightForeArm_07, b_LeftUpperArm_09>b_LeftForeArm_010, b_LeftForeArm_010>b_LeftHand_011, b_RightForeArm_07>b_RightHand_08, b_Hip_01>b_Tail01_012"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "art_tests\\runs\\turnaround\\fox"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "clean import"
+        },
+        {
+          "name": "clip_loops",
+          "passed": true,
+          "value": {
+            "should loop but do not": [],
+            "loop but should not": []
+          },
+          "limit": {
+            "loop": [
+              "Run",
+              "Walk"
+            ],
+            "one-shot": []
+          },
+          "detail": "2 of 3 clips loop after import"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 125.0,
+          "limit": 2048.0,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 7.7
+    },
+    {
+      "asset": "rock.jpg",
+      "kind": "background",
+      "frames": 1,
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "palette",
+        "readability",
+        "godot_import"
+      ],
+      "checks": [
+        {
+          "name": "alpha_fringe",
+          "passed": true,
+          "value": 0.0,
+          "limit": 0.02,
+          "detail": "0 of 2044 edge pixels tinted with the key colour"
+        },
+        {
+          "name": "palette",
+          "passed": null,
+          "value": 5065,
+          "limit": null,
+          "detail": "no palette given; 5065 distinct colours"
+        },
+        {
+          "name": "frame_size",
+          "passed": true,
+          "value": [
+            [
+              512,
+              512
+            ]
+          ],
+          "limit": "one size, <= 2048 px",
+          "detail": "1 frame(s)"
+        },
+        {
+          "name": "readability",
+          "passed": null,
+          "value": null,
+          "limit": null,
+          "detail": "skipped: backgrounds are what art is read against"
+        },
+        {
+          "name": "texture_budget",
+          "passed": true,
+          "value": {
+            "png_kb": 425.2,
+            "vram_mb": 1.0
+          },
+          "limit": {
+            "png_kb": 600,
+            "vram_mb": 16.0
+          },
+          "detail": "1 file(s)"
+        },
+        {
+          "name": "godot_import",
+          "passed": null,
+          "value": null,
+          "limit": 0,
+          "detail": "skipped: --godot off"
+        }
+      ],
+      "gate_seconds": 0.25
+    }
+  ]
+}

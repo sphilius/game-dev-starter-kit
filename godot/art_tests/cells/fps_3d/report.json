@@ -1,0 +1,487 @@
+{
+  "cell": "fps_3d",
+  "pipeline": "CC0 kit level (Kenney) + pipeline3d procedural rigged enemy + fog",
+  "date": "2026-11-12",
+  "wall_seconds": 31.01,
+  "machine_seconds": 43.98,
+  "human_seconds": 340.0,
+  "approvals": 2,
+  "rerolls": 0,
+  "cost_usd": 0,
+  "gates_passed": true,
+  "gates_failed": [],
+  "steps": [
+    {
+      "name": "forge boar (already built: 13 s when it runs)",
+      "human": false,
+      "seconds": 13.0,
+      "ok": true
+    },
+    {
+      "name": "fetch wall-high.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch wall-low.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch platform.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch platform-large-grass.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch blaster.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch colormap.png (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "review: boar turnaround: reads as a boar, legs bend the right way",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "review: kit pieces: walls and floor share a style",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "find the kit and pick the pieces",
+      "human": true,
+      "seconds": 300.0,
+      "ok": true
+    },
+    {
+      "name": "gate boar.glb",
+      "human": false,
+      "seconds": 7.63,
+      "ok": true
+    },
+    {
+      "name": "gate wall-high.glb",
+      "human": false,
+      "seconds": 7.96,
+      "ok": true
+    },
+    {
+      "name": "gate platform-large-grass.glb",
+      "human": false,
+      "seconds": 7.66,
+      "ok": true
+    },
+    {
+      "name": "godot import",
+      "human": false,
+      "seconds": 4.66,
+      "ok": true
+    },
+    {
+      "name": "screenshot",
+      "human": false,
+      "seconds": 3.07,
+      "ok": true
+    }
+  ],
+  "approval_notes": [
+    "boar turnaround: reads as a boar, legs bend the right way",
+    "kit pieces: walls and floor share a style"
+  ],
+  "reroll_reasons": [],
+  "failure_modes": [
+    "a kit's palette sets the mood: this pastel kit fights a horror tone (fog and dim light only go so far)",
+    "kit props are not sized for first-person use: the blaster is 1.6 m long and needed scaling to 0.2"
+  ],
+  "notes": [],
+  "spends": [],
+  "gates": [
+    {
+      "asset": "boar.glb",
+      "kind": "prop",
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "y_up"
+      ],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 900,
+          "limit": 1500,
+          "detail": "1 mesh(es), 3 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": true,
+          "value": 0.9,
+          "limit": "0.9 +-10 %",
+          "detail": "size x,y,z = [0.484, 0.9, 1.476] m"
+        },
+        {
+          "name": "y_up",
+          "passed": null,
+          "value": [
+            0.484,
+            0.9,
+            1.476
+          ],
+          "limit": null,
+          "detail": "only checked for characters"
+        },
+        {
+          "name": "origin",
+          "passed": true,
+          "value": {
+            "lowest_y": 0.0,
+            "centre_offset": 0.019
+          },
+          "limit": {
+            "lowest_y": "0 +-2 cm",
+            "centre_offset": 0.1
+          },
+          "detail": "origin should sit on the ground, under the middle of the model"
+        },
+        {
+          "name": "bones",
+          "passed": true,
+          "value": 39,
+          "limit": 64,
+          "detail": ""
+        },
+        {
+          "name": "influences",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "bone weights per vertex"
+        },
+        {
+          "name": "clip_names",
+          "passed": true,
+          "value": [
+            "boar_attack",
+            "boar_death",
+            "boar_idle",
+            "boar_walk"
+          ],
+          "limit": [
+            "boar_idle",
+            "boar_walk",
+            "boar_attack",
+            "boar_death"
+          ],
+          "detail": "boar_idle 2.5 s, boar_walk 0.833 s, boar_attack 1.7 s, boar_death 1.333 s"
+        },
+        {
+          "name": "non_manifold",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "0 loose vertices"
+        },
+        {
+          "name": "bend",
+          "passed": true,
+          "value": 0.646,
+          "limit": 0.5,
+          "detail": "worst joint neck_02>head of 22 tested; not counted: head>jaw, tail_03>tail_04, forearm.L>hand_vol.L, upperarm.L>forearm_vol.L, upperarm.R>forearm_vol.R, forearm.R>hand_vol.R, tail_02>tail_03"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "art_tests\\runs\\turnaround\\boar"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "clean import"
+        },
+        {
+          "name": "clip_loops",
+          "passed": true,
+          "value": {
+            "should loop but do not": [],
+            "loop but should not": []
+          },
+          "limit": {
+            "loop": [
+              "boar_idle",
+              "boar_walk"
+            ],
+            "one-shot": [
+              "boar_attack",
+              "boar_death"
+            ]
+          },
+          "detail": "2 of 4 clips loop after import"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 98.1,
+          "limit": 2048.0,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 7.63
+    },
+    {
+      "asset": "wall-high.glb",
+      "kind": "environment",
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "height",
+        "y_up",
+        "origin",
+        "bones",
+        "influences",
+        "clip_names",
+        "non_manifold",
+        "bend",
+        "clip_loops"
+      ],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 208,
+          "limit": 60000,
+          "detail": "1 mesh(es), 1 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": null,
+          "value": 1.7,
+          "limit": null,
+          "detail": "no --height given"
+        },
+        {
+          "name": "y_up",
+          "passed": null,
+          "value": [
+            1.5,
+            1.7,
+            0.7
+          ],
+          "limit": null,
+          "detail": "only checked for characters"
+        },
+        {
+          "name": "origin",
+          "passed": null,
+          "value": {
+            "lowest_y": 0.0
+          },
+          "limit": null,
+          "detail": "not enforced for environment pieces"
+        },
+        {
+          "name": "bones",
+          "passed": null,
+          "value": 0,
+          "limit": 64,
+          "detail": "not rigged"
+        },
+        {
+          "name": "influences",
+          "passed": null,
+          "value": 0,
+          "limit": 4,
+          "detail": "not rigged"
+        },
+        {
+          "name": "clip_names",
+          "passed": null,
+          "value": [],
+          "limit": null,
+          "detail": "no --clips given"
+        },
+        {
+          "name": "non_manifold",
+          "passed": null,
+          "value": 40,
+          "limit": null,
+          "detail": "0 loose vertices; reported only for environment pieces"
+        },
+        {
+          "name": "bend",
+          "passed": null,
+          "value": null,
+          "limit": 0.5,
+          "detail": "not rigged"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "art_tests\\runs\\turnaround\\wall-high"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "warnings: static prop without collision - export with collision='convex' (adds -convcolonly)"
+        },
+        {
+          "name": "clip_loops",
+          "passed": null,
+          "value": [],
+          "limit": [],
+          "detail": "no clips"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 6.5,
+          "limit": 300,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 7.96
+    },
+    {
+      "asset": "platform-large-grass.glb",
+      "kind": "environment",
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "height",
+        "y_up",
+        "origin",
+        "bones",
+        "influences",
+        "clip_names",
+        "non_manifold",
+        "bend",
+        "clip_loops"
+      ],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 180,
+          "limit": 60000,
+          "detail": "1 mesh(es), 1 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": null,
+          "value": 0.5,
+          "limit": null,
+          "detail": "no --height given"
+        },
+        {
+          "name": "y_up",
+          "passed": null,
+          "value": [
+            5.2,
+            0.5,
+            5.2
+          ],
+          "limit": null,
+          "detail": "only checked for characters"
+        },
+        {
+          "name": "origin",
+          "passed": null,
+          "value": {
+            "lowest_y": 0.0
+          },
+          "limit": null,
+          "detail": "not enforced for environment pieces"
+        },
+        {
+          "name": "bones",
+          "passed": null,
+          "value": 0,
+          "limit": 64,
+          "detail": "not rigged"
+        },
+        {
+          "name": "influences",
+          "passed": null,
+          "value": 0,
+          "limit": 4,
+          "detail": "not rigged"
+        },
+        {
+          "name": "clip_names",
+          "passed": null,
+          "value": [],
+          "limit": null,
+          "detail": "no --clips given"
+        },
+        {
+          "name": "non_manifold",
+          "passed": null,
+          "value": 0,
+          "limit": null,
+          "detail": "0 loose vertices; reported only for environment pieces"
+        },
+        {
+          "name": "bend",
+          "passed": null,
+          "value": null,
+          "limit": 0.5,
+          "detail": "not rigged"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "art_tests\\runs\\turnaround\\platform-large-grass"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "warnings: static prop without collision - export with collision='convex' (adds -convcolonly)"
+        },
+        {
+          "name": "clip_loops",
+          "passed": null,
+          "value": [],
+          "limit": [],
+          "detail": "no clips"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 6.0,
+          "limit": 300,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 7.66
+    }
+  ]
+}

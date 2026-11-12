@@ -1,0 +1,17 @@
+[gd_scene format=3]
+
+[node name="KitGallery" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.9396926, 0.34202015, 0, -0.34202015, 0.9396926, 0, 2, 5)
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.8660254, -0.25, 0.4330127, 0, 0.8660254, 0.5, -0.5, -0.4330127, 0.75, 0, 4, 0)
+
+[node name="Title" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 824.0
+offset_bottom = 96.0
+text = "Jam Kits test project
+Run the demo scenes under res://art_tests/cells/ or the tests with addons/kit_tests/run_tests.gd"

@@ -1,0 +1,51 @@
+name: Set up Godot
+description: >
+  Installs the Godot editor binary plus the web export templates (cached per version; only the
+  ~85 MB of web templates are kept from the 1.2 GB archive), then imports the project so the
+  .godot cache and global script classes exist.
+
+inputs:
+  version:
+    description: Godot version, e.g. 4.7.1
+    required: true
+  release:
+    description: Release tag, e.g. 4.7.1-stable
+    required: true
+  project:
+    description: Folder holding project.godot, relative to the repo root
+    required: false
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - name: Cache Godot and web export templates
+      id: cache
+      uses: actions/cache@v6
+      with:
+        path: |
+          ~/godot
+          ~/.local/share/godot/export_templates/${{ inputs.version }}.stable
+        key: godot-${{ inputs.release }}-linux-web
+
+    - name: Install Godot and web templates (cache miss only)
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        GODOT_VERSION: ${{ inputs.version }}
+        GODOT_RELEASE: ${{ inputs.release }}
+      run: |
+        base="https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}"
+        mkdir -p ~/godot
+        curl -fsSL -o /tmp/godot.zip "$base/Godot_v${GODOT_RELEASE}_linux.x86_64.zip"
+        unzip -q /tmp/godot.zip -d /tmp/godot
+        install -m 755 "/tmp/godot/Godot_v${GODOT_RELEASE}_linux.x86_64" ~/godot/godot
+        curl -fsSL -o /tmp/templates.tpz "$base/Godot_v${GODOT_RELEASE}_export_templates.tpz"
+        dest=~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+        mkdir -p "$dest"
+        unzip -q -j /tmp/templates.tpz 'templates/web*' 'templates/version.txt' -d "$dest"
+        rm -rf /tmp/godot.zip /tmp/godot /tmp/templates.tpz
+
+    - name: Import project
+      shell: bash
+      run: ~/godot/godot --headless --path "${{ inputs.project }}" --import

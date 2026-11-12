@@ -118,14 +118,26 @@ def main():
         glb = os.path.join(OUT, f"{preset}_fitted.glb")
         fitted = build.main({"preset": preset, "muscle": 0.0, "clear_scene": True,
                              "overrides": rep["overrides"], "export_path": glb})
-        worst = max(abs(a - b)
-                    for bone in ref["landmarks"]
-                    for ends in zip(ref["landmarks"][bone], fitted["landmarks"][bone])
-                    for a, b in zip(*ends))
+        # (error, bone) for every coordinate; keep the worst so a failure names the joint that drifted
+        # Landmarks are fractions of the mesh's bounding box. Axis 0 = along the body, 1 = height:
+        # these come from the side-view image, so they are gated as fractions (< 0.02).
+        # Axis 2 = sideways, a fraction of HALF the body width. A side view carries no sideways
+        # information (it comes from the preset), and on a narrow body such as the deer a few
+        # millimetres read as several percent, so that axis is compared in metres (< 1 cm).
+        ref_half = ref["dimensions_m"][0] / 2
+        fit_half = fitted["dimensions_m"][0] / 2
+        worst, worst_bone, worst_axis = max((abs(a - b), bone, axis)
+                                            for bone in ref["landmarks"]
+                                            for ends in zip(ref["landmarks"][bone], fitted["landmarks"][bone])
+                                            for axis, (a, b) in enumerate(zip(*ends)) if axis < 2)
+        side_m, side_bone = max((abs(a[2] * ref_half - b[2] * fit_half), bone)
+                                for bone in ref["landmarks"]
+                                for a, b in zip(ref["landmarks"][bone], fitted["landmarks"][bone]))
         skinned = rig.main({"import_path": glb, "clear_scene": True})
-        ok = (worst < 0.02 and fitted["non_manifold"] == 0 and fitted["fitted_legs"]
+        ok = (worst < 0.02 and side_m < 0.01 and fitted["non_manifold"] == 0 and fitted["fitted_legs"]
               and skinned["unweighted_verts"] == 0 and not rep["warnings"])
-        print(f"[test] fit {preset:5s} facing {kp['facing']:5s} {W}x{H}: landmark error {worst:.4f}, "
+        print(f"[test] fit {preset:5s} facing {kp['facing']:5s} {W}x{H}: landmark error {worst:.4f} ({worst_bone} {['length', 'height'][worst_axis]}), "
+              f"side {side_m * 1000:.1f} mm ({side_bone}), "
               f"non-manifold {fitted['non_manifold']}, unweighted {skinned['unweighted_verts']}, "
               f"warnings {rep['warnings']} -> {'ok' if ok else 'FAIL'}")
         if not ok:

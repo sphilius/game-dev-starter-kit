@@ -1,0 +1,498 @@
+{
+  "cell": "action_rpg_3d",
+  "pipeline": "CC rigged humanoid + clip library (Quaternius), no manual step",
+  "date": "2026-11-12",
+  "wall_seconds": 34.77,
+  "machine_seconds": 34.74,
+  "human_seconds": 620.0,
+  "approvals": 1,
+  "rerolls": 0,
+  "cost_usd": 0,
+  "gates_passed": true,
+  "gates_failed": [],
+  "steps": [
+    {
+      "name": "fetch animated_base_character.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch rock_medium.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "fetch plant_big.glb (already here)",
+      "human": false,
+      "seconds": 0.0,
+      "ok": true
+    },
+    {
+      "name": "review: picked a character whose clip list covers attack, hit, roll and death",
+      "human": true,
+      "seconds": 20.0,
+      "ok": true
+    },
+    {
+      "name": "search the source site for a rigged, animated character",
+      "human": true,
+      "seconds": 600.0,
+      "ok": true
+    },
+    {
+      "name": "gate animated_base_character.glb",
+      "human": false,
+      "seconds": 8.76,
+      "ok": true
+    },
+    {
+      "name": "gate rock_medium.glb",
+      "human": false,
+      "seconds": 8.57,
+      "ok": true
+    },
+    {
+      "name": "gate plant_big.glb",
+      "human": false,
+      "seconds": 7.87,
+      "ok": true
+    },
+    {
+      "name": "godot import",
+      "human": false,
+      "seconds": 5.91,
+      "ok": true
+    },
+    {
+      "name": "screenshot",
+      "human": false,
+      "seconds": 3.63,
+      "ok": true
+    }
+  ],
+  "approval_notes": [
+    "picked a character whose clip list covers attack, hit, roll and death"
+  ],
+  "reroll_reasons": [],
+  "failure_modes": [
+    "a clip-library character is a bare mannequin: it gives motion, not identity (tinted per team here; a real costume is extra work)"
+  ],
+  "notes": [],
+  "spends": [],
+  "gates": [
+    {
+      "asset": "animated_base_character.glb",
+      "kind": "character",
+      "passed": true,
+      "failed": [],
+      "skipped": [],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 13744,
+          "limit": 15000,
+          "detail": "1 mesh(es), 2 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": true,
+          "value": 1.8287,
+          "limit": "1.8 +-10 %",
+          "detail": "size x,y,z = [1.9445, 1.8287, 0.3696] m"
+        },
+        {
+          "name": "y_up",
+          "passed": true,
+          "value": [
+            1.9445,
+            1.8287,
+            0.3696
+          ],
+          "limit": "Y is the longest axis",
+          "detail": "a character lying on its side was exported Z-up"
+        },
+        {
+          "name": "origin",
+          "passed": true,
+          "value": {
+            "lowest_y": -0.013,
+            "centre_offset": 0.056
+          },
+          "limit": {
+            "lowest_y": "0 +-2 cm",
+            "centre_offset": 0.1
+          },
+          "detail": "origin should sit on the ground, under the middle of the model"
+        },
+        {
+          "name": "bones",
+          "passed": true,
+          "value": 53,
+          "limit": 64,
+          "detail": ""
+        },
+        {
+          "name": "influences",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "bone weights per vertex"
+        },
+        {
+          "name": "clip_names",
+          "passed": true,
+          "value": [
+            "Rig|Crouch_Fwd_Loop",
+            "Rig|Crouch_Idle_Loop",
+            "Rig|Dance_Loop",
+            "Rig|Death01",
+            "Rig|Driving_Loop",
+            "Rig|Fixing_Kneeling",
+            "Rig|Hit_Chest",
+            "Rig|Hit_Head",
+            "Rig|Idle_Loop",
+            "Rig|Idle_Talking_Loop",
+            "Rig|Idle_Torch_Loop",
+            "Rig|Interact",
+            "Rig|Jog_Fwd_Loop",
+            "Rig|Jump_Land",
+            "Rig|Jump_Loop",
+            "Rig|Jump_Start",
+            "Rig|PickUp_Table",
+            "Rig|Pistol_Aim_Down",
+            "Rig|Pistol_Aim_Neutral",
+            "Rig|Pistol_Aim_Up",
+            "Rig|Pistol_Idle_Loop",
+            "Rig|Pistol_Reload",
+            "Rig|Pistol_Shoot",
+            "Rig|Punch_Cross",
+            "Rig|Punch_Enter",
+            "Rig|Punch_Jab",
+            "Rig|Push_Loop",
+            "Rig|Roll",
+            "Rig|Roll_RM",
+            "Rig|Sitting_Enter",
+            "Rig|Sitting_Exit",
+            "Rig|Sitting_Idle_Loop",
+            "Rig|Sitting_Talking_Loop",
+            "Rig|Spell_Simple_Enter",
+            "Rig|Spell_Simple_Exit",
+            "Rig|Spell_Simple_Idle_Loop",
+            "Rig|Spell_Simple_Shoot",
+            "Rig|Sprint_Loop",
+            "Rig|Swim_Fwd_Loop",
+            "Rig|Swim_Idle_Loop",
+            "Rig|Sword_Attack",
+            "Rig|Sword_Attack_RM",
+            "Rig|Sword_Idle",
+            "Rig|Walk_Formal_Loop",
+            "Rig|Walk_Loop"
+          ],
+          "limit": [
+            "Rig|Idle_Loop",
+            "Rig|Jog_Fwd_Loop",
+            "Rig|Sword_Attack",
+            "Rig|Roll",
+            "Rig|Hit_Chest",
+            "Rig|Death01"
+          ],
+          "detail": "Rig|Idle_Loop 2.5 s, Rig|Jog_Fwd_Loop 0.917 s, Rig|Sword_Attack 1.5 s, Rig|Roll 1.458 s, Rig|Hit_Chest 0.333 s, Rig|Death01 2.375 s"
+        },
+        {
+          "name": "non_manifold",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "0 loose vertices"
+        },
+        {
+          "name": "bend",
+          "passed": true,
+          "value": 0.545,
+          "limit": 0.5,
+          "detail": "worst joint DEF-spine.001>DEF-spine.002 of 47 tested; not counted: DEF-upper_arm.L>DEF-forearm.L, DEF-upper_arm.R>DEF-forearm.R, DEF-forearm.L>DEF-hand.L, DEF-forearm.R>DEF-hand.R"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "art_tests\\runs\\turnaround\\animated_base_character"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "clean import"
+        },
+        {
+          "name": "clip_loops",
+          "passed": true,
+          "value": {
+            "should loop but do not": [],
+            "loop but should not": []
+          },
+          "limit": {
+            "loop": [
+              "Rig|Idle",
+              "Rig|Jog_Fwd"
+            ],
+            "one-shot": [
+              "Rig|Death01",
+              "Rig|Hit_Chest",
+              "Rig|Roll",
+              "Rig|Sword_Attack"
+            ]
+          },
+          "detail": "20 of 45 clips loop after import"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 1064.7,
+          "limit": 2048.0,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 8.76
+    },
+    {
+      "asset": "rock_medium.glb",
+      "kind": "environment",
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "height",
+        "y_up",
+        "origin",
+        "bones",
+        "influences",
+        "clip_names",
+        "non_manifold",
+        "bend",
+        "clip_loops"
+      ],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 342,
+          "limit": 60000,
+          "detail": "1 mesh(es), 1 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": null,
+          "value": 2.2598,
+          "limit": null,
+          "detail": "no --height given"
+        },
+        {
+          "name": "y_up",
+          "passed": null,
+          "value": [
+            3.2251,
+            2.2598,
+            2.9891
+          ],
+          "limit": null,
+          "detail": "only checked for characters"
+        },
+        {
+          "name": "origin",
+          "passed": null,
+          "value": {
+            "lowest_y": -0.2711
+          },
+          "limit": null,
+          "detail": "not enforced for environment pieces"
+        },
+        {
+          "name": "bones",
+          "passed": null,
+          "value": 0,
+          "limit": 64,
+          "detail": "not rigged"
+        },
+        {
+          "name": "influences",
+          "passed": null,
+          "value": 0,
+          "limit": 4,
+          "detail": "not rigged"
+        },
+        {
+          "name": "clip_names",
+          "passed": null,
+          "value": [],
+          "limit": null,
+          "detail": "no --clips given"
+        },
+        {
+          "name": "non_manifold",
+          "passed": null,
+          "value": 0,
+          "limit": null,
+          "detail": "0 loose vertices; reported only for environment pieces"
+        },
+        {
+          "name": "bend",
+          "passed": null,
+          "value": null,
+          "limit": 0.5,
+          "detail": "not rigged"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "art_tests\\runs\\turnaround\\rock_medium"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "warnings: static prop without collision - export with collision='convex' (adds -convcolonly)"
+        },
+        {
+          "name": "clip_loops",
+          "passed": null,
+          "value": [],
+          "limit": [],
+          "detail": "no clips"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 1219.3,
+          "limit": 1500,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 8.57
+    },
+    {
+      "asset": "plant_big.glb",
+      "kind": "environment",
+      "passed": true,
+      "failed": [],
+      "skipped": [
+        "height",
+        "y_up",
+        "origin",
+        "bones",
+        "influences",
+        "clip_names",
+        "non_manifold",
+        "bend",
+        "clip_loops"
+      ],
+      "checks": [
+        {
+          "name": "tri_budget",
+          "passed": true,
+          "value": 360,
+          "limit": 60000,
+          "detail": "1 mesh(es), 1 material(s)"
+        },
+        {
+          "name": "height",
+          "passed": null,
+          "value": 3.7564,
+          "limit": null,
+          "detail": "no --height given"
+        },
+        {
+          "name": "y_up",
+          "passed": null,
+          "value": [
+            2.8905,
+            3.7564,
+            3.1264
+          ],
+          "limit": null,
+          "detail": "only checked for characters"
+        },
+        {
+          "name": "origin",
+          "passed": null,
+          "value": {
+            "lowest_y": -0.056
+          },
+          "limit": null,
+          "detail": "not enforced for environment pieces"
+        },
+        {
+          "name": "bones",
+          "passed": null,
+          "value": 0,
+          "limit": 64,
+          "detail": "not rigged"
+        },
+        {
+          "name": "influences",
+          "passed": null,
+          "value": 0,
+          "limit": 4,
+          "detail": "not rigged"
+        },
+        {
+          "name": "clip_names",
+          "passed": null,
+          "value": [],
+          "limit": null,
+          "detail": "no --clips given"
+        },
+        {
+          "name": "non_manifold",
+          "passed": null,
+          "value": 252,
+          "limit": null,
+          "detail": "0 loose vertices; reported only for environment pieces"
+        },
+        {
+          "name": "bend",
+          "passed": null,
+          "value": null,
+          "limit": 0.5,
+          "detail": "not rigged"
+        },
+        {
+          "name": "turnaround",
+          "passed": true,
+          "value": 4,
+          "limit": 4,
+          "detail": "art_tests\\runs\\turnaround\\plant_big"
+        },
+        {
+          "name": "godot_import",
+          "passed": true,
+          "value": 0,
+          "limit": 0,
+          "detail": "warnings: static prop without collision - export with collision='convex' (adds -convcolonly)"
+        },
+        {
+          "name": "clip_loops",
+          "passed": null,
+          "value": [],
+          "limit": [],
+          "detail": "no clips"
+        },
+        {
+          "name": "web_size",
+          "passed": true,
+          "value": 724.1,
+          "limit": 1500,
+          "detail": "imported scene + textures (what the asset adds to the .pck)"
+        }
+      ],
+      "gate_seconds": 7.87
+    }
+  ]
+}

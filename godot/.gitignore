@@ -1,0 +1,8 @@
+# Godot's import cache and editor state: rebuilt by `godot --import`.
+.godot/
+# Web/desktop exports.
+build/
+# Per-run art-test output (reports are summarised into SCOREBOARD.md, which IS committed).
+art_tests/runs/
+# Raw AI images are 0.5-2 MB each: keep the small .json receipts (prompt, time, cost), not the PNGs.
+art_tests/cells/*/raw/*.png

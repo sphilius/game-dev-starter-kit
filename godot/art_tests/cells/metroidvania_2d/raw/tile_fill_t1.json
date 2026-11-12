@@ -1,0 +1,20 @@
+{
+  "prompt": "One square seamless pixel-art texture of dark slate cave rock made of chunky stones with near-black navy gaps, for a 2D side-view cave platformer. The left edge matches the right edge and the top edge matches the bottom edge. Flat front view, low resolution, flat colours, no gradients. Use only these colours: near-black navy, deep purple, crimson, orange, pale yellow, lime green, green, teal, dark blue, blue, sky blue, cyan, white, pale grey-blue, slate, dark slate. No text, no border.",
+  "model": "nano-banana-2-lite",
+  "aspect": "1:1",
+  "wall_s": 5.9,
+  "refs": [],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "metroidvania_2d",
+    "purpose": "tile_fill",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 5.9,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.38,
+    "notes": ""
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "torso": {
+    "parent": "",
+    "pivot": [
+      0.5,
+      0.95
+    ],
+    "attach": [
+      0.0,
+      0.0
+    ],
+    "size": [
+      50,
+      87
+    ],
+    "scale": 1.35
+  },
+  "head": {
+    "parent": "torso",
+    "pivot": [
+      0.45,
+      0.92
+    ],
+    "attach": [
+      0.5,
+      0.1
+    ],
+    "size": [
+      59,
+      65
+    ],
+    "scale": 1.1
+  },
+  "upper_arm": {
+    "back": true,
+    "parent": "torso",
+    "pivot": [
+      0.5,
+      0.12
+    ],
+    "attach": [
+      0.5,
+      0.2
+    ],
+    "size": [
+      21,
+      87
+    ],
+    "scale": 0.8
+  },
+  "forearm": {
+    "back": true,
+    "parent": "upper_arm",
+    "pivot": [
+      0.5,
+      0.08
+    ],
+    "attach": [
+      0.5,
+      0.9
+    ],
+    "size": [
+      29,
+      110
+    ],
+    "scale": 0.8
+  },
+  "thigh": {
+    "back": true,
+    "parent": "torso",
+    "pivot": [
+      0.5,
+      0.1
+    ],
+    "attach": [
+      0.5,
+      0.9
+    ],
+    "size": [
+      37,
+      90
+    ],
+    "scale": 1.1
+  },
+  "shin": {
+    "back": true,
+    "parent": "thigh",
+    "pivot": [
+      0.5,
+      0.06
+    ],
+    "attach": [
+      0.5,
+      0.92
+    ],
+    "size": [
+      42,
+      125
+    ],
+    "scale": 0.9
+  }
+}

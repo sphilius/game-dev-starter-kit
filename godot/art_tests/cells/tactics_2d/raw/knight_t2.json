@@ -1,0 +1,22 @@
+{
+  "prompt": "Edit this portrait. Keep the face, hair, pose, lighting and painting style exactly the same. Remove every emblem, crest, lion head, logo and heraldic symbol from the armour and tabard: replace them with plain blue steel plates and simple gold edge trim with no symbols at all. Keep the background one flat solid pure magenta (#FF00FF). No text.",
+  "model": "nano-banana-2-lite",
+  "aspect": "1:1",
+  "wall_s": 7.7,
+  "refs": [
+    "knight_t1.png"
+  ],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "tactics_2d",
+    "purpose": "knight",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 7.7,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.28,
+    "notes": ""
+  }
+}

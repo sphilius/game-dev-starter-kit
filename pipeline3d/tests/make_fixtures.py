@@ -92,6 +92,9 @@ def humanoid():
         mod = o.modifiers.new("split", 'EDGE_SPLIT')
         mod.split_angle = math.radians(20)
         mod.use_edge_sharp = False
+        # Blender 5.x: objects made through bpy.data show up in the view layer only after
+        # an update (before it they read as None), so refresh before (de)selecting.
+        bpy.context.view_layer.update()
         for sel in bpy.context.view_layer.objects:
             sel.select_set(sel == o)
         bpy.ops.object.modifier_apply(modifier=mod.name)

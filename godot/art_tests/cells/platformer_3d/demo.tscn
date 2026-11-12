@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://art_tests/cells/platformer_3d/demo.gd" id="1"]
+
+[node name="Platformer3DDemo" type="Node3D"]
+script = ExtResource("1")

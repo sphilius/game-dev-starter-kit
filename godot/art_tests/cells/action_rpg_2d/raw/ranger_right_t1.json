@@ -1,0 +1,22 @@
+{
+  "prompt": "Using the character in the reference image (same ranger, same colours, same pixel-art style, same overhead camera angle), draw a new sprite sheet with exactly four frames in one horizontal row, evenly spaced, not touching, all the same size, feet on the same line. It is a 4-frame walk cycle with the character in side view facing RIGHT, walking to the right in EVERY frame: 1) left foot forward, 2) feet together, 3) right foot forward, 4) feet together. The legs and arms must clearly differ between frames. Background is one flat solid pure magenta colour (#FF00FF), no ground, no shadows, no text.",
+  "model": "nano-banana-2-lite",
+  "aspect": "16:9",
+  "wall_s": 8.0,
+  "refs": [
+    "ranger_t1.png"
+  ],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "action_rpg_2d",
+    "purpose": "ranger_right",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 8.0,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.16,
+    "notes": ""
+  }
+}

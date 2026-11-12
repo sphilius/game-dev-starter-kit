@@ -1,0 +1,20 @@
+{
+  "prompt": "One square pixel-art terrain tile for a 2D side-view cave platformer: the top quarter is a bumpy strip of teal and green moss with a dark outline on its upper edge, the rest below is dark slate cave rock made of chunky stones. The left edge matches the right edge so it tiles horizontally. Flat front view, low resolution, flat colours, no gradients. Use only these colours: near-black navy, deep purple, crimson, orange, pale yellow, lime green, green, teal, dark blue, blue, sky blue, cyan, white, pale grey-blue, slate, dark slate. No text, no border.",
+  "model": "nano-banana-2-lite",
+  "aspect": "1:1",
+  "wall_s": 6.2,
+  "refs": [],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "metroidvania_2d",
+    "purpose": "tile_top",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 6.2,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.36,
+    "notes": ""
+  }
+}

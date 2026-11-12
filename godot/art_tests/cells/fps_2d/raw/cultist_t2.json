@@ -1,0 +1,22 @@
+{
+  "prompt": "Edit this sprite sheet. Keep the four poses, their positions, sizes and the pixel-art style exactly as they are. Change only the colours of the character so it reads against a very dark background: make the robe a bright saturated crimson with lighter orange-red highlights on the folds, make the bone mask and hands pale ivory, and keep a thin dark outline. Keep the background one flat solid pure magenta (#FF00FF). No text.",
+  "model": "nano-banana-2-lite",
+  "aspect": "16:9",
+  "wall_s": 7.6,
+  "refs": [
+    "cultist_t1.png"
+  ],
+  "spend": {
+    "date": "2026-11-11",
+    "cell": "fps_2d",
+    "purpose": "cultist",
+    "service": "gemini-api",
+    "model": "nano-banana-2-lite",
+    "images": 1,
+    "resolution": "1K",
+    "wall_s": 7.6,
+    "est_cost_usd": 0.02,
+    "running_total_usd": 0.08,
+    "notes": ""
+  }
+}
