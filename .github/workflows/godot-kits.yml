@@ -48,7 +48,7 @@ jobs:
           version: ${{ env.GODOT_VERSION }}
           release: ${{ env.GODOT_RELEASE }}
           project: godot
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - run: pip install pillow numpy scipy
