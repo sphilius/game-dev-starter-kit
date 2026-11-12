@@ -298,3 +298,107 @@ func test_ai_ranged_unit_keeps_distance() -> void:
 	TacticsAI.take_turn(m, 1)
 	check_eq(archer.cell, Vector2i(4, 1), "stopped at max range (4), walking only 3 of its 4 steps")
 	check(not archer.intent.is_empty(), "and telegraphed a shot")
+
+
+# --- EncounterData and TacticsBot ---------------------------------------------------------
+
+## A fair fight used by several tests: two heroes (one with a ranged ability) against two orcs,
+## with a short wall in the middle of an 8×6 board.
+func _fair_encounter() -> EncounterData:
+	var e := EncounterData.new()
+	e.id = &"fair"
+	e.grid_size = Vector2i(8, 6)
+	e.blocked = [Vector2i(4, 2), Vector2i(4, 3)] as Array[Vector2i]
+	var mage := _unit(&"mage", 8, 3, 2, 1, 2)
+	mage.abilities.append(_ability(&"bolt", 4, 4, RangeShapes.Shape.SINGLE, 1, 1))
+	e.add_spawn(_unit(&"knight", 14, 3, 4), Vector2i(0, 2), 0)
+	e.add_spawn(mage, Vector2i(0, 3), 0)
+	e.add_spawn(_unit(&"orc", 9, 3, 3), Vector2i(7, 2), 1)
+	e.add_spawn(_unit(&"orc", 9, 3, 3), Vector2i(7, 3), 1)
+	return e
+
+
+## build_model() places walls and units; every call gives an independent fresh board.
+func test_encounter_builds_fresh_models() -> void:
+	var e := _fair_encounter()
+	var a := e.build_model()
+	var b := e.build_model()
+	check_eq(a.living(0).size(), 2, "two heroes")
+	check_eq(a.living(1).size(), 2, "two orcs")
+	check(a.is_blocked(Vector2i(4, 2)), "wall placed")
+	a.apply_damage(a.living(0)[0], 99)
+	check_eq(b.living(0).size(), 2, "a second model is unaffected by the first")
+	check_eq(e.teams(), [0, 1] as Array[int], "teams sorted, player first")
+
+
+## A spawn on a wall is a design mistake: build_model() reports it loudly.
+func test_encounter_reports_bad_spawn() -> void:
+	expect_error("spawn 0 at (1, 1) is off-board, in a wall, or occupied")
+	var e := EncounterData.new()
+	e.grid_size = Vector2i(3, 3)
+	e.blocked = [Vector2i(1, 1)] as Array[Vector2i]
+	e.add_spawn(_unit(&"lost"), Vector2i(1, 1), 0)
+	check_eq(e.build_model().living().size(), 0, "the bad spawn is not placed")
+
+
+## The headline feature: the bot wins the fair fight, which PROVES it is winnable.
+func test_bot_proves_fair_encounter_winnable() -> void:
+	var result := TacticsBot.simulate(_fair_encounter())
+	check(result.won, "bot won: %s" % result)
+	check(result.rounds <= 20, "and did not need a stalemate-length battle (%d rounds)" % result.rounds)
+	check(result.survivors >= 1, "with a survivor")
+
+
+## Same setup, same result every time: no hidden randomness, so a CI pass is trustworthy.
+func test_bot_is_deterministic() -> void:
+	var first := TacticsBot.simulate(_fair_encounter())
+	var second := TacticsBot.simulate(_fair_encounter())
+	check_eq(first, second, "two runs of the same encounter")
+
+
+## A lopsided fight is flagged (won = false) and the simulation still ends.
+func test_bot_flags_lopsided_encounter() -> void:
+	var e := EncounterData.new()
+	e.grid_size = Vector2i(6, 6)
+	e.add_spawn(_unit(&"peasant", 4, 2, 1), Vector2i(0, 0), 0)
+	for i in 3:
+		e.add_spawn(_unit(&"ogre", 30, 4, 6), Vector2i(5, i), 1)
+	var result := TacticsBot.simulate(e)
+	check(not result.won, "bot cannot win 1 peasant vs 3 ogres: %s" % result)
+	check_eq(result.winner, 1, "the ogres win outright")
+
+
+## Two units that cannot reach each other: the round cap ends the simulation as a stalemate.
+func test_bot_stops_at_round_cap() -> void:
+	var e := EncounterData.new()
+	e.grid_size = Vector2i(5, 1)
+	e.blocked = [Vector2i(2, 0)] as Array[Vector2i]     # a wall splits the corridor
+	e.add_spawn(_unit(&"a"), Vector2i(0, 0), 0)
+	e.add_spawn(_unit(&"b"), Vector2i(4, 0), 1)
+	var result := TacticsBot.simulate(e, 10)
+	check(not result.won, "no winner")
+	check_eq(result.winner, -2, "-2 marks 'ran out of rounds'")
+
+
+## The bot reads telegraphs: it steps out of a marked cell when staying would cost HP for nothing.
+func test_bot_dodges_telegraphed_cell() -> void:
+	var m := GridModel.new(Vector2i(5, 5))
+	var hero := m.add_unit(_unit(&"hero", 10, 2, 3), 0, Vector2i(2, 2))
+	var archer := m.add_unit(_unit(&"archer", 50, 0, 6, 2, 4), 1, Vector2i(2, 0))
+	var marked: Array[Vector2i] = [Vector2i(2, 2)]
+	m.set_intent(archer, marked, 6)
+	TacticsBot.play_unit(m, hero)
+	check(hero.cell != Vector2i(2, 2), "left the marked cell (now at %s)" % hero.cell)
+	check(not m.danger_cells(0).has(hero.cell), "and is standing somewhere safe")
+
+
+## verify_folder() checks every saved encounter under a folder: the call a jam project puts in CI.
+func test_bot_verifies_a_folder_of_encounters() -> void:
+	var dir := "user://kit_test_encounters"
+	DirAccess.make_dir_recursive_absolute(dir)
+	ResourceSaver.save(_fair_encounter(), dir + "/fair.tres")
+	var results := TacticsBot.verify_folder(dir)
+	check_eq(results.size(), 1, "one encounter found")
+	check(results[dir + "/fair.tres"].won, "and proven winnable from its saved file")
+	DirAccess.remove_absolute(dir + "/fair.tres")
+	DirAccess.remove_absolute(dir)
